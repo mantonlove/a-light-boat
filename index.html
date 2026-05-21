@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 — 智慧银行理财顾问</title>
+<style>
+  :root {
+    --brand: #1e3a5f;
+    --brand-light: #2B5AED;
+    --bg: #f6f8fb;
+    --card-bg: #fff;
+    --text: #1a1d2e;
+    --text-secondary: #5f6b7a;
+    --text-muted: #8e96a3;
+    --border: #e2e6ed;
+    --radius: 16px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.04);
+    --shadow-hover: 0 4px 8px rgba(0,0,0,.06), 0 12px 32px rgba(0,0,0,.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 56px 40px 48px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  /* ── Top Bar ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 52px;
+  }
+  .top-bar .bank-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .top-bar .bank-brand .logo-mark {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--brand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .top-bar .demo-badge {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    background: #FFF7ED;
+    color: #C2410C;
+    border: 1px solid #FED7AA;
+    font-weight: 500;
+  }
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: .02em;
+    margin-bottom: 10px;
+  }
+  .hero h1 .accent { color: var(--brand-light); }
+  .hero .desc {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  /* ── Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 32px 24px 24px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all .3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-card);
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: #bcc8d8;
+  }
+  .card .card-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 18px;
+  }
+  .card.classic .card-icon { background: #EEF2FB; }
+  .card.senior .card-icon { background: #FFF3EB; }
+  .card.youth .card-icon { background: #F0EDFF; }
+  .card .card-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .card .card-who {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .card .card-features {
+    list-style: none;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 2;
+    margin-bottom: 20px;
+    flex: 1;
+  }
+  .card .card-features li::before {
+    content: ''; display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .card.classic .card-features li::before { background: #2B5AED; }
+  .card.senior .card-features li::before { background: #FF8C42; }
+  .card.youth .card-features li::before { background: #6C5CE7; }
+  .card .card-action {
+    display: block;
+    width: 100%;
+    padding: 11px 0;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all .2s;
+  }
+  .card.classic .card-action { background: #2B5AED; color: #fff; }
+  .card.senior .card-action { background: #FF8C42; color: #fff; }
+  .card.youth .card-action { background: #6C5CE7; color: #fff; }
+  .card .card-action:hover { opacity: .9; }
+  .card .card-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 10px;
+  }
+  /* ── Trust ── */
+  .trust-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 32px;
+    padding: 16px 0;
+    flex-wrap: wrap;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .trust-item .t-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #E6F7ED;
+    color: #10B981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+  }
+  /* ── Compliance ── */
+  .compliance-bar {
+    text-align: center;
+    padding: 18px 24px;
+    background: #FFFBF5;
+    border-radius: 12px;
+    border: 1px solid #FDE68A;
+    max-width: 740px;
+    margin: 0 auto;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #92400E;
+  }
+  .compliance-bar strong { display: block; margin-bottom: 4px; }
+
+  @media (max-width: 768px) {
+    .cards { grid-template-columns: 1fr; }
+    .page { padding: 24px 16px 32px; }
+    .hero h1 { font-size: 28px; }
+    .trust-strip { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="bank-brand">
+      <div class="logo-mark">舟</div>
+      <span>轻舟银行 · 智慧理财</span>
+    </div>
+    <span class="demo-badge">数据来源：中国理财网 / 中基协 / 证监会等官方平台</span>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>选择您的<span class="accent">专属</span>理财体验</h1>
+    <p class="desc">同一套专业理财引擎，三种交互方式。根据您的使用习惯选择最舒适的模式——推荐策略始终基于您的风险偏好和资产状况，千人千面。</p>
+  </div>
+
+  <!-- Quick Helper -->
+  <div style="text-align:center;margin-bottom:24px;">
+    <span style="font-size:13px;color:var(--text-muted);">不确定选哪个？ </span>
+    <a href="#" onclick="enter('classic');return false;" style="font-size:13px;color:var(--brand-light);font-weight:600;text-decoration:none;">先体验经典版 →</a>
+    <span style="font-size:13px;color:var(--text-muted);"> 进入后可随时切换</span>
+  </div>
+
+  <!-- Mode Cards -->
+  <div class="cards">
+    <!-- Classic -->
+    <div class="card classic" onclick="enter('classic')">
+      <div class="card-icon">💼</div>
+      <div class="card-name">经典版</div>
+      <div class="card-who">适合普通成年客户</div>
+      <ul class="card-features">
+        <li>全品类理财产品查询与对比</li>
+        <li>基于风险偏好的配置建议</li>
+        <li>专业市场数据与宏观解读</li>
+      </ul>
+      <button class="card-action">进入经典版</button>
+      <div class="card-note">进入后可随时切换模式</div>
+    </div>
+
+    <!-- Senior -->
+    <div class="card senior" onclick="enter('senior')">
+      <div class="card-icon">🌅</div>
+      <div class="card-name">银发族模式</div>
+      <div class="card-who">适合银发族老人</div>
+      <ul class="card-features">
+        <li>全程语音对话，无需打字</li>
+        <li>22px 大字号，高对比度配色</li>
+        <li>生活化语言讲解金融概念</li>
+      </ul>
+      <button class="card-action">进入银发族模式</button>
+      <div class="card-note">进入后自动开启语音引导</div>
+    </div>
+
+    <!-- Youth -->
+    <div class="card youth" onclick="enter('youth')">
+      <div class="card-icon">🎯</div>
+      <div class="card-name">Z世代模式</div>
+      <div class="card-who">适合Z世代年轻人</div>
+      <ul class="card-features">
+        <li>数据可视化、图表驱动交互</li>
+        <li>ESG、AI、ETF 等新概念产品</li>
+        <li>快节奏对话，专业不啰嗦</li>
+      </ul>
+      <button class="card-action">进入Z世代模式</button>
+      <div class="card-note">进入后可随时切换模式</div>
+    </div>
+  </div>
+
+  <!-- Trust -->
+  <div class="trust-strip">
+    <div class="trust-item"><span class="t-icon">✓</span> 元景万悟智能体平台</div>
+    <div class="trust-item"><span class="t-icon">✓</span> 30个官方金融数据源</div>
+    <div class="trust-item"><span class="t-icon">✓</span> 四层合规审核护栏</div>
+    <div class="trust-item"><span class="t-icon">✓</span> 多模态大模型驱动</div>
+  </div>
+
+  <!-- Compliance -->
+  <div class="compliance-bar">
+    <strong>⚠️ 风险提示</strong>
+    理财非存款，产品有风险，投资须谨慎。本平台提供的信息与建议仅供参考，不构成投资承诺。产品过往业绩不代表未来收益。请根据自身风险承受能力选择合适的产品。
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script>
+function enter(mode) {
+  Storage.set('qingzhou_mode', mode);
+  window.location.href = 'chat.html?mode=' + mode;
+}
+</script>
+</body>
+</html>

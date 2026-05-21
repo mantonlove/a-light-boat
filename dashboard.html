@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 · 推荐配置方案</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <div>
+      <h1 style="font-size:var(--font-size-xl);font-weight:700;">轻舟 · 推荐配置方案</h1>
+      <p style="font-size:var(--font-size-sm);color:var(--text-muted);">基于您的风险偏好与对话生成，非实际持仓</p>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="empty-state hidden">
+    <div class="empty-icon">📊</div>
+    <h3>暂无配置方案</h3>
+    <p>您还没有让轻舟为您做过资产配置。</p>
+    <p style="color:var(--text-secondary);">返回聊天页，试试这样说：</p>
+    <div class="sample-queries">
+      <span onclick="goBack()">💬 "帮我配置一下我的资金"</span>
+      <span onclick="goBack()">💬 "20 万 3 年不用，怎么分配？"</span>
+      <span onclick="goBack()">💬 "推荐一个适合我的投资组合"</span>
+    </div>
+    <button class="retry-btn" onclick="goBack()" style="margin-top:12px;">返回聊天</button>
+  </div>
+
+  <!-- Content -->
+  <div id="dashboardContent" class="hidden">
+    <!-- Risk Gauge -->
+    <div class="dashboard-card full" id="riskGaugeCard"></div>
+
+    <!-- Charts Row -->
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <h3>推荐配置方案（基于您的回答）</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+      <div class="dashboard-card">
+        <h3>预期收益区间（历史回测模拟）</h3>
+        <canvas id="lineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="dashboard-card full">
+      <h3>方案指标（基于推荐组合回测）</h3>
+      <div class="metrics-row" id="metricsRow"></div>
+    </div>
+
+    <!-- Evidence -->
+    <div class="dashboard-card full" id="evidenceCard">
+      <h3>📋 方案依据</h3>
+      <ul class="evidence-list" id="evidenceList"></ul>
+    </div>
+
+    <!-- Compliance -->
+    <p style="text-align:center;font-size:var(--font-size-sm);color:var(--compliance-tag);margin-top:var(--spacing-lg);">
+      ⚠️ 以上为参考建议，历史回测不代表未来收益。投资需谨慎。
+    </p>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/config.js"></script>
+<script src="js/router.js"></script>
+<script src="js/profile_engine.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

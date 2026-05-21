@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中国理财产品官方文件知识库</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf7f0;
+    --sidebar-bg: #1c2433;
+    --sidebar-hover: #263044;
+    --sidebar-active: #2d3d55;
+    --text: #1a1d23;
+    --text-secondary: #5e636e;
+    --text-muted: #949aa6;
+    --accent: #b8860b;
+    --accent-light: #f0d78c;
+    --border: #e5ded3;
+    --card-bg: #fefcf8;
+    --tag-current: #d4edda;
+    --tag-current-text: #2d6a4f;
+    --tag-historical: #e8e0d5;
+    --tag-historical-text: #6b5e3e;
+    --tag-pdf: #fce4d6;
+    --tag-pdf-text: #8b3a2a;
+    --tag-html: #dbeafe;
+    --tag-html-text: #1e40af;
+    --tag-excel: #d1fae5;
+    --tag-excel-text: #065f46;
+    --radius: 8px;
+    --font-serif: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+    --font-body: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: var(--sidebar-bg);
+    color: #c8d0da;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    border-right: 1px solid rgba(0,0,0,0.2);
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .sidebar-header h1 {
+    font-family: var(--font-serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: #e8e0d0;
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+
+  .sidebar-header .subtitle {
+    font-size: 11px;
+    color: #7a8494;
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .search-wrap {
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06);
+    color: #d8dde6;
+    font-size: 13px;
+    font-family: var(--font-body);
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .search-wrap input:focus {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(184,134,11,0.2);
+  }
+
+  .search-wrap input::placeholder { color: #5a6470; }
+
+  .search-wrap .search-icon {
+    position: absolute;
+    left: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #5a6470;
+    pointer-events: none;
+  }
+
+  .nav-tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .nav-tree::-webkit-scrollbar { width: 4px; }
+  .nav-tree::-webkit-scrollbar-track { background: transparent; }
+  .nav-tree::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .nav-group {
+    margin-bottom: 2px;
+  }
+
+  .nav-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0aab6;
+    transition: all 0.15s;
+    user-select: none;
+    border-left: 3px solid transparent;
+  }
+
+  .nav-group-header:hover {
+    color: #d0d8e4;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .nav-group-header .arrow {
+    font-size: 9px;
+    transition: transform 0.2s;
+    opacity: 0.5;
+  }
+
+  .nav-group.open .nav-group-header .arrow {
+    transform: rotate(90deg);
+    opacity: 0.8;
+  }
+
+  .nav-group-header .count {
+    font-size: 10px;
+    color: #5a6470;
+    font-weight: 400;
+    margin-left: auto;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .nav-group.open .nav-links {
+    display: block;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 6px 20px 6px 36px;
+    font-size: 12px;
+    color: #788490;
+    text-decoration: none;
+    transition: all 0.12s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent-light);
+    background: rgba(255,255,255,0.04);
+    border-left-color: var(--accent);
+  }
+
+  .sidebar-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 10px;
+    color: #4a5460;
+    text-align: center;
+  }
+
+  /* ── Main Content ── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  .main::-webkit-scrollbar { width: 6px; }
+  .main::-webkit-scrollbar-track { background: transparent; }
+  .main::-webkit-scrollbar-thumb { background: #d5cec0; border-radius: 3px; }
+
+  .main-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  .page-header {
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .page-header h2 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .page-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 100px;
+    background: #ece4d4;
+    color: #5e4a2a;
+    font-weight: 600;
+  }
+
+  /* ── Section ── */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .section-header h3 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .section-header .section-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-family: var(--font-mono);
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+    padding-left: 12px;
+    border-left: 2px solid var(--accent);
+  }
+
+  /* ── Cards ── */
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .card:hover {
+    border-color: #c8b898;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-title a {
+    color: #1a3a6b;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    background: #f0f4fa;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.15s;
+    word-break: break-all;
+  }
+
+  .card-title a:hover {
+    background: #dbeafe;
+    color: #1e40af;
+    text-decoration: underline;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .tag-current { background: var(--tag-current); color: var(--tag-current-text); }
+  .tag-historical { background: var(--tag-historical); color: var(--tag-historical-text); }
+  .tag-all { background: #e8e0d5; color: #4a3a2a; }
+  .tag-pdf { background: var(--tag-pdf); color: var(--tag-pdf-text); }
+  .tag-html { background: var(--tag-html); color: var(--tag-html-text); }
+  .tag-excel { background: var(--tag-excel); color: var(--tag-excel-text); }
+  .tag-csv { background: #ede9fe; color: #5b21b6; }
+
+  /* ── Sub-items (for AMAC sub-entries) ── */
+  .sub-list {
+    margin-top: 8px;
+    padding-left: 16px;
+    border-left: 2px solid #e8e0d5;
+  }
+
+  .sub-item {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 3px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sub-item::before {
+    content: '·';
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* ── Highlight animation ── */
+  .card.highlight {
+    animation: flash 1.5s ease-out;
+  }
+
+  @keyframes flash {
+    0% { background: #fff3cd; border-color: var(--accent); }
+    100% { background: var(--card-bg); border-color: var(--border); }
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+
+  .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .sidebar { width: 260px; min-width: 260px; }
+    .main-inner { padding: 24px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>理财产品官方文件<br>知识库</h1>
+    <div class="subtitle">Financial Product Document Registry</div>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">&#x1F50D;</span>
+    <input type="text" id="searchInput" placeholder="搜索机构、产品、链接…" autocomplete="off">
+  </div>
+
+  <nav class="nav-tree" id="navTree">
+    <div class="nav-group open" data-category="bank-wealth">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 银行理财 <span class="count">3</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" data-target="bank-wealth" onclick="scrollToSection('bank-wealth'); setActive(this)">中国理财网</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="mutual-fund">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 公募 & 私募基金 <span class="count">10</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="mutual-fund" onclick="scrollToSection('mutual-fund'); setActive(this)">中国证券投资基金业协会</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="fund-disclosure">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 基金公告 & 招募书 <span class="count">3</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="fund-disclosure" onclick="scrollToSection('fund-disclosure'); setActive(this)">信息披露平台</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="csrc">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 证监会 <span class="count">8</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="csrc" onclick="scrollToSection('csrc'); setActive(this)">中国证监会</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="bond">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 债券 <span class="count">3</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="bond" onclick="scrollToSection('bond'); setActive(this)">债券登记托管</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="insurance">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 保险理财 <span class="count">1</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="insurance" onclick="scrollToSection('insurance'); setActive(this)">国家金融监督管理总局</a>
+      </div>
+    </div>
+
+    <div class="nav-group open" data-category="other">
+      <div class="nav-group-header" onclick="toggleGroup(this)">
+        <span class="arrow">&#9654;</span> 其他 <span class="count">2</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link" data-target="other" onclick="scrollToSection('other'); setActive(this)">信托 & 信贷资产</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    截至 2026.05 · 共收录 30 个官方入口
+  </div>
+</aside>
+
+<!-- ═══════════ MAIN CONTENT ═══════════ -->
+<main class="main" id="mainContent">
+<div class="main-inner">
+
+  <div class="page-header">
+    <h2>中国理财产品官方文件数据库</h2>
+    <p>收录银行理财、公募基金、私募基金、债券、保险理财等主要金融产品的官方登记、信息披露与文件下载入口。所有链接均来自监管机构指定的权威平台，覆盖现行产品与历史归档。</p>
+    <div class="stats-row">
+      <span class="stat-pill">30 个官方入口</span>
+      <span class="stat-pill">7 大类产品</span>
+      <span class="stat-pill">现行 + 历史</span>
+      <span class="stat-pill">持续更新</span>
+    </div>
+  </div>
+
+  <!-- ══════ 银行理财 ══════ -->
+  <section class="section" id="section-bank-wealth">
+    <div class="section-header">
+      <h3>银行理财产品</h3>
+      <span class="section-count">3 个入口</span>
+    </div>
+    <div class="section-desc">
+      银行业理财登记托管中心运营，国家金融监督管理总局指定——全国银行业理财产品官方登记与信息披露唯一平台。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="中国理财网 理财产品 综合查询">
+        <div class="card-top">
+          <div class="card-title">
+            理财产品综合查询
+            <a href="https://www.chinawealth.com.cn/lcweb/management/proScreen" target="_blank" rel="noopener">chinawealth.com.cn/lcweb/management/proScreen</a>
+          </div>
+        </div>
+        <div class="card-desc">按产品登记编码、发行机构、产品名称筛选；可查在售、存续、已到期全部产品。支持鉴别产品真伪。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="信息披露 销售文件 发行公告 到期公告 定期报告">
+        <div class="card-top">
+          <div class="card-title">
+            信息披露平台
+            <a href="https://xinxipilu.chinawealth.com.cn" target="_blank" rel="noopener">xinxipilu.chinawealth.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">五大披露维度：销售文件、发行公告、到期公告、定期报告、净值公告。按产品名称/登记编码/发行机构检索。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="季度报告 年度报告 行业报告 下载 2018-2026">
+        <div class="card-top">
+          <div class="card-title">
+            理财市场行业报告
+            <a href="https://www.chinawealth.com.cn/lc_lcsj/lcbg/" target="_blank" rel="noopener">chinawealth.com.cn/lc_lcsj/lcbg/</a>
+          </div>
+        </div>
+        <div class="card-desc">2018 年至 2026 年全部季度、半年度、年度《中国银行业理财市场报告》PDF 下载。含市场规模、投资者结构、资产配置等宏观数据。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 公募 & 私募基金 ══════ -->
+  <section class="section" id="section-mutual-fund">
+    <div class="section-header">
+      <h3>公募基金 & 私募基金</h3>
+      <span class="section-count">10 个入口</span>
+    </div>
+    <div class="section-desc">
+      中国证券投资基金业协会（AMAC）——证监会主管的行业自律组织，负责公募基金与私募基金的产品备案、信息披露与从业人员管理。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="信息公示 18个入口 私募基金 管理人 查询">
+        <div class="card-top">
+          <div class="card-title">
+            信息公示总入口（18 项子查询）
+            <a href="https://gs.amac.org.cn" target="_blank" rel="noopener">gs.amac.org.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">协会核心公示平台，涵盖公募基金、私募基金、资管产品、ABS、从业人员等全部信息查询入口。</div>
+        <div class="sub-list">
+          <div class="sub-item">私募基金管理人基金产品</div>
+          <div class="sub-item">证券公司集合资管产品</div>
+          <div class="sub-item">证券公司直投基金 / 私募投资基金</div>
+          <div class="sub-item">基金公司私募投资基金 / 集合资管产品</div>
+          <div class="sub-item">资产支持专项计划（ABS）</div>
+          <div class="sub-item">期货公司集合资管产品</div>
+          <div class="sub-item">私募基金管理人分类查询 / 中止机构 / 终止机构</div>
+          <div class="sub-item">已注销私募基金管理人公示</div>
+          <div class="sub-item">公募基金业绩比较基准要素库</div>
+          <div class="sub-item">基金管理公司移动应用软件信息公示</div>
+        </div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="基金产品 查询 公募 私募 从业人员">
+        <div class="card-top">
+          <div class="card-title">
+            基金产品查询
+            <a href="https://www.amac.org.cn/fwdt/wyc/jgcprycx/cpcx/" target="_blank" rel="noopener">amac.org.cn/fwdt/wyc/jgcprycx/cpcx/</a>
+          </div>
+        </div>
+        <div class="card-desc">按产品类型、管理人、产品名称直接检索公募及私募基金产品备案信息。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="公募基金 市场数据 月度 统计报告">
+        <div class="card-top">
+          <div class="card-title">
+            公募基金月度市场数据
+            <a href="https://www.amac.org.cn/sjtj/tjbg/gmjj/" target="_blank" rel="noopener">amac.org.cn/sjtj/tjbg/gmjj/</a>
+          </div>
+        </div>
+        <div class="card-desc">每月公募基金市场规模数据：基金数量、份额、净值、资产净值等宏观统计数据。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-excel">Excel</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="私募基金 备案月报 月度">
+        <div class="card-top">
+          <div class="card-title">
+            私募基金备案月报
+            <a href="https://www.amac.org.cn/sjtj/tjbg/smjj/" target="_blank" rel="noopener">amac.org.cn/sjtj/tjbg/smjj/</a>
+          </div>
+        </div>
+        <div class="card-desc">私募基金管理人登记及产品备案月度数据汇总，含存续规模、新增备案等。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-excel">Excel</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="私募资管 产品备案 月报 证券期货">
+        <div class="card-top">
+          <div class="card-title">
+            私募资管产品备案月报
+            <a href="https://www.amac.org.cn/sjtj/tjbg/smzg/" target="_blank" rel="noopener">amac.org.cn/sjtj/tjbg/smzg/</a>
+          </div>
+        </div>
+        <div class="card-desc">证券期货经营机构私募资管产品备案月度数据。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-excel">Excel</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="资产证券化 ABS 备案 简报">
+        <div class="card-top">
+          <div class="card-title">
+            资产支持专项计划备案简报
+            <a href="https://www.amac.org.cn/sjtj/tjbg/zczqh/" target="_blank" rel="noopener">amac.org.cn/sjtj/tjbg/zczqh/</a>
+          </div>
+        </div>
+        <div class="card-desc">ABS 备案运行情况月度简报。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-excel">Excel</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="年报 基金业 年度报告">
+        <div class="card-top">
+          <div class="card-title">
+            中国证券投资基金业年报
+            <a href="https://www.amac.org.cn/sjtj/tjbg/nb/" target="_blank" rel="noopener">amac.org.cn/sjtj/tjbg/nb/</a>
+          </div>
+        </div>
+        <div class="card-desc">基金行业年度全景报告，含资产管理规模、投资者结构、产品分布等深度数据。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="基金法规 法律 自律规则 法规库">
+        <div class="card-top">
+          <div class="card-title">
+            基金法规库
+            <a href="https://fg.amac.org.cn" target="_blank" rel="noopener">fg.amac.org.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">收录《基金法》及全部基金行业法律法规、自律规则，全文可检索。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="私募基金 信息披露 备份 系统">
+        <div class="card-top">
+          <div class="card-title">
+            私募基金信息披露备份系统
+            <a href="https://pfid.amac.org.cn" target="_blank" rel="noopener">pfid.amac.org.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">私募基金管理人向协会报送产品信息的专有系统，投资者可查询所持产品披露文件。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="常见问答 业务 知识库">
+        <div class="card-top">
+          <div class="card-title">
+            业务常见问答
+            <a href="https://km.amac.org.cn" target="_blank" rel="noopener">km.amac.org.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">基金行业从业者常用业务问题知识库，含产品备案、登记流程等实操指引。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 基金公告 & 招募说明书 ══════ -->
+  <section class="section" id="section-fund-disclosure">
+    <div class="section-header">
+      <h3>基金公告 & 招募说明书</h3>
+      <span class="section-count">3 个入口</span>
+    </div>
+    <div class="section-desc">
+      证监会指定的信息披露平台，涵盖公募基金招募说明书、基金合同、定期报告（季报/半年报/年报）、临时公告等全部法定披露文件。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="巨潮资讯 基金公告 招募说明书 定期报告">
+        <div class="card-top">
+          <div class="card-title">
+            巨潮资讯网 — 基金公告
+            <a href="http://www.cninfo.com.cn/new/commonUrl?url=disclosure/list/notice#fund" target="_blank" rel="noopener">cninfo.com.cn → 公告 → 基金</a>
+          </div>
+        </div>
+        <div class="card-desc">证监会指定的法定信息披露网站，收录所有公募基金的招募说明书、基金合同、定期报告及临时公告，历史数据完整。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="上交所 基金 信息披露 公告">
+        <div class="card-top">
+          <div class="card-title">
+            上海证券交易所 — 基金信息
+            <a href="http://www.sse.com.cn" target="_blank" rel="noopener">sse.com.cn → 基金 → 基金公告</a>
+          </div>
+        </div>
+        <div class="card-desc">上交所上市基金（ETF、LOF 等）全部公告与信息披露文件。按基金代码/简称检索。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="深交所 基金 信息披露 公告">
+        <div class="card-top">
+          <div class="card-title">
+            深圳证券交易所 — 基金信息
+            <a href="http://www.szse.cn" target="_blank" rel="noopener">szse.cn → 信息披露 → 基金信息</a>
+          </div>
+        </div>
+        <div class="card-desc">深交所上市基金全部公告与信息披露文件。按基金代码/简称检索。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 证监会 ══════ -->
+  <section class="section" id="section-csrc">
+    <div class="section-header">
+      <h3>中国证监会</h3>
+      <span class="section-count">8 个入口</span>
+    </div>
+    <div class="section-desc">
+      中国证券监督管理委员会——国务院直属正部级事业单位，负责证券、期货、基金市场的统一监管。所有基金产品的注册/核准均在此公示。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="许可 结果 公示 产品 批复 注册">
+        <div class="card-top">
+          <div class="card-title">
+            许可结果公示
+            <a href="http://www.csrc.gov.cn/csrc/c101967/zfxxgk_zdgk.shtml?channelid=d5483bfd719e4e8d95ffbe975b2f73ff" target="_blank" rel="noopener">csrc.gov.cn/csrc/c101967/</a>
+          </div>
+        </div>
+        <div class="card-desc">基金募集注册、基金管理公司设立、QDII 额度等所有行政许可结果的正式公示，含批复文号全文。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="信息披露 诚信查询 平台">
+        <div class="card-top">
+          <div class="card-title">
+            信息披露 / 诚信查询平台
+            <a href="http://eid.csrc.gov.cn" target="_blank" rel="noopener">eid.csrc.gov.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">上市公司、基金管理公司、证券公司等市场主体信息披露文件集中查询，含诚信档案查询。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="政务 服务 平台 办事">
+        <div class="card-top">
+          <div class="card-title">
+            政务服务平台
+            <a href="https://neris.csrc.gov.cn/portal/portalHome/index" target="_blank" rel="noopener">neris.csrc.gov.cn/portal</a>
+          </div>
+        </div>
+        <div class="card-desc">行政许可在线申报、进度查询、办事指南等一站式政务服务入口。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="许可 审核 进度 查询">
+        <div class="card-top">
+          <div class="card-title">
+            许可审核进度查询
+            <a href="http://www.csrc.gov.cn/csrc/c105985/zfxxgk_zdgk.shtml" target="_blank" rel="noopener">csrc.gov.cn/csrc/c105985/</a>
+          </div>
+        </div>
+        <div class="card-desc">基金公司设立、基金募集注册等行政许可事项的实时审核进度查询。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="发审会 公告 审核 会议">
+        <div class="card-top">
+          <div class="card-title">
+            发审会公告
+            <a href="http://www.csrc.gov.cn/csrc/c101975/zfxxgk_zdgk.shtml" target="_blank" rel="noopener">csrc.gov.cn/csrc/c101975/</a>
+          </div>
+        </div>
+        <div class="card-desc">发行审核委员会会议公告及审核结果公示。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="行政处罚 决定书 处罚">
+        <div class="card-top">
+          <div class="card-title">
+            行政处罚决定书
+            <a href="http://www.csrc.gov.cn/csrc/c101971/zfxxgk_zdgk.shtml" target="_blank" rel="noopener">csrc.gov.cn/csrc/c101971/</a>
+          </div>
+        </div>
+        <div class="card-desc">对基金管理公司、证券公司等市场主体的行政处罚决定全文。风控/尽调重要参考。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="监管 措施 警示函 责令">
+        <div class="card-top">
+          <div class="card-title">
+            监管措施
+            <a href="http://www.csrc.gov.cn/csrc/c100044/tz.shtml" target="_blank" rel="noopener">csrc.gov.cn/csrc/c100044/</a>
+          </div>
+        </div>
+        <div class="card-desc">出具警示函、责令改正、监管谈话等日常监管措施公示。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="证券市场 快报 月报 统计">
+        <div class="card-top">
+          <div class="card-title">
+            证券市场快报 / 月报
+            <a href="http://www.csrc.gov.cn/csrc/c100119/common_list.shtml" target="_blank" rel="noopener">csrc.gov.cn/csrc/c100119/</a>
+          </div>
+        </div>
+        <div class="card-desc">证券市场月度、年度统计快报数据，含市场规模、交易量、投资者数量等宏观指标。</div>
+        <div class="card-meta">
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-excel">Excel</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 债券 ══════ -->
+  <section class="section" id="section-bond">
+    <div class="section-header">
+      <h3>债券</h3>
+      <span class="section-count">3 个入口</span>
+    </div>
+    <div class="section-desc">
+      中国债券市场由多个登记托管机构分头管理，涵盖国债、地方债、金融债、信用债等品种。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="外汇交易中心 银行间 债券 信息披露 CFETS">
+        <div class="card-top">
+          <div class="card-title">
+            中国外汇交易中心（CFETS）
+            <a href="https://www.chinamoney.com.cn" target="_blank" rel="noopener">chinamoney.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">银行间债券市场信息披露平台，涵盖国债、政策性金融债、同业存单等产品的发行与交易公告。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="中债登 中央结算 国债 地方债 金融债">
+        <div class="card-top">
+          <div class="card-title">
+            中央结算公司（中债登 / CCDC）
+            <a href="https://www.chinabond.com.cn" target="_blank" rel="noopener">chinabond.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">国债、地方政府债、政策性金融债的总登记托管机构。中债估值收益率曲线官方来源。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+          <span class="tag tag-excel">Excel</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="上清所 信用债 短期融资券 中期票据">
+        <div class="card-top">
+          <div class="card-title">
+            上海清算所（上清所 / SHCH）
+            <a href="https://www.shclearing.com.cn" target="_blank" rel="noopener">shclearing.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">信用债（短融、中票、公司债等）登记托管与信息披露平台。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 保险理财 ══════ -->
+  <section class="section" id="section-insurance">
+    <div class="section-header">
+      <h3>保险理财产品</h3>
+      <span class="section-count">1 个入口</span>
+    </div>
+    <div class="section-desc">
+      国家金融监督管理总局（原银保监会）——银行与保险行业的统一监管机构，保险产品备案与信息披露的主管机关。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="金融监管总局 保险 产品 备案 人身险">
+        <div class="card-top">
+          <div class="card-title">
+            国家金融监督管理总局
+            <a href="https://www.nfra.gov.cn" target="_blank" rel="noopener">nfra.gov.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">保险产品备案信息查询、人身保险产品信息库、监管政策法规。增额终身寿险、年金险、万能险等理财型保险的备案文件均在此公示。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-pdf">PDF</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════ 其他 ══════ -->
+  <section class="section" id="section-other">
+    <div class="section-header">
+      <h3>其他</h3>
+      <span class="section-count">2 个入口</span>
+    </div>
+    <div class="section-desc">
+      信托产品与信贷资产流转等其他金融产品的官方登记与信息披露平台。
+    </div>
+    <div class="card-list">
+
+      <div class="card" data-keywords="信托 登记 中国信托登记公司">
+        <div class="card-top">
+          <div class="card-title">
+            中国信托登记有限责任公司
+            <a href="https://www.chinatrc.com.cn" target="_blank" rel="noopener">chinatrc.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">信托产品及其受益权信息的集中登记平台。信托计划发行、成立、存续期及终止信息均可查询。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-historical">历史</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+      <div class="card" data-keywords="银登 信贷 资产 流转">
+        <div class="card-top">
+          <div class="card-title">
+            银行业信贷资产登记流转中心
+            <a href="https://www.yindeng.com.cn" target="_blank" rel="noopener">yindeng.com.cn</a>
+          </div>
+        </div>
+        <div class="card-desc">信贷资产及其收益权登记流转的官方平台，含信贷资产流转产品信息披露。</div>
+        <div class="card-meta">
+          <span class="tag tag-current">现行</span>
+          <span class="tag tag-html">HTML</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+</main>
+
+<script>
+  // ── Sidebar group toggle ──
+  function toggleGroup(header) {
+    header.parentElement.classList.toggle('open');
+  }
+
+  // ── Sidebar link active state ──
+  function setActive(el) {
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── Scroll to section ──
+  function scrollToSection(id) {
+    const section = document.getElementById('section-' + id);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // ── Search ──
+  const searchInput = document.getElementById('searchInput');
+  const mainContent = document.getElementById('mainContent');
+
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim().toLowerCase();
+    const cards = document.querySelectorAll('.card');
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const navGroups = document.querySelectorAll('.nav-group');
+
+    if (!query) {
+      // Reset: show all
+      cards.forEach(c => c.style.display = '');
+      sections.forEach(s => s.style.display = '');
+      navLinks.forEach(l => l.style.display = '');
+      navGroups.forEach(g => g.style.display = '');
+      return;
+    }
+
+    let anyVisible = false;
+
+    sections.forEach(section => {
+      let sectionHasVisible = false;
+
+      section.querySelectorAll('.card').forEach(card => {
+        const keywords = (card.dataset.keywords || '') + ' ' + (card.textContent || '');
+        const match = keywords.toLowerCase().includes(query);
+        card.style.display = match ? '' : 'none';
+        if (match) sectionHasVisible = true;
+      });
+
+      section.style.display = sectionHasVisible ? '' : 'none';
+      if (sectionHasVisible) anyVisible = true;
+    });
+
+    // Hide sidebar groups with no matches
+    navGroups.forEach(group => {
+      const cat = group.dataset.category;
+      const sec = document.getElementById('section-' + cat);
+      group.style.display = (sec && sec.style.display !== 'none') ? '' : 'none';
+    });
+  });
+
+  // ── Keyboard shortcut: Cmd/Ctrl+K to focus search ──
+  document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  });
+
+  // ── Intersection Observer: highlight active nav link on scroll ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const sectionId = entry.target.id.replace('section-', '');
+        document.querySelectorAll('.nav-link').forEach(l => {
+          l.classList.remove('active');
+          if (l.dataset.target === sectionId) l.classList.add('active');
+        });
+      }
+    });
+  }, { rootMargin: '-80px 0px -60% 0px' });
+
+  document.querySelectorAll('.section').forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

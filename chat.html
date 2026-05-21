@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 · 对话</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <span class="logo-text" style="font-size:var(--font-size-lg);">🚣 轻舟</span>
+      <span class="mode-badge" id="modeBadge">经典版</span>
+      <span class="handoff-badge" id="handoffBadge">🔴 转接中</span>
+    </div>
+    <div class="chat-header-right">
+      <button onclick="switchMode()">切换模式 ▾</button>
+      <button onclick="goTo('mine.html')">👤 我的</button>
+    </div>
+  </div>
+
+  <!-- Preset questions -->
+  <div class="preset-bar" id="presetBar"></div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chatMessages">
+    <div class="message ai">
+      <div class="avatar">🚣</div>
+      <div class="bubble">
+        <span id="welcomeMsg">您好！我是轻舟，您的智慧银行理财顾问。请问有什么可以帮您？</span>
+        <span class="compliance-tag">⚠️ 理财非存款，产品有风险，投资须谨慎。</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy guide (first time) -->
+  <div class="privacy-guide hidden" id="privacyGuide">
+    <h4 id="privacyTitle">🔒 隐私与个性化服务说明</h4>
+    <p>为提供更精准的理财建议，轻舟会在对话中了解您的投资偏好和资产情况，并建立个人档案。</p>
+    <ul>
+      <li>您的档案仅存储在本地，可随时修改或删除</li>
+      <li>未经您确认，不会用于其他用途</li>
+      <li>您可以随时在「我的」中管理授权</li>
+    </ul>
+    <div class="privacy-actions">
+      <button class="btn-primary" onclick="acceptPrivacy()">我知道了</button>
+    </div>
+  </div>
+
+  <!-- Image preview -->
+  <div class="image-preview-row hidden" id="imagePreview">
+    <img id="previewImg" src="" alt="">
+    <button class="remove-img" onclick="removeImage()">✕</button>
+  </div>
+
+  <!-- Input area -->
+  <div class="chat-input-area">
+    <div class="input-row">
+      <button class="plus-btn" onclick="triggerUpload()" title="上传图片">＋</button>
+      <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageUpload(event)" style="display:none;">
+      <textarea id="userInput" rows="1" placeholder="输入您的问题..." onkeydown="handleKeyDown(event)"></textarea>
+      <button class="voice-btn hidden" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎤</button>
+      <button class="dashboard-btn" onclick="goTo('dashboard.html')" title="推荐方案">📊</button>
+      <button class="send-btn" onclick="sendMessage()" id="sendBtn" disabled>↑</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/config.js"></script>
+<script src="js/router.js"></script>
+<script src="js/profile_engine.js"></script>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/chat.js"></script>
+</body>
+</html>

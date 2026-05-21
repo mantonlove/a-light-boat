@@ -1,0 +1,317 @@
+{
+  "_description": "轻舟 RAG 知识库——官方数据源目录。所有产品查询、法规引用、市场数据均来自以下监管机构指定的权威平台。",
+  "_updated": "2026-05-22",
+  "_total_sources": 30,
+  "_categories": 7,
+
+  "bank_wealth_management": {
+    "name": "银行理财产品",
+    "description": "银行业理财登记托管中心运营，国家金融监督管理总局指定——全国银行业理财产品官方登记与信息披露唯一平台。",
+    "source_count": 3,
+    "sources": [
+      {
+        "id": "BW001",
+        "name": "理财产品综合查询",
+        "url": "https://www.chinawealth.com.cn/lcweb/management/proScreen",
+        "type": "实时查询",
+        "formats": ["HTML"],
+        "coverage": "在售、存续、已到期全部产品",
+        "use_case": "按产品登记编码/发行机构/产品名称查询产品详情，鉴别产品真伪"
+      },
+      {
+        "id": "BW002",
+        "name": "信息披露平台",
+        "url": "https://xinxipilu.chinawealth.com.cn",
+        "type": "实时查询 + 历史归档",
+        "formats": ["PDF", "HTML"],
+        "coverage": "销售文件、发行公告、到期公告、定期报告、净值公告",
+        "use_case": "查询具体产品的完整信息披露文件"
+      },
+      {
+        "id": "BW003",
+        "name": "理财市场行业报告",
+        "url": "https://www.chinawealth.com.cn/lc_lcsj/lcbg/",
+        "type": "定期报告",
+        "formats": ["PDF"],
+        "coverage": "2018-2026 年季度、半年度、年度报告",
+        "use_case": "市场宏观数据：规模、投资者结构、资产配置趋势"
+      }
+    ]
+  },
+
+  "mutual_fund": {
+    "name": "公募基金 & 私募基金",
+    "description": "中国证券投资基金业协会（AMAC）——证监会主管的行业自律组织，负责基金产品备案、信息披露与从业人员管理。",
+    "source_count": 10,
+    "sources": [
+      {
+        "id": "MF001",
+        "name": "信息公示总入口（18项子查询）",
+        "url": "https://gs.amac.org.cn",
+        "type": "实时查询",
+        "formats": ["HTML"],
+        "coverage": "公募/私募基金、资管产品、ABS、从业人员等全部信息",
+        "use_case": "一站式查询入口"
+      },
+      {
+        "id": "MF002",
+        "name": "基金产品查询",
+        "url": "https://www.amac.org.cn/fwdt/wyc/jgcprycx/cpcx/",
+        "type": "实时查询",
+        "formats": ["HTML"],
+        "coverage": "公募及私募基金产品备案信息",
+        "use_case": "按产品类型/管理人/产品名称检索"
+      },
+      {
+        "id": "MF003",
+        "name": "公募基金月度市场数据",
+        "url": "https://www.amac.org.cn/sjtj/tjbg/gmjj/",
+        "type": "月度统计",
+        "formats": ["Excel", "HTML"],
+        "coverage": "基金数量、份额、净值、资产净值等宏观数据",
+        "use_case": "市场规模趋势分析"
+      },
+      {
+        "id": "MF004",
+        "name": "私募基金备案月报",
+        "url": "https://www.amac.org.cn/sjtj/tjbg/smjj/",
+        "type": "月度统计",
+        "formats": ["Excel", "HTML"],
+        "coverage": "私募管理人登记及产品备案月度数据",
+        "use_case": "私募市场动态追踪"
+      },
+      {
+        "id": "MF005",
+        "name": "私募资管产品备案月报",
+        "url": "https://www.amac.org.cn/sjtj/tjbg/smzg/",
+        "type": "月度统计",
+        "formats": ["Excel", "HTML"],
+        "coverage": "证券期货经营机构私募资管月度数据",
+        "use_case": "资管产品市场动态"
+      },
+      {
+        "id": "MF006",
+        "name": "资产支持专项计划备案简报",
+        "url": "https://www.amac.org.cn/sjtj/tjbg/zczqh/",
+        "type": "月度统计",
+        "formats": ["Excel"],
+        "coverage": "ABS备案运行情况",
+        "use_case": "ABS市场动态"
+      },
+      {
+        "id": "MF007",
+        "name": "中国证券投资基金业年报",
+        "url": "https://www.amac.org.cn/sjtj/tjbg/nb/",
+        "type": "年度报告",
+        "formats": ["PDF"],
+        "coverage": "资产管理规模、投资者结构、产品分布等深度数据",
+        "use_case": "年度全景分析"
+      },
+      {
+        "id": "MF008",
+        "name": "基金法规库",
+        "url": "https://fg.amac.org.cn",
+        "type": "法规数据库",
+        "formats": ["HTML"],
+        "coverage": "《基金法》及全部基金行业法律法规、自律规则全文",
+        "use_case": "合规审查、法规引用"
+      },
+      {
+        "id": "MF009",
+        "name": "私募基金信息披露备份系统",
+        "url": "https://pfid.amac.org.cn",
+        "type": "信息披露",
+        "formats": ["PDF"],
+        "coverage": "私募管理人向协会报送的产品信息",
+        "use_case": "投资者查询所持产品披露文件"
+      },
+      {
+        "id": "MF010",
+        "name": "业务常见问答知识库",
+        "url": "https://km.amac.org.cn",
+        "type": "知识库",
+        "formats": ["HTML"],
+        "coverage": "基金行业业务问题知识库",
+        "use_case": "产品备案、登记流程等实操指引"
+      }
+    ]
+  },
+
+  "fund_disclosure": {
+    "name": "基金公告 & 招募说明书",
+    "description": "证监会指定的信息披露平台，涵盖招募说明书、基金合同、定期报告（季报/半年报/年报）、临时公告等全部法定披露文件。",
+    "source_count": 3,
+    "sources": [
+      {
+        "id": "FD001",
+        "name": "巨潮资讯网",
+        "url": "http://www.cninfo.com.cn/new/commonUrl?url=disclosure/list/notice#fund",
+        "type": "法定信息披露",
+        "formats": ["PDF"],
+        "coverage": "所有公募基金招募说明书、基金合同、定期报告及临时公告",
+        "use_case": "查询基金完整法律文件"
+      },
+      {
+        "id": "FD002",
+        "name": "上交所基金信息披露",
+        "url": "http://www.sse.com.cn",
+        "type": "法定信息披露",
+        "formats": ["PDF"],
+        "coverage": "上交所上市基金（ETF、LOF等）全部公告与信披文件",
+        "use_case": "按基金代码/简称检索上交所上市基金"
+      },
+      {
+        "id": "FD003",
+        "name": "深交所基金信息披露",
+        "url": "http://www.szse.cn",
+        "type": "法定信息披露",
+        "formats": ["PDF"],
+        "coverage": "深交所上市基金全部公告与信披文件",
+        "use_case": "按基金代码/简称检索深交所上市基金"
+      }
+    ]
+  },
+
+  "csrc": {
+    "name": "中国证监会",
+    "description": "国务院直属正部级事业单位，负责证券、期货、基金市场的统一监管。所有基金产品的注册/核准均在此公示。",
+    "source_count": 8,
+    "sources": [
+      {
+        "id": "CSRC001",
+        "name": "许可结果公示",
+        "url": "http://www.csrc.gov.cn/csrc/c101967/",
+        "type": "行政许可公示",
+        "formats": ["PDF", "HTML"],
+        "use_case": "基金募集注册、基金公司设立、QDII额度等行政许可批复查询"
+      },
+      {
+        "id": "CSRC002",
+        "name": "信息披露/诚信查询平台",
+        "url": "http://eid.csrc.gov.cn",
+        "type": "信息公开",
+        "formats": ["HTML"],
+        "use_case": "上市公司、基金公司、证券公司信息披露文件及诚信档案查询"
+      },
+      {
+        "id": "CSRC003",
+        "name": "政务服务平台",
+        "url": "https://neris.csrc.gov.cn/portal/portalHome/index",
+        "type": "在线办事",
+        "formats": ["HTML"],
+        "use_case": "行政许可在线申报、进度查询"
+      },
+      {
+        "id": "CSRC004",
+        "name": "许可审核进度查询",
+        "url": "http://www.csrc.gov.cn/csrc/c105985/",
+        "type": "进度查询",
+        "formats": ["HTML"],
+        "use_case": "基金公司设立、基金募集注册审核进度"
+      },
+      {
+        "id": "CSRC005",
+        "name": "发审会公告",
+        "url": "http://www.csrc.gov.cn/csrc/c101975/",
+        "type": "会议公告",
+        "formats": ["PDF"],
+        "use_case": "发行审核委员会会议公告及审核结果"
+      },
+      {
+        "id": "CSRC006",
+        "name": "行政处罚决定书",
+        "url": "http://www.csrc.gov.cn/csrc/c101971/",
+        "type": "执法公示",
+        "formats": ["PDF"],
+        "use_case": "基金公司、证券公司等市场主体行政处罚——风控/尽调重要参考"
+      },
+      {
+        "id": "CSRC007",
+        "name": "监管措施公示",
+        "url": "http://www.csrc.gov.cn/csrc/c100044/",
+        "type": "执法公示",
+        "formats": ["PDF"],
+        "use_case": "警示函、责令改正、监管谈话等日常监管措施"
+      },
+      {
+        "id": "CSRC008",
+        "name": "证券市场快报/月报",
+        "url": "http://www.csrc.gov.cn/csrc/c100119/",
+        "type": "统计报告",
+        "formats": ["Excel", "PDF"],
+        "use_case": "市场规模、交易量、投资者数量等宏观指标"
+      }
+    ]
+  },
+
+  "bond": {
+    "name": "债券",
+    "description": "中国债券市场由多个登记托管机构分头管理，涵盖国债、地方债、金融债、信用债等品种。",
+    "source_count": 3,
+    "sources": [
+      {
+        "id": "BD001",
+        "name": "中国外汇交易中心（CFETS）",
+        "url": "https://www.chinamoney.com.cn",
+        "type": "信息披露",
+        "formats": ["PDF", "HTML"],
+        "use_case": "银行间债券市场信息披露：国债、政策性金融债、同业存单"
+      },
+      {
+        "id": "BD002",
+        "name": "中央结算公司（中债登/CCDC）",
+        "url": "https://www.chinabond.com.cn",
+        "type": "登记托管",
+        "formats": ["PDF", "Excel"],
+        "use_case": "国债、地方债、政策性金融债总登记托管；中债估值收益率曲线官方来源"
+      },
+      {
+        "id": "BD003",
+        "name": "上海清算所（上清所/SHCH）",
+        "url": "https://www.shclearing.com.cn",
+        "type": "登记托管",
+        "formats": ["PDF"],
+        "use_case": "信用债（短融、中票、公司债等）登记托管与信息披露"
+      }
+    ]
+  },
+
+  "insurance": {
+    "name": "保险理财产品",
+    "description": "国家金融监督管理总局（原银保监会）——银行与保险行业的统一监管机构。",
+    "source_count": 1,
+    "sources": [
+      {
+        "id": "INS001",
+        "name": "国家金融监督管理总局",
+        "url": "https://www.nfra.gov.cn",
+        "type": "监管机构",
+        "formats": ["PDF", "HTML"],
+        "use_case": "保险产品备案查询、人身保险产品信息库、监管政策法规。增额终身寿险、年金险、万能险等理财型保险备案文件"
+      }
+    ]
+  },
+
+  "other": {
+    "name": "信托 & 信贷资产流转",
+    "source_count": 2,
+    "sources": [
+      {
+        "id": "OT001",
+        "name": "中国信托登记有限责任公司",
+        "url": "https://www.chinatrc.com.cn",
+        "type": "登记平台",
+        "formats": ["HTML"],
+        "use_case": "信托产品及其受益权信息集中登记"
+      },
+      {
+        "id": "OT002",
+        "name": "银行业信贷资产登记流转中心",
+        "url": "https://www.yindeng.com.cn",
+        "type": "登记流转平台",
+        "formats": ["HTML"],
+        "use_case": "信贷资产及其收益权登记流转"
+      }
+    ]
+  }
+}

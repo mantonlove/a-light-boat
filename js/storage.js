@@ -1,0 +1,106 @@
+/**
+ * 轻舟 Qingzhou — localStorage 读写封装
+ * 统一管理所有本地存储的键值读写与默认值
+ */
+
+const STORAGE_KEYS = {
+  MODE: 'qingzhou_mode',
+  FONT_SIZE: 'qingzhou_fontSize',
+  VOICE_ENABLED: 'qingzhou_voiceEnabled',
+  RISK_PROFILE: 'qingzhou_riskProfile',
+  USER_INFO: 'qingzhou_userInfo',
+  USER_PROFILE: 'qingzhou_userProfile',
+  PREFERENCES: 'qingzhou_preferences',
+  CHAT_HISTORY: 'qingzhou_chatHistory',
+  PROFILE_HISTORY: 'qingzhou_profileHistory',
+  CHAT_KEY_MOMENTS: 'qingzhou_chatKeyMoments',
+  ALLOCATION: 'qingzhou_allocation',
+  PRIVACY_READ: 'qingzhou_privacyRead',
+  VOICE_GUIDE_READ: 'qingzhou_voiceGuideRead'
+};
+
+const DEFAULTS = {
+  [STORAGE_KEYS.MODE]: 'classic',
+  [STORAGE_KEYS.FONT_SIZE]: 'medium',
+  [STORAGE_KEYS.VOICE_ENABLED]: false,
+  [STORAGE_KEYS.PREFERENCES]: {
+    recommendByRisk: true,
+    recommendByHorizon: true,
+    marketHotPush: false,
+    weeklyReport: true
+  }
+};
+
+const Storage = {
+  get(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : (DEFAULTS[key] ?? null);
+    } catch {
+      return DEFAULTS[key] ?? null;
+    }
+  },
+
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.warn('localStorage write failed:', key, e);
+    }
+  },
+
+  remove(key) {
+    localStorage.removeItem(key);
+  },
+
+  /** 清除所有轻舟相关数据（保留 profileHistory 作为审计日志） */
+  clearAll() {
+    Object.values(STORAGE_KEYS).forEach(key => {
+      if (key !== STORAGE_KEYS.PROFILE_HISTORY) {
+        localStorage.removeItem(key);
+      }
+    });
+  },
+
+  /** 退出登录：保留档案+评估，清除对话 */
+  logout() {
+    const keep = [
+      STORAGE_KEYS.RISK_PROFILE,
+      STORAGE_KEYS.USER_PROFILE,
+      STORAGE_KEYS.PROFILE_HISTORY,
+      STORAGE_KEYS.ALLOCATION
+    ];
+    const kept = {};
+    keep.forEach(k => { kept[k] = localStorage.getItem(k); });
+
+    this.clearAll();
+
+    keep.forEach(k => {
+      if (kept[k]) localStorage.setItem(k, kept[k]);
+    });
+  },
+
+  /** 获取档案历史 */
+  getProfileHistory() {
+    return this.get(STORAGE_KEYS.PROFILE_HISTORY) || [];
+  },
+
+  /** 追加档案变更记录 */
+  addProfileHistory(record) {
+    const history = this.getProfileHistory();
+    history.push(record);
+    this.set(STORAGE_KEYS.PROFILE_HISTORY, history);
+  },
+
+  /** 获取关键节点 */
+  getKeyMoments() {
+    return this.get(STORAGE_KEYS.CHAT_KEY_MOMENTS) || [];
+  },
+
+  /** 追加关键节点 */
+  addKeyMoment(event) {
+    const moments = this.getKeyMoments();
+    moments.push({ time: new Date().toISOString(), event });
+    this.set(STORAGE_KEYS.CHAT_KEY_MOMENTS, moments);
+  }
+};

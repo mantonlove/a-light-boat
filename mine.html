@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 · 我的</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="mine-container">
+  <a class="back-link" href="#" onclick="goBack()">← 返回聊天</a>
+  <h1 style="font-size:var(--font-size-xl);font-weight:700;margin:var(--spacing-md) 0 var(--spacing-lg);">我的 · 个人中心</h1>
+
+  <!-- Profile Card -->
+  <div class="card profile-card">
+    <div class="avatar-large" id="profileAvatar">👤</div>
+    <div style="flex:1;">
+      <div style="font-size:var(--font-size-lg);font-weight:700;" id="profileName">张三</div>
+      <div style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:4px;">
+        手机银行 LV3 客户 · 风险偏好：<span id="profileRisk" style="color:var(--accent);">未评估</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="retry-btn" onclick="editProfile()">编辑个人资料</button>
+        <button class="retry-btn" onclick="switchAccount()" style="background:var(--bg-card);">切换账号</button>
+        <button class="retry-btn" onclick="logout()" style="background:var(--bg-card);color:var(--danger);">退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appearance -->
+  <div class="section">
+    <div class="section-title">外观与服务</div>
+    <div class="card">
+      <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:12px;">界面模式</p>
+      <div class="mode-selector" id="modeSelector"></div>
+      <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin:16px 0 12px;">字体大小</p>
+      <div class="font-size-row" id="fontSizeRow"></div>
+      <div class="toggle-row">
+        <div><div class="toggle-label">语音播报</div><div class="toggle-desc">AI 回复自动朗读，朗读完毕自动续听（仅银发族模式）</div></div>
+        <div class="toggle-switch" id="voiceToggle" onclick="toggleVoice()"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk & Preferences -->
+  <div class="section">
+    <div class="section-title">理财偏好</div>
+    <div class="risk-card" id="riskCard">
+      <div class="risk-header">
+        <div><span class="risk-level" id="riskLevelDisplay">📋 风险偏好验证</span></div>
+        <button class="retry-btn" onclick="startReassessment()">重新评估</button>
+      </div>
+      <div id="riskDetail"></div>
+    </div>
+    <div class="card" style="margin-top:var(--spacing-md);">
+      <p style="font-size:var(--font-size-sm);font-weight:600;margin-bottom:12px;">个性化推荐设置</p>
+      <div class="toggle-row"><div><div class="toggle-label">根据我的风险偏好推荐产品</div></div><div class="toggle-switch on" id="pref1" onclick="togglePref('recommendByRisk',this)"></div></div>
+      <div class="toggle-row"><div><div class="toggle-label">根据我的投资期限筛选产品</div></div><div class="toggle-switch on" id="pref2" onclick="togglePref('recommendByHorizon',this)"></div></div>
+      <div class="toggle-row"><div><div class="toggle-label">根据市场热点推送新产品</div></div><div class="toggle-switch" id="pref3" onclick="togglePref('marketHotPush',this)"></div></div>
+      <div class="toggle-row"><div><div class="toggle-label">每周推送市场周报</div></div><div class="toggle-switch on" id="pref4" onclick="togglePref('weeklyReport',this)"></div></div>
+    </div>
+  </div>
+
+  <!-- Personal Archive -->
+  <div class="section">
+    <div class="section-title">个人档案 <span style="font-weight:400;color:var(--text-muted);">（AI 对话自动记录）</span></div>
+    <div class="card" id="archiveCard">
+      <div id="archiveContent"></div>
+    </div>
+  </div>
+
+  <!-- Account Security -->
+  <div class="section">
+    <div class="section-title">账户安全</div>
+    <div class="card">
+      <div class="toggle-row"><div><div class="toggle-label">绑定手机</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">138****1234 <button class="retry-btn" style="padding:2px 8px;font-size:11px;">更换</button></span></div>
+      <div class="toggle-row"><div><div class="toggle-label">绑定邮箱</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">zhang***@**.com <button class="retry-btn" style="padding:2px 8px;font-size:11px;">更换</button></span></div>
+      <div class="toggle-row"><div><div class="toggle-label">登录密码</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">******** <button class="retry-btn" style="padding:2px 8px;font-size:11px;">修改</button></span></div>
+      <div style="text-align:center;margin-top:var(--spacing-md);">
+        <button class="retry-btn" onclick="logout()" style="color:var(--danger);border-color:var(--danger);">退出当前账号</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js"></script>
+<script src="js/config.js"></script>
+<script src="js/router.js"></script>
+<script src="js/profile_engine.js"></script>
+<script src="js/mine.js"></script>
+</body>
+</html>
