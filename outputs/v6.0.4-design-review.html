@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V6.0.4 龙虾系统 · 完整设计方案（终审版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px 60px; line-height: 1.8; font-size: 15px; }
+  h1 { color: #f78166; font-size: 32px; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #30363d; padding-bottom: 20px; }
+  h2 { color: #58a6ff; font-size: 22px; margin-top: 40px; margin-bottom: 16px; border-left: 4px solid #58a6ff; padding-left: 12px; }
+  h3 { color: #d2a8ff; font-size: 17px; margin-top: 24px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: #21262d; color: #58a6ff; padding: 8px 12px; text-align: left; border: 1px solid #30363d; }
+  td { padding: 8px 12px; border: 1px solid #30363d; }
+  tr:nth-child(even) { background: #161b22; }
+  code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #f78166; }
+  pre { background: #161b22; padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 10px 0 20px; border: 1px solid #30363d; font-size: 13px; line-height: 1.6; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin: 0 2px; }
+  .tag-red { background: #da3633; color: #fff; }
+  .tag-green { background: #238636; color: #fff; }
+  .tag-yellow { background: #9e6a03; color: #fff; }
+  .tag-blue { background: #1f6feb; color: #fff; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin: 4px 0; }
+  .highlight { color: #f78166; font-weight: bold; }
+  .fixed { color: #3fb950; }
+  .new { background: #1b3422; border-left: 4px solid #238636; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .section-divider { border: none; border-top: 1px solid #30363d; margin: 30px 0; }
+</style>
+</head>
+<body>
+
+<h1>V6.0.4 龙虾系统 · 完整设计方案</h1>
+
+<p style="text-align:center;color:#8b949e;margin-top:8px;">基于 Openclaw 2026.5.x | 7虾架构 | 上下文机制 | 成本优化 | 文档管理闭环 | 回流容错</p>
+<p style="text-align:center;color:#3fb950;margin-top:4px;">V6.0.3(97分)→V6.0.4：修复记虾文档管理8个落地漏洞——文件所有权/写冲突/生命周期/命名/预算执行</p>
+
+<hr class="section-divider">
+
+<h2>变更摘要</h2>
+<table>
+<tr><th>版本</th><th>评分</th><th>关键变更</th></tr>
+<tr><td>V6.0.0</td><td><span class="tag tag-yellow">63</span></td><td>初版。4严重+4中等</td></tr>
+<tr><td>V6.0.1</td><td><span class="tag tag-blue">88</span></td><td>+回流/兜底/鲁棒/S级量化/记虾拆分/通信容错/灰度框架</td></tr>
+<tr><td>V6.0.2</td><td><span class="tag tag-blue">94</span></td><td>+死信运营规则+灰度放量门槛与熔断规则</td></tr>
+<tr><td>V6.0.3</td><td><span class="tag tag-green">97</span></td><td>+完整上下文机制+六层成本优化体系</td></tr>
+<tr><td>V6.0.4</td><td><span class="tag tag-green">目标97+</span></td><td class="fixed"><b>+记虾文档管理完整落地规范</b>（8项修复：workspace隔离/跨区写入/.learnings写入链/写冲突消除/指针校验/bootstrap执行链路/V6缺陷边界/日记录模板）</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>一、记虾文档管理 · 完整落地规范 <span class="fixed">[V6.0.4 新增]</span></h2>
+
+<h3>1.1 完整目录结构与所有权</h3>
+
+<pre>
+~/.openclaw/
+│
+├── workspace-gate/           ← 门虾 workspace  [记虾维护]
+│   ├── SOUL.md               [记虾写] ≤300 chars
+│   ├── AGENTS.md             [记虾写] ≤500 chars
+│   └── USER.md               [手动/记虾写] ≤400 chars
+│
+├── workspace-plan/           ← 策虾 workspace  [记虾维护]
+│   ├── SOUL.md               [记虾写] ≤400 chars
+│   ├── AGENTS.md             [记虾写] ≤2500 chars
+│   ├── TOOLS.md              [记虾写] ≤800 chars
+│   ├── MEMORY.md             [记虾写] ≤500 chars（只存指针）
+│   └── USER.md               [手动/记虾写] ≤800 chars
+│
+├── workspace-scribe/         ← 笔虾 workspace  [记虾维护]
+│   ├── SOUL.md               [记虾写] ≤200 chars
+│   ├── AGENTS.md             [记虾写] ≤1000 chars
+│   ├── TOOLS.md              [记虾写] ≤500 chars
+│   └── USER.md               [手动/记虾写] ≤800 chars
+│
+├── workspace-calc/           ← 算虾 workspace  [同上结构]
+├── workspace-forge/          ← 工虾 workspace  [同上结构]
+│
+├── workspace-audit/          ← 审虾 workspace  [记虾维护]
+│   ├── SOUL.md               [记虾写] ≤300 chars
+│   ├── AGENTS.md             [记虾写] ≤2000 chars
+│   ├── TOOLS.md              [记虾写] ≤400 chars
+│   └── USER.md               [手动/记虾写] ≤800 chars
+│
+└── workspace-memory/         ← 记虾 workspace  [记虾独有]
+    ├── SOUL.md               [记虾写] ≤200 chars
+    ├── AGENTS.md             [记虾写] ≤1500 chars
+    ├── TOOLS.md              [记虾写] ≤600 chars
+    ├── MEMORY.md             [记虾写] ≤400 chars（记忆指针索引）
+    ├── USER.md               [手动/记虾写] ≤800 chars
+    ├── V6缺陷.md              [记虾写] 无硬上限，建议≤5000 chars
+    ├── 模型对比.md             [记虾写] 无硬上限
+    │
+    ├── memory/               ← 日记录与项目记忆  [记虾写]
+    │   ├── YYYY-MM-DD.md     ← 每日日记录（7 section模板）
+    │   ├── projects/         ← 项目记忆（指针目标）
+    │   │   └── <项目名>.md
+    │   └── archive/          ← >90天日记录归档（压缩）
+    │
+    ├── .learnings/           ← 经验/错误/需求  [记虾唯一写入者]
+    │   ├── LEARNINGS.md
+    │   ├── ERRORS.md
+    │   └── FEATURE_REQUESTS.md
+    │
+    ├── .dead-letter/         ← 死信队列  [记虾写]
+    │   ├── dl-YYYYMMDD-NNN.json
+    │   └── .archive/         ← lost 死信归档（保留30天）
+    │
+    └── 进化周报.md             [审虾写 周一09:00，记虾读+归档]
+</pre>
+
+<div class="new">
+<p><span class="highlight fixed">所有权铁律：</span>每个文件有且仅有一个写入者。记虾是所有 workspace 文件和自身数据目录的<b>唯一写入者</b>。审虾只写进化周报.md。其他虾<b>绝不直接写任何 workspace 文件</b>——通过 sessions_send 发数据给记虾，记虾负责写。</p>
+</div>
+
+<h3>1.2 记虾的工具权限（精确到白名单）</h3>
+
+<table>
+<tr><th>工具</th><th>允许</th><th>用途</th></tr>
+<tr><td><code>read</code></td><td><span class="tag tag-green">✓</span></td><td>读取任意 agent workspace 文件</td></tr>
+<tr><td><code>write</code></td><td><span class="tag tag-green">✓</span></td><td>写入任意 agent workspace 文件</td></tr>
+<tr><td><code>edit</code></td><td><span class="tag tag-green">✓</span></td><td>局部编辑文件</td></tr>
+<tr><td><code>bash</code></td><td><span class="tag tag-green">✓</span></td><td>文件操作（mv/cp/rm/mkdir）、grep 检查</td></tr>
+<tr><td><code>sessions_list</code></td><td><span class="tag tag-green">✓</span></td><td>查看活跃 session</td></tr>
+<tr><td><code>sessions_history</code></td><td><span class="tag tag-green">✓</span></td><td>读取任务 session 记录用于归档</td></tr>
+<tr><td><code>sessions_send</code></td><td><span class="tag tag-green">✓</span></td><td>通知门虾/策虾/审虾</td></tr>
+<tr><td><code>sessions_spawn</code></td><td><span class="tag tag-red">✗</span></td><td>记虾不派任务</td></tr>
+<tr><td><code>browser</code></td><td><span class="tag tag-red">✗</span></td><td>不需要</td></tr>
+<tr><td><code>canvas</code></td><td><span class="tag tag-red">✗</span></td><td>不需要</td></tr>
+<tr><td><code>cron</code></td><td><span class="tag tag-red">✗</span></td><td>记虾被 cron 触发，不创建 cron</td></tr>
+</table>
+
+<p><span class="highlight">记虾 workspace = <code>~/.openclaw/</code></span>（父级目录），sandbox: off。用绝对路径操作各虾的 workspace 子目录。</p>
+
+<h3>1.3 .learnings/ 数据流与写入责任</h3>
+
+<table>
+<tr><th>文件</th><th>数据来源</th><th>传输方式</th><th>写入者</th></tr>
+<tr>
+  <td>LEARNINGS.md</td>
+  <td>策虾（从任务交付后提取：执行虾自评 + 审虾打分 + 新发现的最佳实践）</td>
+  <td><code>sessions_send(memory, "LRN: …")</code></td>
+  <td><span class="tag tag-green">记虾</span></td>
+</tr>
+<tr>
+  <td>ERRORS.md</td>
+  <td>执行虾遇到异常 → announce 给策虾 → 策虾转发记虾</td>
+  <td><code>sessions_send(memory, "ERR: …")</code></td>
+  <td><span class="tag tag-green">记虾</span></td>
+</tr>
+<tr>
+  <td>FEATURE_REQUESTS.md</td>
+  <td>门虾识别用户需求信号（「能不能…」「为什么不能…」）</td>
+  <td><code>sessions_send(memory, "FEAT: …")</code></td>
+  <td><span class="tag tag-green">记虾</span></td>
+</tr>
+</table>
+
+<p><span class="highlight">记虾是 .learnings/ 的唯一写入者。</span>所有虾通过 sessions_send 发数据，记虾去重后写入。杜绝写冲突。</p>
+
+<h3>1.4 写冲突消除</h3>
+
+<table>
+<tr><th>文件</th><th>写入者</th><th>写入时间</th><th>读者</th><th>阅读时间</th><th>是否安全</th></tr>
+<tr><td>.learnings/*.md</td><td>记虾</td><td>21:00 + 实时(sessions_send)</td><td>审虾</td><td>22:00</td><td><span class="tag tag-green">✓</span> 1h窗口</td></tr>
+<tr><td>V6缺陷.md</td><td>记虾</td><td>23:00</td><td>审虾</td><td>22:00(次日)</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>memory/*.md</td><td>记虾</td><td>23:00</td><td>审虾/策虾</td><td>随时</td><td><span class="tag tag-green">✓</span> 只读</td></tr>
+<tr><td>进化周报.md</td><td>审虾</td><td>周一 09:00</td><td>记虾</td><td>周一 09:00后</td><td><span class="tag tag-green">✓</span></td></tr>
+<tr><td>SOUL/AGENTS/TOOLS</td><td>记虾</td><td>20:00(Cron) + 实时</td><td>各虾</td><td>随时</td><td><span class="tag tag-yellow">⚠ 需锁</span></td></tr>
+</table>
+
+<p><span class="highlight">SOUL/AGENTS/TOOLS 的写锁机制：</span>记虾在写任何 agent workspace 文件前，先检查该文件的上次修改时间。如果 <b>5 分钟内被修改过</b>→ 跳过本轮，等下次 Cron。这防止了实时 sessions_send 触发写入和 Cron 调度的碰撞。</p>
+
+<h3>1.5 日记录强制模板</h3>
+
+<pre>
+# YYYY-MM-DD 日记录
+
+## 1. 任务摘要
+| 任务ID | 级别 | 执行虾 | V6-TCS | 模型 | Token | 成本 | 备注 |
+|--------|:----:|:------:|:------:|:----:|:-----:|:----:|------|
+| T001   |  A   | scribe |   82   | Sonnet| 3.2K |$0.02 |      |
+
+## 2. 决策记录
+- [决策] 来源：&lt;虾/用户&gt; | 内容 | 影响范围
+（本日无则写「本日无」）
+
+## 3. 待办追踪
+- [待办] 来源 | 内容 | 负责人 | 截止 | 状态：pending/done/cancelled
+（本日无则写「本日无」）
+
+## 4. 异常事件
+- [异常] 类型：&lt;死信/超时/打回/熔断&gt; | 详情 | 处置 | 状态
+（本日无则写「本日无」）
+
+## 5. V6缺陷变更
+- [新增/更新/关闭] 缺陷ID | 内容 | 严重度：P0/P1/P2
+（本日无则写「本日无」）
+
+## 6. 模型成本日报
+| 模型 | 调用次数 | Token消耗 | 预估费用 | 日环比 |
+（本日无则写「本日无调用」）
+
+## 7. 文件健康度
+- Bootstrap 预算检查：&lt;N&gt;/7 agent 在预算内
+- 死信队列：pending=&lt;N&gt;, lost=&lt;N&gt;
+- memory/ 文件数：&lt;N&gt;（活跃），&lt;N&gt;（归档）
+</pre>
+
+<p><span class="highlight">铁律：七个 section 全部必须出现。</span>缺失数据的 section 写「本日无」「本日无调用」等标记，不允许跳过。</p>
+
+<h3>1.6 MEMORY.md 指针校验</h3>
+
+<p>MEMORY.md 只存指针，不存内容。格式：</p>
+<pre>
+## 项目记忆
+- Pegasus市场研究 → [memory/projects/pegasus-market.md]
+- 食以司南BP → [memory/projects/shiyisinan-bp.md]
+## 决策记忆
+- 2026-05-20 确定V6采用7虾架构 → [memory/2026-05-20.md#决策记录]
+</pre>
+
+<p><span class="highlight">记虾每月1日 09:00 执行指针校验（Cron）：</span></p>
+<ol>
+<li>解析 MEMORY.md 中所有 <code>→ [path]</code> 格式的指针</li>
+<li>逐个检查目标文件是否存在</li>
+<li>存在 → 检查最后修改时间
+  <ul>
+    <li>>90天未更新 → 指针后追加 <code>[冷]</code> 标记</li>
+    <li>≤90天 → 正常</li>
+  </ul>
+</li>
+<li>不存在 → 同路径搜索相似文件名 → 找到→更新指针 / 找不到→指针后追加 <code>[已失效: YYYY-MM-DD]</code>→ sessions_send 门虾通知用户</li>
+<li>校验结果写入当日 memory/YYYY-MM-DD.md §7 文件健康度</li>
+</ol>
+
+<h3>1.7 Bootstrap 预算超限执行链路</h3>
+
+<pre>
+记虾 20:00 Cron → 遍历7虾 workspace → 检查每份文件 char 数
+  │
+  ├─ 全部在预算内 → 记录「7/7 ✅」→ 无事
+  │
+  └─ 任一文件超限 → 触发修复链路：
+        │
+        ▼
+      记虾 → sessions_send 策虾：
+        「gate/SOUL.md 超限 202 chars（预算300，实际502）。
+          当前内容：…(摘要)…
+          请出精简方案。」
+        │
+        ▼
+      策虾 → sessions_send 记虾（15min内）：
+        「方案：删除第X条（已过时），合并第Y+Z条。预估精简后≈260 chars。」
+        │
+        ▼
+      记虾执行：
+        1. cp SOUL.md SOUL.md.bak.YYYYMMDD（备份）
+        2. 按方案修改 SOUL.md
+        3. wc -c 验证 ≤ 预算上限
+        4. sessions_send 策虾：「gate/SOUL.md 已更新，旧版备份为 .bak.YYYYMMDD。请在下一次门虾任务中观察行为。」
+        │
+        ▼
+      策虾（下次使用门虾时）→ 观察门虾行为是否正常
+        ├─ 正常（1天内无异常）→ sessions_send 记虾 → 记虾 rm .bak
+        └─ 异常 → sessions_send 记虾 → 记虾 cp .bak SOUL.md（回滚）→ 通知策虾重新出方案
+</pre>
+
+<h3>1.8 V6缺陷.md vs ERRORS.md 的升级规则</h3>
+
+<table>
+<tr><th>判断条件</th><th>归属</th><th>操作</th></tr>
+<tr><td>单次错误，不影响其他任务</td><td><code>.learnings/ERRORS.md</code></td><td>记虾归档</td></tr>
+<tr><td>同一错误≥3次（跨任务/跨虾，30天内）</td><td><code>V6缺陷.md</code>（P2）</td><td>记虾升级+通知审虾</td></tr>
+<tr><td>单次错误但影响≥2个虾</td><td><code>V6缺陷.md</code>（P1）</td><td>记虾立即升级+通知策虾</td></tr>
+<tr><td>单次错误导致任务失败/数据丢失/熔断</td><td><code>V6缺陷.md</code>（P0）</td><td>记虾立即升级+通知门虾告知用户</td></tr>
+<tr><td>某虾持续性表现问题（V6-TCS连续5次<70）</td><td><code>V6缺陷.md</code>（P1）</td><td>记虾在日记录中标记+审虾回溯</td></tr>
+</table>
+
+<p><span class="highlight">记虾 21:00 Cron 自动扫描：</span>grep ERRORS.md 中最近30天的条目→按错误类型分组→统计频次→≥3次→升级到 V6缺陷.md。人工确认的不需要等3次（单次影响大即可升级）。</p>
+
+<h3>1.9 文件生命周期管理总表</h3>
+
+<table>
+<tr><th>文件/目录</th><th>创建</th><th>更新频率</th><th>归档</th><th>删除</th></tr>
+<tr><td>SOUL.md（7份）</td><td>初始化时</td><td>极低（用户纠正时）</td><td>修改前 .bak 备份</td><td>.bak 保留7天</td></tr>
+<tr><td>AGENTS.md（7份）</td><td>初始化时</td><td>低（工作流优化时）</td><td>修改前 .bak 备份</td><td>.bak 保留7天</td></tr>
+<tr><td>TOOLS.md（7份）</td><td>初始化时</td><td>低（新工具/踩坑时）</td><td>修改前 .bak 备份</td><td>.bak 保留7天</td></tr>
+<tr><td>MEMORY.md（2份）</td><td>初始化时</td><td>日更（指针索引）</td><td>—</td><td>—</td></tr>
+<tr><td>USER.md（7份）</td><td>初始化时</td><td>极低（用户信息变更）</td><td>修改前 .bak 备份</td><td>.bak 保留7天</td></tr>
+<tr><td>memory/YYYY-MM-DD.md</td><td>每日23:00</td><td>日更</td><td>>90天→archive/（压缩）</td><td>archive/>365天→删除</td></tr>
+<tr><td>memory/projects/*.md</td><td>项目启动时</td><td>项目关键节点</td><td>项目结束→archive/</td><td>archive/>365天</td></tr>
+<tr><td>.learnings/*.md</td><td>初始化时</td><td>持续追加</td><td>promote后标记resolved</td><td>resolved保留30天</td></tr>
+<tr><td>.dead-letter/dl-*.json</td><td>通信失败时</td><td>持续追加</td><td>resolved→保留7天; lost→.archive/保留30天</td><td>过期清除</td></tr>
+<tr><td>V6缺陷.md</td><td>初始化时</td><td>缺陷变更时</td><td>关闭缺陷→移至文末「已关闭」section</td><td>关闭>90天→删除条目</td></tr>
+<tr><td>模型对比.md</td><td>初始化时</td><td>日更（记虾23:00）</td><td>—</td><td>—</td></tr>
+<tr><td>进化周报.md</td><td>每周一09:00</td><td>周更（审虾写）</td><td>记虾归档副本→archive/周报/</td><td>archive/>365天</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>二、V6.0.3 → V6.0.4 关键配置变更</h2>
+
+<pre>
+// 记虾 memory agent 配置（V6.0.4）
+
+{
+  id: "memory",
+  model: "anthropic/claude-sonnet-4-6",
+  workspace: "~/.openclaw/",           // [V6.0.4] 父级目录，可访问所有agent workspace
+  sandbox: { mode: "off" },
+  contextInjection: "continuation-skip",
+  bootstrapTotalMaxChars: 3500,
+  tools: {
+    profile: "custom",
+    allow: [                             // [V6.0.4] 精确白名单
+      "read", "write", "edit", "bash",
+      "sessions_list", "sessions_history", "sessions_send"
+    ],
+    deny: [
+      "sessions_spawn", "browser", "canvas", "cron",
+      "gateway", "exec", "apply_patch"
+    ]
+  },
+  // [V6.0.4] 文件修改锁：写入前检查目标文件5分钟内是否被修改
+  // 在 AGENTS.md 中实现此逻辑
+}
+</pre>
+
+<hr class="section-divider">
+
+<h2>三、版本演化总览</h2>
+<table>
+<tr><th>维度</th><th>V5</th><th>V6.0.0</th><th>V6.0.1</th><th>V6.0.2</th><th>V6.0.3</th><th>V6.0.4</th></tr>
+<tr><td>架构</td><td>概念</td><td>7虾框架</td><td>+回流+鲁棒</td><td>+死信+熔断</td><td>+上下文+成本</td><td class="fixed">+文档管理闭环</td></tr>
+<tr><td>上下文</td><td>—</td><td>—</td><td>—</td><td>—</td><td>注入/预算/传递</td><td class="fixed">+文件所有权矩阵</td></tr>
+<tr><td>成本</td><td>—</td><td>—</td><td>—</td><td>—</td><td>6层优化</td><td class="fixed">+预算超限执行链路</td></tr>
+<tr><td>文档管理</td><td>—</td><td>模糊</td><td>记虾拆分</td><td>—</td><td>—</td><td class="fixed"><b>完整：所有权/冲突/生命周期/命名/模板/校验/升级/回滚</b></td></tr>
+<tr><td>评分</td><td>SALF</td><td>V6-TCS</td><td>+复合加权</td><td>同</td><td>同</td><td>同</td></tr>
+<tr><td>回流</td><td>无</td><td>无</td><td>打回+反馈</td><td>同</td><td>同</td><td>同</td></tr>
+<tr><td>容错</td><td>无</td><td>无</td><td>重试+取消</td><td>+死信运营</td><td>同</td><td>+文件写锁+回滚</td></tr>
+<tr><td>上线</td><td>—</td><td>全量</td><td>灰度框架</td><td>+门槛+熔断</td><td>同</td><td>同</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>四、V6.0.4 审核重点</h2>
+
+<div class="new">
+<p><span class="highlight">本次增量仅涉及记虾文档管理子系统的 8 项修复。以下系统架构与 V6.0.3 完全一致：</span></p>
+<ul>
+<li>七虾架构（门/策/笔/算/工/审/记）— 不变</li>
+<li>S/A/B/C/D 路由派虾 — 不变</li>
+<li>V6-TCS v1.2 评分标准 — 不变</li>
+<li>回流与容错链路 — 不变</li>
+<li>任务控制机制（重试/取消/优先级/超时）— 不变</li>
+<li>Agent间通信容错规格（含死信运营规则）— 不变</li>
+<li>灰度上线路径与熔断规则 — 不变</li>
+<li>上下文机制（bootstrap预算/注入策略/传递模式/compaction）— 不变</li>
+<li>六层成本优化体系 — 不变</li>
+<li>Cron 调度 — 记虾新增每月1日09:00指针校验</li>
+</ul>
+</div>
+
+</body>
+</html>

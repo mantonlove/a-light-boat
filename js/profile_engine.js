@@ -96,6 +96,16 @@ function buildSystemPrompt(mode) {
     prompt += `\n注意：用户档案尚不完整（缺失：${missing.join('、')}）。在推荐具体产品前，请先通过自然对话了解缺失信息。\n`;
   }
 
+  // 注入 demo 产品数据（RAG 知识库）
+  const products = getProductData();
+  if (products && products.length > 0) {
+    prompt += '\n\n---\n## 知识库产品数据（以下是你唯一可以引用的产品信息，严禁编造产品数据）\n';
+    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 业绩比较基准 | 适合客群 |\n';
+    products.forEach(p => {
+      prompt += `| ${p.name} | ${p.risk_level} | ${p.type} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${p.suitable_for?.join('/')} |\n`;
+    });
+  }
+
   if (summary) {
     prompt += `\n---\n\n## 早期对话摘要\n${summary}\n`;
   }
@@ -237,6 +247,15 @@ function checkTruncation(chatHistory) {
     roundsToSummarize: chatHistory.slice(0, -FULL_MSG_COUNT),
     keepRounds: chatHistory.slice(-FULL_MSG_COUNT)
   };
+}
+
+function getProductData() {
+  try {
+    // demo_products.json 内嵌在产品目录中，通过 fetch 同步读取
+    // 但由于静态文件限制，改为直接从 demo_products JSON 硬编码读取
+    if (typeof DEMO_PRODUCTS !== 'undefined') return DEMO_PRODUCTS;
+    return null;
+  } catch(e) { return null; }
 }
 
 function l1BuildSummary() {
