@@ -96,6 +96,14 @@ function buildSystemPrompt(mode) {
     prompt += `\n注意：用户档案尚不完整（缺失：${missing.join('、')}）。在推荐具体产品前，请先通过自然对话了解缺失信息。\n`;
   }
 
+  // 注入市场宏观数据
+  if (typeof MARKET_DATA !== 'undefined') {
+    prompt += '\n\n## 市场宏观数据（' + (MARKET_DATA.update_time||'').slice(0,10) + '更新）\n';
+    prompt += MARKET_DATA.market_brief + '\n';
+    prompt += '关键指标：' + JSON.stringify(MARKET_DATA.key_indicators).replace(/[{}"]/g,'') + '\n';
+    prompt += '⚠️ ' + MARKET_DATA.disclaimer + '\n';
+  }
+
   // 注入知识库产品——按用户画像过滤，至多15只最匹配产品
   const allProducts = getProductData();
   if (allProducts && allProducts.length > 0) {
