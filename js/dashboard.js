@@ -125,14 +125,14 @@ function renderMetrics(allocation) {
   const simData = RiskCalc.generateSimulatedReturns(riskLevel, 36);
   const analysis = RiskCalc.analyzePortfolio(allocation.allocation, simData);
 
-  const metrics = allocation.metrics || {};
   row.innerHTML = `
-    <div class="metric-card"><div class="metric-value">${(analysis.maxDrawdown*100).toFixed(1)}%</div><div class="metric-label">最大回撤 (RiskCalc)</div></div>
-    <div class="metric-card"><div class="metric-value">${analysis.sharpeRatio.toFixed(2)}</div><div class="metric-label">夏普比率 (年化)</div></div>
-    <div class="metric-card"><div class="metric-value">${(analysis.annualizedVolatility*100).toFixed(1)}%</div><div class="metric-label">年化波动率</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.annualizedReturn*100).toFixed(1)}%</div><div class="metric-label">年化收益率</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.maxDrawdown*100).toFixed(1)}%</div><div class="metric-label">最大回撤</div></div>
+    <div class="metric-card"><div class="metric-value">${analysis.sharpeRatio.toFixed(2)}</div><div class="metric-label">夏普比率</div></div>
     <div class="metric-card"><div class="metric-value">${analysis.sortinoRatio.toFixed(2)}</div><div class="metric-label">Sortino比率</div></div>
     <div class="metric-card"><div class="metric-value">${(analysis.cVaR95*100).toFixed(1)}%</div><div class="metric-label">CVaR(95%)</div></div>
     <div class="metric-card"><div class="metric-value">${analysis.calmarRatio.toFixed(2)}</div><div class="metric-label">卡尔玛比率</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.valueAtRisk95*100).toFixed(1)}%</div><div class="metric-label">VaR(95%)</div></div>
   `;
 
   // 更新蒙特卡洛折线图

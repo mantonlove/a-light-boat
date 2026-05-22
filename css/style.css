@@ -370,3 +370,4 @@ body.mode-youth {
 .quiz-inline .quiz-option:hover { border-color:var(--accent); background:var(--accent-light); }
 .quiz-inline .quiz-option:active { background:var(--accent); color:#fff; transform:scale(.98); }
 .quiz-inline .quiz-option:active span { color:#fff; border-color:rgba(255,255,255,.4); }
+.metrics-row { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--spacing-md); }

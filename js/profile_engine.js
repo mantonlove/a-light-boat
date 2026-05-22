@@ -282,12 +282,28 @@ function checkTruncation(chatHistory) {
 }
 
 function getProductData() {
-  try {
-    // demo_products.json 内嵌在产品目录中，通过 fetch 同步读取
-    // 但由于静态文件限制，改为直接从 demo_products JSON 硬编码读取
-    if (typeof DEMO_PRODUCTS !== 'undefined') return DEMO_PRODUCTS;
-    return null;
-  } catch(e) { return null; }
+  // 一级：优先用索引（快速过滤），含 i/n/r/c/a/l 字段
+  if (typeof IDX !== 'undefined' && IDX.length > 0) {
+    // 二级：需要全量数据时，从已加载的分类变量中合并
+    let all = [];
+    for (const catKey of Object.keys(window)) {
+      if (catKey.startsWith('P_') && Array.isArray(window[catKey])) {
+        all = all.concat(window[catKey]);
+      }
+    }
+    if (all.length > 0) return all;
+    // 降级：只有索引时返回简化版
+    return IDX.map(p => ({
+      product_id: p.i, name: p.n, risk_level: p.r,
+      category: p.c, min_amount: p.a, lock_period: p.l,
+      benchmark: '', suitable_for: [], type: '', underlying: [],
+      historical_return_1y: '', historical_return_3y: '', fee: '',
+      redemption: '', status: '在售', tags: [], data_source: ''
+    }));
+  }
+  // 兼容旧版：全量数据
+  if (typeof DEMO_PRODUCTS !== 'undefined') return DEMO_PRODUCTS;
+  return null;
 }
 
 function l1BuildSummary() {
