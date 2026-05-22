@@ -241,9 +241,8 @@ async function sendMessage() {
     return;
   }
 
-  // 重新测评 —— 在任何路由之前拦截
-  if (/测评|重测|再测|问卷/.test(text)) {
-    console.log('Triggering questionnaire for:', text);
+  // 重新测评 —— 在任何路由之前拦截，直接弹出8题问卷
+  if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
     startQuestionnaire();
     return;
   }
