@@ -14,20 +14,6 @@ let isListening = false;
 let pendingImage = null;
 let handoffActive = false;
 
-// ── Font size map ──
-const FONT_SIZE_MAP = { small: '12px', medium: '16px', large: '24px', xlarge: '32px' };
-
-function applyFontSize(size) {
-  const px = FONT_SIZE_MAP[size] || '16px';
-  document.documentElement.style.setProperty('--font-size-base', px);
-  document.documentElement.style.setProperty('--font-size-msg', (parseInt(px) - 1) + 'px');
-  document.documentElement.style.setProperty('--font-size-sm', (parseInt(px) - 3) + 'px');
-  document.documentElement.style.setProperty('--font-size-xs', (parseInt(px) - 5) + 'px');
-  document.documentElement.style.setProperty('--font-size-lg', (parseInt(px) + 6) + 'px');
-  document.documentElement.style.setProperty('--font-size-xl', (parseInt(px) + 14) + 'px');
-  document.documentElement.style.fontSize = px;
-}
-
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);

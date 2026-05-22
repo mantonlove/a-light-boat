@@ -104,3 +104,19 @@ const Storage = {
     this.set(STORAGE_KEYS.CHAT_KEY_MOMENTS, moments);
   }
 };
+
+// ══════ 共享字体工具（chat.js & mine.js 共用，消除重复定义） ══════
+const FONT_SIZE_MAP = { small:'12px', medium:'16px', large:'24px', xlarge:'32px' };
+const MODE_DEFAULT_FONT = { classic:'medium', senior:'large', youth:'small' };
+
+function applyFontSize(size) {
+  const px = FONT_SIZE_MAP[size] || '16px';
+  const pxi = parseInt(px);
+  document.documentElement.style.fontSize = px;
+  document.documentElement.style.setProperty('--font-size-base', px);
+  document.documentElement.style.setProperty('--font-size-msg', (pxi-1)+'px');
+  document.documentElement.style.setProperty('--font-size-sm', (pxi-3)+'px');
+  document.documentElement.style.setProperty('--font-size-xs', (pxi-5)+'px');
+  document.documentElement.style.setProperty('--font-size-lg', (pxi+6)+'px');
+  document.documentElement.style.setProperty('--font-size-xl', (pxi+14)+'px');
+}

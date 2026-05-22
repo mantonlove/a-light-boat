@@ -3,20 +3,7 @@
  */
 
 let currentMode = 'classic';
-const FONT_SIZE_MAP = { small: '12px', medium: '16px', large: '24px', xlarge: '32px' };
-
-function applyFontSizeMine(size) {
-  const px = FONT_SIZE_MAP[size] || '16px';
-  document.documentElement.style.setProperty('--font-size-base', px);
-  document.documentElement.style.setProperty('--font-size-msg', (parseInt(px) - 1) + 'px');
-  document.documentElement.style.setProperty('--font-size-sm', (parseInt(px) - 3) + 'px');
-  document.documentElement.style.setProperty('--font-size-lg', (parseInt(px) + 6) + 'px');
-  document.documentElement.style.setProperty('--font-size-xl', (parseInt(px) + 14) + 'px');
-  document.documentElement.style.fontSize = px;
-}
-
-// 模式默认字体
-const MODE_DEFAULT_FONT = { classic: 'medium', senior: 'large', youth: 'small' };
+// FONT_SIZE_MAP, MODE_DEFAULT_FONT, applyFontSize 定义在 storage.js（共享模块）
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -28,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 应用字体大小
   const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
-  applyFontSizeMine(savedFontSize);
+  applyFontSize(savedFontSize);
 
   renderModeSelector();
   renderFontSize();
@@ -83,7 +70,7 @@ function renderModeSelector() {
       // 联动字体到模式默认值
       const defaultFont = MODE_DEFAULT_FONT[m.id] || 'medium';
       Storage.set('qingzhou_fontSize', defaultFont);
-      applyFontSizeMine(defaultFont);
+      applyFontSize(defaultFont);
       renderFontSize();
       // 联动语音：关怀版默认开启
       if (m.id === 'senior') Storage.set('qingzhou_voiceEnabled', true);
@@ -112,7 +99,7 @@ function renderFontSize() {
     btn.textContent = s.label;
     btn.onclick = () => {
       Storage.set('qingzhou_fontSize', s.id);
-      applyFontSizeMine(s.id);
+      applyFontSize(s.id);
       renderFontSize();
     };
     row.appendChild(btn);
