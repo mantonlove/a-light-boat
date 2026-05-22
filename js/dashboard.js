@@ -33,8 +33,7 @@ function renderDashboard() {
 
   renderRiskGauge(profile);
   renderPieChart(allocation);
-  renderLineChart(allocation);
-  renderMetrics(allocation);
+  renderMetrics(allocation);  // 内含蒙特卡洛图表渲染
   renderEvidence(allocation, profile);
 }
 
@@ -119,12 +118,56 @@ function renderLineChart(allocation) {
 
 function renderMetrics(allocation) {
   const row = document.getElementById('metricsRow');
+  const profile = assembleProfile();
+  const riskLevel = profile.risk?.level || 'R3';
+
+  // 调用 RiskCalc 实时计算
+  const simData = RiskCalc.generateSimulatedReturns(riskLevel, 36);
+  const analysis = RiskCalc.analyzePortfolio(allocation.allocation, simData);
+
   const metrics = allocation.metrics || {};
   row.innerHTML = `
-    <div class="metric-card"><div class="metric-value">${metrics.max_drawdown || '—'}</div><div class="metric-label">最大回撤</div></div>
-    <div class="metric-card"><div class="metric-value">${metrics.sharpe_ratio || '—'}</div><div class="metric-label">夏普比率</div></div>
-    <div class="metric-card"><div class="metric-value">${metrics.volatility || '—'}</div><div class="metric-label">波动率</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.maxDrawdown*100).toFixed(1)}%</div><div class="metric-label">最大回撤 (RiskCalc)</div></div>
+    <div class="metric-card"><div class="metric-value">${analysis.sharpeRatio.toFixed(2)}</div><div class="metric-label">夏普比率 (年化)</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.annualizedVolatility*100).toFixed(1)}%</div><div class="metric-label">年化波动率</div></div>
+    <div class="metric-card"><div class="metric-value">${analysis.sortinoRatio.toFixed(2)}</div><div class="metric-label">Sortino比率</div></div>
+    <div class="metric-card"><div class="metric-value">${(analysis.cVaR95*100).toFixed(1)}%</div><div class="metric-label">CVaR(95%)</div></div>
+    <div class="metric-card"><div class="metric-value">${analysis.calmarRatio.toFixed(2)}</div><div class="metric-label">卡尔玛比率</div></div>
   `;
+
+  // 更新蒙特卡洛折线图
+  renderMonteCarloChart(analysis.monteCarlo);
+}
+
+function renderMonteCarloChart(mc) {
+  const ctx = document.getElementById('lineChart');
+  if (window._mcChart) window._mcChart.destroy();
+
+  const months = mc.paths.p50.map((_, i) => i + '月');
+  const textColor = getComputedStyle(document.body).getPropertyValue('--text-secondary').trim() || '#6B7280';
+
+  window._mcChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [
+        { label: '悲观(P5)', data: mc.paths.p5, borderColor: '#EF4444', tension: 0.4, borderWidth: 1.5, pointRadius: 0 },
+        { label: '基准(P50)', data: mc.paths.p50, borderColor: '#6C5CE7', tension: 0.4, borderWidth: 2.5, pointRadius: 0 },
+        { label: '乐观(P95)', data: mc.paths.p95, borderColor: '#10B981', tension: 0.4, borderWidth: 1.5, pointRadius: 0 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        title: { display: true, text: `蒙特卡洛模拟 (${mc.simulations}次) · ${mc.years}年`, font: { size: 12 }, color: textColor },
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 11 }, color: textColor } }
+      },
+      scales: {
+        y: { ticks: { callback: v => (v/10000).toFixed(1)+'万', color: textColor }, grid: { color: 'rgba(128,128,128,0.08)' } },
+        x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { display: false } }
+      }
+    }
+  });
 }
 
 function renderEvidence(allocation, profile) {
