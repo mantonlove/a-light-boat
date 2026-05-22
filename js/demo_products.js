@@ -32,7 +32,8 @@ const DEMO_PRODUCTS = [
       "低风险"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW002",
@@ -65,7 +66,8 @@ const DEMO_PRODUCTS = [
       "高流动性"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW003",
@@ -94,7 +96,8 @@ const DEMO_PRODUCTS = [
       "50万保障"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW004",
@@ -122,7 +125,8 @@ const DEMO_PRODUCTS = [
       "短期"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW005",
@@ -155,7 +159,8 @@ const DEMO_PRODUCTS = [
       "流动性好"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW006",
@@ -187,7 +192,8 @@ const DEMO_PRODUCTS = [
       "稳健"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW007",
@@ -219,7 +225,8 @@ const DEMO_PRODUCTS = [
       "指数"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW008",
@@ -253,7 +260,8 @@ const DEMO_PRODUCTS = [
       "固收"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW009",
@@ -286,7 +294,8 @@ const DEMO_PRODUCTS = [
       "固收"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW010",
@@ -319,7 +328,8 @@ const DEMO_PRODUCTS = [
       "中等门槛"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW011",
@@ -352,7 +362,8 @@ const DEMO_PRODUCTS = [
       "股债搭配"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW012",
@@ -383,7 +394,8 @@ const DEMO_PRODUCTS = [
       "稳健增强"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW013",
@@ -415,7 +427,8 @@ const DEMO_PRODUCTS = [
       "中等风险"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW014",
@@ -446,7 +459,8 @@ const DEMO_PRODUCTS = [
       "港股"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW015",
@@ -477,7 +491,8 @@ const DEMO_PRODUCTS = [
       "Z世代推荐"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW016",
@@ -507,7 +522,8 @@ const DEMO_PRODUCTS = [
       "挂钩指数"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW017",
@@ -537,7 +553,8 @@ const DEMO_PRODUCTS = [
       "保底"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BW018",
@@ -567,7 +584,8 @@ const DEMO_PRODUCTS = [
       "保底"
     ],
     "data_source": "chinawealth.com.cn",
-    "category": "银行理财"
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF001",
@@ -597,7 +615,8 @@ const DEMO_PRODUCTS = [
       "定投推荐"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF002",
@@ -625,7 +644,8 @@ const DEMO_PRODUCTS = [
       "定投"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF003",
@@ -652,7 +672,8 @@ const DEMO_PRODUCTS = [
       "高波动"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF004",
@@ -682,7 +703,8 @@ const DEMO_PRODUCTS = [
       "Z世代推荐"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF005",
@@ -712,7 +734,8 @@ const DEMO_PRODUCTS = [
       "防御"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF006",
@@ -742,7 +765,8 @@ const DEMO_PRODUCTS = [
       "长期赛道"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF007",
@@ -772,7 +796,8 @@ const DEMO_PRODUCTS = [
       "政策受益"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF008",
@@ -801,7 +826,8 @@ const DEMO_PRODUCTS = [
       "高波动"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF009",
@@ -832,7 +858,8 @@ const DEMO_PRODUCTS = [
       "全球"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF010",
@@ -860,7 +887,8 @@ const DEMO_PRODUCTS = [
       "QDII"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF011",
@@ -888,7 +916,8 @@ const DEMO_PRODUCTS = [
       "科技创新"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF012",
@@ -920,7 +949,8 @@ const DEMO_PRODUCTS = [
       "分红"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF013",
@@ -953,7 +983,8 @@ const DEMO_PRODUCTS = [
       "稳健"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF014",
@@ -983,7 +1014,8 @@ const DEMO_PRODUCTS = [
       "弹性"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "MF015",
@@ -1014,7 +1046,8 @@ const DEMO_PRODUCTS = [
       "现金管理"
     ],
     "data_source": "amac.org.cn",
-    "category": "公募基金"
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "INS001",
@@ -1043,7 +1076,8 @@ const DEMO_PRODUCTS = [
       "退休规划"
     ],
     "data_source": "nfra.gov.cn",
-    "category": "保险理财"
+    "category": "保险理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "INS002",
@@ -1072,7 +1106,8 @@ const DEMO_PRODUCTS = [
       "长期"
     ],
     "data_source": "nfra.gov.cn",
-    "category": "保险理财"
+    "category": "保险理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "INS003",
@@ -1101,7 +1136,8 @@ const DEMO_PRODUCTS = [
       "浮动收益"
     ],
     "data_source": "nfra.gov.cn",
-    "category": "保险理财"
+    "category": "保险理财",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BD001",
@@ -1133,7 +1169,8 @@ const DEMO_PRODUCTS = [
       "稳健"
     ],
     "data_source": "chinabond.com.cn",
-    "category": "债券"
+    "category": "债券",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BD002",
@@ -1165,7 +1202,8 @@ const DEMO_PRODUCTS = [
       "养老推荐"
     ],
     "data_source": "chinabond.com.cn",
-    "category": "债券"
+    "category": "债券",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BD003",
@@ -1193,7 +1231,8 @@ const DEMO_PRODUCTS = [
       "中等期限"
     ],
     "data_source": "chinabond.com.cn",
-    "category": "债券"
+    "category": "债券",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "BD004",
@@ -1221,7 +1260,8 @@ const DEMO_PRODUCTS = [
       "低风险"
     ],
     "data_source": "chinabond.com.cn",
-    "category": "债券"
+    "category": "债券",
+    "synced_at": "2026-05-22T22:18:22.464464"
   },
   {
     "product_id": "TR001",
@@ -1249,7 +1289,8 @@ const DEMO_PRODUCTS = [
       "基础设施"
     ],
     "data_source": "chinatrc.com.cn",
-    "category": "信托"
+    "category": "信托",
+    "synced_at": "2026-05-22T22:18:22.464464"
   }
 ];
-const PRODUCT_META = {"version":"1.0.0","updated":"2026-05-22T22:10:01.790166","count":41,"sources":5,"note":"Demo数据，字段参照官方登记格式。生产环境中通过平台API实现自动同步。"};
+const PRODUCT_META = {"version":"1.0.1","updated":"2026-05-22T22:18:22.464464","count":41,"sources":5,"next_sync":"每周一08:00","note":"自动同步于2026-05-22T22:18:22.464464"};
