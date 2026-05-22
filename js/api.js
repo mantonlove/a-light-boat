@@ -63,7 +63,12 @@ const Api = {
       const response = await this._fetchAPI(messages, model);
       return this._handleResponse(response, text, profile);
     } catch (err) {
-      console.warn(`${model} API failed, using fallback:`, err.message);
+      const msg = err.message || '';
+      console.warn(`${model} API failed, using fallback:`, msg);
+      // QPM限流 → UI提示用户稍后重试
+      if (msg.includes('429') || msg.includes('QPM') || msg.includes('限流')) {
+        if (typeof showToast === 'function') showToast('请求过于频繁，已自动切换离线模式，请稍后重试');
+      }
       return this._fallbackResponse(text, mode);
     }
     } catch (fatalErr) {
