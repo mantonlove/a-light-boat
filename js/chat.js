@@ -33,20 +33,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
 
   // 优先使用 localStorage 记住用户最后选择
-  currentMode = Storage.get('qingzhou_mode') || params.get('mode') || 'classic';
+  // URL 参数优先（用户显式选择），localStorage 兜底
+  currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
   Storage.set('qingzhou_mode', currentMode);
 
   document.body.className = 'mode-' + currentMode;
   document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode];
 
-  // 应用保存的字体大小
-  const savedFontSize = Storage.get('qingzhou_fontSize') || 'medium';
-  applyFontSize(savedFontSize);
+  // 应用字体：优先用户保存的，否则按模式默认
+  const MODE_FONT_DEFAULTS = { classic: 'medium', senior: 'large', youth: 'small' };
+  const savedFontSize = Storage.get('qingzhou_fontSize');
+  const defaultFont = savedFontSize || MODE_FONT_DEFAULTS[currentMode] || 'medium';
+  applyFontSize(defaultFont);
 
   renderPresets();
   setupVoice();
   checkPrivacyGuide();
   checkVoiceGuide();
+
+  // 恢复聊天记录（如果存在）
+  const savedHistory = Storage.get('qingzhou_chatHistory');
+  if (savedHistory && savedHistory.length > 0) {
+    const msgContainer = document.getElementById('chatMessages');
+    msgContainer.innerHTML = ''; // 清空初始欢迎消息
+    savedHistory.forEach(msg => {
+      addMessage(msg.role, msg.content, msg.isFallback || false);
+    });
+    scrollToBottom();
+  }
 
   const input = document.getElementById('userInput');
   input.addEventListener('input', () => {
@@ -227,6 +241,13 @@ async function sendMessage() {
     return;
   }
 
+  // 重新测评 —— 在任何路由之前拦截
+  if (/测评|重测|再测|问卷/.test(text)) {
+    console.log('Triggering questionnaire for:', text);
+    startQuestionnaire();
+    return;
+  }
+
   const userContent = pendingImage
     ? `<img src="${pendingImage}" style="max-width:200px;border-radius:8px;margin-bottom:6px;display:block;"><div>${escapeHtml(text)}</div>`
     : escapeHtml(text);
@@ -248,7 +269,13 @@ async function sendMessage() {
   const loadingMsg = addLoadingDots();
   scrollToBottom();
 
-  const result = await Api.sendMessage(text, currentMode);
+  let result;
+  try {
+    result = await Api.sendMessage(text, currentMode, pendingImage);
+  } catch (e) {
+    console.error('sendMessage error:', e);
+    result = { reply: '抱歉，系统遇到了一个小问题，请稍后再试。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。', isFallback: true };
+  }
 
   loadingMsg.remove();
 
@@ -289,7 +316,11 @@ function addMessage(role, content, isFallback = false) {
 
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  avatar.textContent = role === 'ai' ? '🚣' : '👤';
+  if (role === 'ai') {
+    avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+  } else {
+    avatar.textContent = '👤';
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
@@ -325,7 +356,7 @@ function addLoadingDots() {
   div.id = 'loadingMsg';
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  avatar.textContent = '🚣';
+  avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   const dots = document.createElement('div');
@@ -523,6 +554,10 @@ function startQuestionnaire(callback) {
       youth: `风险画像出炉：<strong>${level} ${label}</strong>，评分 ${score}/54，可接受回撤 ${maxDrawdown}。接下来跑推荐？`
     };
     addMessage('ai', msgs[currentMode] || msgs.classic);
+
+    // 清除对话历史——强制后续对话基于最新画像，不被旧数据污染
+    Storage.set('qingzhou_chatHistory', []);
+
     scrollToBottom();
     if (cb) cb(result);
   }

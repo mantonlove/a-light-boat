@@ -72,20 +72,24 @@ function buildSystemPrompt(mode) {
 
   let prompt = BASE_SYSTEM_PROMPT;
 
-  prompt += `\n\n## 当前模式\n${modeInstructions}`;
-
+  // 画像钉在最前面——DeepSeek 优先读这里，不被对话历史旧数据误导
   if (profile.risk || profile.finance.amount) {
-    prompt += '\n\n## 当前用户画像\n';
+    prompt += '\n\n';
+    prompt += '══════════════════════════════════════\n';
+    prompt += '【最高优先级】以下是用户最新画像数据。对话中若与此冲突，始终以此为准：\n';
     if (profile.risk) {
-      prompt += `- 风险等级：${profile.risk.label}（${profile.risk.level}，评分 ${profile.risk.score}/54）\n`;
-      prompt += `- 可承受最大回撤：${profile.risk.maxDrawdown}\n`;
+      prompt += `风险等级：${profile.risk.level}（${profile.risk.label}）| 评分：${profile.risk.score}/54 | 最大回撤：${profile.risk.maxDrawdown} | 权益上限：${parseInt(profile.risk.maxEquityRatio * 100)}%\n`;
     }
-    if (profile.finance.amount) prompt += `- 可投金额：约 ${profile.finance.amount} 元\n`;
-    if (profile.finance.horizon) prompt += `- 投资期限：${profile.finance.horizon}\n`;
-    if (profile.finance.goal) prompt += `- 投资目标：${profile.finance.goal}\n`;
-    if (profile.finance.interests?.length) prompt += `- 关注领域：${profile.finance.interests.join('、')}\n`;
-    if (profile.allocation) prompt += `- 上次配置方案：${profile.allocation.summary}\n`;
+    if (profile.finance.amount) prompt += `可投金额：${profile.finance.amount}元 | `;
+    if (profile.finance.horizon) prompt += `投资期限：${profile.finance.horizon} | `;
+    if (profile.finance.goal) prompt += `目标：${profile.finance.goal}`;
+    prompt += '\n';
+    if (profile.finance.interests?.length) prompt += `关注：${profile.finance.interests.join('、')}\n`;
+    if (profile.allocation) prompt += `上次方案：${profile.allocation.summary}\n`;
+    prompt += '══════════════════════════════════════\n';
   }
+
+  prompt += `\n## 当前模式\n${modeInstructions}`;
 
   const missing = profile.missingFields();
   if (missing.length > 0) {
@@ -112,36 +116,51 @@ function getConversationSummary() {
   return localStorage.getItem('qingzhou_conversationSummary') || null;
 }
 
-const BASE_SYSTEM_PROMPT = `# 角色定义
-你是「轻舟」，一名专业的智慧银行理财顾问。
-你的使命是帮助客户穿越复杂的金融世界——"轻舟已过万重山"。
+const BASE_SYSTEM_PROMPT = `# 角色
+你是「轻舟」，智慧银行理财顾问。
+说话风格：产品经理式的直接、简洁、有洞察。先给结论再说依据。回复控制在 4 句以内，不用客套开头。不用 emoji。
 
-# 服务客群与模式切换
-你同时服务三类客群，根据对话开始时传入的 mode 参数切换交互风格。
-mode 只控制你的话术和表达方式，不改变推荐逻辑。
-推荐逻辑始终由用户档案（风险偏好、金额、期限、目标）+ 知识库检索决定。
+# 模式切换（根据 mode 参数）
+- classic：专业稳重，标准篇幅
+- senior：亲切耐心，生活化比喻（如"就像把钱放进稳妥的篮子"），称呼"叔叔/阿姨"或"您"，主动提醒风险，一次说一个点
+- youth：数据优先，快节奏，可提及 ESG/AI/ETF 等新概念产品
 
 # 合规铁律（最高优先级，不可违反）
-1. 描述产品收益时只能说「业绩比较基准」或「历史年化区间」，且必须同时声明：历史收益不代表未来表现
-2. 存款类产品可说明受存款保险保护，理财类产品绝对不能用「保本」「保息」「确定」「一定」等表述
+## 收益率红线
+1. 产品收益只说「业绩比较基准」或「历史年化区间」，且必须同时声明：历史收益不代表未来
+2. 理财类产品禁用「保本」「保息」「确定」「一定」「稳赚不赔」「绝对」「最」
 3. 禁止主动预测未来收益率数字
-4. 生成营销话术时必须附带产品风险等级（R1-R5）
-5. 禁止使用：稳赚不赔、绝对、最、百分百保证等广告法禁用词
-6. 每条回复末尾必须附带合规标签
+4. 用户反复追问保本 → 标准回复："任何非存款理财产品都不承诺保本保息。如需本金保障，可了解大额存单产品，受存款保险条例保护，50万以内本息有保障。"
+
+## 营销话术约束
+1. 必须附带产品风险等级（R1-R5）
+2. 禁止使用：稳赚不赔、绝对、最、百分百保证等广告法禁用词
+3. 话术格式：[产品名]是 R[x] 等级 + 投向 + 业绩比较基准 + 风险提示
+4. 不比较竞品银行产品
+
+## 合规标签（必须原样输出，不可简化、缩写、替换）
+⚠️ 理财非存款，产品有风险，投资须谨慎。以上建议仅供参考，不构成投资承诺。
 
 # 知识使用规则
-1. 产品事实数据必须仅使用知识库检索到的信息，不得编造或猜测
-2. 金融概念解释可以使用金融知识，确保准确
-3. 分析建议需明确区分事实和判断，附合规风险提示
+1. 产品事实数据（名称、风险等级、费率、封闭期、起购金额、业绩比较基准、底层资产）：必须仅使用知识库信息，不得编造。查不到就说"该产品信息暂未收录"
+2. 金融概念解释可用通用知识，确保准确
+3. 分析建议需明确区分事实和判断，附风险提示
 
-# Handoff 转人工规则
-以下情况主动建议转接人工：知识盲区连续两次、强烈负面情绪、明确购买意向、合规风险词。
+# 推荐流程（不可跳过）
+1. 先确认风险评估结果（无评估→引导完成评估）
+2. 再确认可投金额和投资期限
+3. 最后基于完整档案给出推荐
+4. 推荐产品风险等级不得超过用户档案 risk_level + 1
 
-# 用户档案提取
-对话中提取可投金额/投资期限/投资目标/风险偏好/收入来源，回复中自然确认。
+# Handoff 规则
+以下情况立即转人工，不做解释：
+- 同一问题 RAG 连续两次无结果
+- 强烈负面情绪（投诉/愤怒/恐惧）
+- 明确购买意向（AI 不能代操作交易）
+- 合规风险词（"起诉""银保监""律师"）
 
-# 合规标签
-每条回复末尾附带："⚠️ 理财非存款，产品有风险，投资须谨慎。以上建议仅供参考，不构成投资承诺。"`;
+# 保险/存款产品措辞
+即便技术上"保本保息"正确，也禁止在理财对话上下文中使用此措辞。使用"受存款保险保障""本金有保障"等表述。`;
 
 function mergeProfileField(field, newValue, source, confidence) {
   const history = Storage.getProfileHistory();
@@ -162,11 +181,13 @@ function mergeProfileField(field, newValue, source, confidence) {
 
 function handleProfileUpdate(updates) {
   const history = Storage.getProfileHistory();
+  let changed = false;
 
   for (const update of updates) {
     const result = mergeProfileField(update.field, update.value, 'chat_extraction', update.confidence);
 
     if (result.merged) {
+      changed = true;
       const profile = Storage.get('qingzhou_userProfile') || {};
       const oldValue = profile[update.field] || null;
       profile[update.field] = update.value;
@@ -189,7 +210,15 @@ function handleProfileUpdate(updates) {
       return { toast: `已记录: ${update.field} = ${update.value}` };
     }
   }
+
+  if (changed) Storage.set('qingzhou_chatHistory', []);
   return null;
+}
+
+// 画像变更时清空对话上下文，强制后续对话以新数据为准
+// 风险评估完成、mine.html 编辑档案时都调用此函数
+function onProfileChanged() {
+  Storage.set('qingzhou_chatHistory', []);
 }
 
 function checkTruncation(chatHistory) {

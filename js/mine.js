@@ -5,16 +5,30 @@
 let currentMode = 'classic';
 const FONT_SIZE_MAP = { small: '12px', medium: '16px', large: '24px', xlarge: '32px' };
 
+function applyFontSizeMine(size) {
+  const px = FONT_SIZE_MAP[size] || '16px';
+  document.documentElement.style.setProperty('--font-size-base', px);
+  document.documentElement.style.setProperty('--font-size-msg', (parseInt(px) - 1) + 'px');
+  document.documentElement.style.setProperty('--font-size-sm', (parseInt(px) - 3) + 'px');
+  document.documentElement.style.setProperty('--font-size-lg', (parseInt(px) + 6) + 'px');
+  document.documentElement.style.setProperty('--font-size-xl', (parseInt(px) + 14) + 'px');
+  document.documentElement.style.fontSize = px;
+}
+
+// 模式默认字体
+const MODE_DEFAULT_FONT = { classic: 'medium', senior: 'large', youth: 'small' };
+
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   // 优先使用 localStorage 记住用户最后选择
-  currentMode = Storage.get('qingzhou_mode') || params.get('mode') || 'classic';
+  // URL 参数优先（用户显式选择），localStorage 兜底
+  currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
   Storage.set('qingzhou_mode', currentMode);
   document.body.className = 'mode-' + currentMode;
 
   // 应用字体大小
-  const savedFontSize = Storage.get('qingzhou_fontSize') || 'medium';
-  document.documentElement.style.fontSize = FONT_SIZE_MAP[savedFontSize] || '16px';
+  const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
+  applyFontSizeMine(savedFontSize);
 
   renderModeSelector();
   renderFontSize();
@@ -45,6 +59,14 @@ function renderModeSelector() {
       currentMode = m.id;
       Storage.set('qingzhou_mode', m.id);
       document.body.className = 'mode-' + m.id;
+      // 联动字体到模式默认值
+      const defaultFont = MODE_DEFAULT_FONT[m.id] || 'medium';
+      Storage.set('qingzhou_fontSize', defaultFont);
+      applyFontSizeMine(defaultFont);
+      renderFontSize();
+      // 联动语音：关怀版默认开启
+      if (m.id === 'senior') Storage.set('qingzhou_voiceEnabled', true);
+      renderVoiceToggle();
       renderModeSelector();
       showToast('已切换到 ' + m.name);
     };
@@ -69,7 +91,7 @@ function renderFontSize() {
     btn.textContent = s.label;
     btn.onclick = () => {
       Storage.set('qingzhou_fontSize', s.id);
-      document.documentElement.style.fontSize = FONT_SIZE_MAP[s.id] || '16px';
+      applyFontSizeMine(s.id);
       renderFontSize();
     };
     row.appendChild(btn);
@@ -188,6 +210,15 @@ function switchAccount() {
     window.location.href = 'index.html';
   }
 }
+
+// mine.html 里所有画像变更都调这个——同步刷新上下文
+window._profileChangeTimer = null;
+window._notifyProfileChanged = function() {
+  clearTimeout(window._profileChangeTimer);
+  window._profileChangeTimer = setTimeout(() => {
+    if (typeof onProfileChanged === 'function') onProfileChanged();
+  }, 300);
+};
 
 function logout() {
   if (confirm('退出后对话记录将清空，但已保存的个人档案和风险评估结果会保留。确认退出？')) {

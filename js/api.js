@@ -19,13 +19,24 @@ async function rateLimiter() {
 }
 
 const Api = {
-  async sendMessage(text, mode) {
+  async sendMessage(text, mode, imageBase64 = null) {
+    try {
     if (API_CONFIG.useFallback) {
       return this._fallbackResponse(text, mode);
     }
 
-    const profile = assembleProfile();
-    const systemPrompt = buildSystemPrompt(mode);
+    let profile, systemPrompt;
+    try {
+      profile = assembleProfile();
+      systemPrompt = buildSystemPrompt(mode);
+    } catch (e) {
+      console.warn('Profile engine error, using defaults:', e.message);
+      profile = { risk: null, finance: {}, account: null, preferences: {}, allocation: null, isComplete: () => false, missingFields: () => [], getTemplate: () => null };
+      systemPrompt = BASE_SYSTEM_PROMPT + '\n\n## 当前模式\n' + (mode || 'classic');
+    }
+
+    // 模型路由：有图片走 GLM-5 多模态，纯文字走 DeepSeek-V3.2
+    const model = imageBase64 ? API_CONFIG.models.multimodal : API_CONFIG.models.chat;
 
     // 读取对话历史（最近 10 轮）
     const chatHistory = Storage.get('qingzhou_chatHistory') || [];
@@ -49,29 +60,33 @@ const Api = {
 
     try {
       await rateLimiter();
-      const response = await this._fetchAPI(messages);
+      const response = await this._fetchAPI(messages, model);
       return this._handleResponse(response, text, profile);
     } catch (err) {
-      console.warn('GLM-5 API failed, using fallback:', err.message);
+      console.warn(`${model} API failed, using fallback:`, err.message);
       return this._fallbackResponse(text, mode);
+    }
+    } catch (fatalErr) {
+      console.error('Fatal error in sendMessage:', fatalErr.message, fatalErr.stack);
+      return { reply: '系统错误: ' + fatalErr.message + '\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。', isFallback: true };
     }
   },
 
-  async _fetchAPI(messages) {
+  async _fetchAPI(messages, model) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (API_CONFIG.token) headers['Authorization'] = `Bearer ${API_CONFIG.token}`;
+
       const res = await fetch(API_CONFIG.endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_CONFIG.token}`
-        },
+        headers,
         body: JSON.stringify({
-          model: API_CONFIG.model,
+          model: model,
           messages: messages,
-          max_tokens: 2048,
+          max_tokens: 1024,
           temperature: 0.7,
           stream: false
         }),
