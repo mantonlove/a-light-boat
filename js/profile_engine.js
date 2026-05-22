@@ -98,7 +98,8 @@ function buildSystemPrompt(mode) {
 
   // 注入市场宏观数据
   if (typeof MARKET_DATA !== 'undefined') {
-    prompt += '\n\n## 市场宏观数据（' + (MARKET_DATA.update_time||'').slice(0,10) + '更新）\n';
+    prompt += '\n\n## 市场宏观数据\n';
+    prompt += '更新：' + (MARKET_DATA.update_time||'').slice(0,19) + ' | 同步频率：每日 | 数据源：LPR(央行)/国债(中债登)/PE(沪深交易所)/黄金(上金所)/汇率(CFETS)\n';
     prompt += MARKET_DATA.market_brief + '\n';
     prompt += '关键指标：' + JSON.stringify(MARKET_DATA.key_indicators).replace(/[{}"]/g,'') + '\n';
     prompt += '⚠️ ' + MARKET_DATA.disclaimer + '\n';
