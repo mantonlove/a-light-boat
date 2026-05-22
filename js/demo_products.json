@@ -1291,5 +1291,603 @@
     "data_source": "chinatrc.com.cn",
     "category": "信托",
     "synced_at": "2026-05-22T22:18:22.464464"
+  },
+  {
+    "product_id": "BW019",
+    "name": "季季盈固收90天",
+    "type": "固定收益类",
+    "risk_level": "R2",
+    "min_amount": 5000,
+    "lock_period": "90天",
+    "benchmark": "2.5%-3.2%",
+    "underlying": [
+      "高等级信用债",
+      "银行存款",
+      "政策性金融债"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "2.8%",
+    "historical_return_3y": "2.9%",
+    "fee": "管理费0.25%/年",
+    "redemption": "到期T+1",
+    "status": "在售",
+    "tags": [
+      "季度",
+      "固收",
+      "中等门槛"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596748"
+  },
+  {
+    "product_id": "BW020",
+    "name": "双季盈固收180天",
+    "type": "固定收益类",
+    "risk_level": "R2",
+    "min_amount": 5000,
+    "lock_period": "180天",
+    "benchmark": "2.8%-3.6%",
+    "underlying": [
+      "高等级信用债",
+      "同业存单",
+      "≤10%可转债"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "3.1%",
+    "historical_return_3y": "3.2%",
+    "fee": "管理费0.28%/年",
+    "redemption": "到期T+1",
+    "status": "在售",
+    "tags": [
+      "半年度",
+      "固收",
+      "稳健"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596758"
+  },
+  {
+    "product_id": "BW021",
+    "name": "鑫享混合1年",
+    "type": "混合型",
+    "risk_level": "R3",
+    "min_amount": 10000,
+    "lock_period": "12个月",
+    "benchmark": "4.0%-6.0%",
+    "underlying": [
+      "债券30%-50%",
+      "股票40%-60%",
+      "可转债5%-10%"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "5.2%",
+    "historical_return_3y": "5.0%",
+    "fee": "管理费0.70%/年",
+    "redemption": "封闭期满T+2",
+    "status": "在售",
+    "tags": [
+      "混合",
+      "中长期",
+      "积极配置"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596760"
+  },
+  {
+    "product_id": "BW022",
+    "name": "养老目标2035混合",
+    "type": "养老目标基金",
+    "risk_level": "R3",
+    "min_amount": 100,
+    "lock_period": "3年",
+    "benchmark": "4.0%-6.0%",
+    "underlying": [
+      "权益基金40%-60%",
+      "债券基金30%-50%",
+      "货币基金10%"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "4.8%",
+    "historical_return_3y": "5.5%",
+    "fee": "管理费0.50%/年",
+    "redemption": "持有期满T+2",
+    "status": "在售",
+    "tags": [
+      "养老",
+      "目标日期",
+      "长期"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596762"
+  },
+  {
+    "product_id": "BW023",
+    "name": "养老目标2045混合",
+    "type": "养老目标基金",
+    "risk_level": "R4",
+    "min_amount": 100,
+    "lock_period": "3年",
+    "benchmark": "5.0%-8.0%",
+    "underlying": [
+      "权益基金50%-70%",
+      "债券基金20%-40%",
+      "货币基金10%"
+    ],
+    "suitable_for": [
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "5.5%",
+    "historical_return_3y": "6.2%",
+    "fee": "管理费0.50%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "养老",
+      "目标日期",
+      "长期",
+      "积极"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596764"
+  },
+  {
+    "product_id": "BW024",
+    "name": "美元理财6个月",
+    "type": "外币理财",
+    "risk_level": "R3",
+    "min_amount": 2000,
+    "lock_period": "6个月",
+    "benchmark": "4.0%-5.0%（美元）",
+    "underlying": [
+      "美元债券",
+      "美元存款",
+      "海外货币市场工具"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "4.5%",
+    "historical_return_3y": "4.2%",
+    "fee": "管理费0.50%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "美元",
+      "外币",
+      "海外"
+    ],
+    "data_source": "chinawealth.com.cn",
+    "category": "银行理财",
+    "synced_at": "2026-05-22T22:42:58.596766"
+  },
+  {
+    "product_id": "MF016",
+    "name": "中证红利指数基金",
+    "type": "指数基金",
+    "risk_level": "R4",
+    "min_amount": 100,
+    "lock_period": "3个月",
+    "benchmark": "跟踪中证红利指数",
+    "underlying": [
+      "高股息率A股"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "5.0%",
+    "historical_return_3y": "5.5%",
+    "fee": "管理费0.50%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "红利",
+      "高股息",
+      "价值"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596767"
+  },
+  {
+    "product_id": "MF017",
+    "name": "半导体芯片ETF联接",
+    "type": "ETF联接",
+    "risk_level": "R5",
+    "min_amount": 100,
+    "lock_period": "3个月",
+    "benchmark": "跟踪国证半导体芯片指数",
+    "underlying": [
+      "半导体芯片龙头"
+    ],
+    "suitable_for": [
+      "激进型"
+    ],
+    "historical_return_1y": "12.0%",
+    "historical_return_3y": "8.5%",
+    "fee": "管理费0.50%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "半导体",
+      "芯片",
+      "高弹性",
+      "科技"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596769"
+  },
+  {
+    "product_id": "MF018",
+    "name": "人工智能主题混合",
+    "type": "主题混合",
+    "risk_level": "R5",
+    "min_amount": 1000,
+    "lock_period": "12个月",
+    "benchmark": "5.0%-12.0%",
+    "underlying": [
+      "AI算力龙头",
+      "AI应用",
+      "机器人"
+    ],
+    "suitable_for": [
+      "激进型"
+    ],
+    "historical_return_1y": "15.0%",
+    "historical_return_3y": "10.0%",
+    "fee": "管理费1.20%/年",
+    "redemption": "T+3",
+    "status": "在售",
+    "tags": [
+      "AI",
+      "人工智能",
+      "前沿科技",
+      "Z世代推荐"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596771"
+  },
+  {
+    "product_id": "MF019",
+    "name": "恒生科技ETF联接",
+    "type": "QDII",
+    "risk_level": "R5",
+    "min_amount": 100,
+    "lock_period": "3个月",
+    "benchmark": "跟踪恒生科技指数",
+    "underlying": [
+      "港股科技龙头"
+    ],
+    "suitable_for": [
+      "激进型"
+    ],
+    "historical_return_1y": "10.0%",
+    "historical_return_3y": "7.5%",
+    "fee": "管理费0.60%/年",
+    "redemption": "T+4",
+    "status": "在售",
+    "tags": [
+      "港股",
+      "科技",
+      "QDII",
+      "恒生"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596773"
+  },
+  {
+    "product_id": "MF020",
+    "name": "黄金ETF联接",
+    "type": "商品ETF",
+    "risk_level": "R4",
+    "min_amount": 100,
+    "lock_period": "无",
+    "benchmark": "跟踪上海金交所Au99.99",
+    "underlying": [
+      "实物黄金合约"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "8.0%",
+    "historical_return_3y": "7.0%",
+    "fee": "管理费0.50%/年",
+    "redemption": "T+1",
+    "status": "在售",
+    "tags": [
+      "黄金",
+      "商品",
+      "避险",
+      "通胀对冲"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596775"
+  },
+  {
+    "product_id": "MF021",
+    "name": "短融ETF联接",
+    "type": "ETF联接",
+    "risk_level": "R2",
+    "min_amount": 100,
+    "lock_period": "无",
+    "benchmark": "跟踪中证短融指数",
+    "underlying": [
+      "AAA级短期融资券"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "2.2%",
+    "historical_return_3y": "2.3%",
+    "fee": "管理费0.15%/年",
+    "redemption": "T+1",
+    "status": "在售",
+    "tags": [
+      "短融",
+      "低风险",
+      "现金管理"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596776"
+  },
+  {
+    "product_id": "MF022",
+    "name": "平衡混合型FOF",
+    "type": "FOF",
+    "risk_level": "R3",
+    "min_amount": 1000,
+    "lock_period": "6个月",
+    "benchmark": "4.0%-6.0%",
+    "underlying": [
+      "偏股基金30%-50%",
+      "债券基金40%-60%",
+      "货币基金10%"
+    ],
+    "suitable_for": [
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "4.5%",
+    "historical_return_3y": "4.8%",
+    "fee": "管理费0.60%/年",
+    "redemption": "T+3",
+    "status": "在售",
+    "tags": [
+      "FOF",
+      "基金中的基金",
+      "分散",
+      "稳健"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596778"
+  },
+  {
+    "product_id": "MF023",
+    "name": "量化对冲混合",
+    "type": "量化对冲",
+    "risk_level": "R4",
+    "min_amount": 10000,
+    "lock_period": "6个月",
+    "benchmark": "4.0%-7.0%",
+    "underlying": [
+      "股票多头+股指期货对冲"
+    ],
+    "suitable_for": [
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "5.5%",
+    "historical_return_3y": "5.0%",
+    "fee": "管理费1.50%/年",
+    "redemption": "T+3",
+    "status": "在售",
+    "tags": [
+      "量化",
+      "对冲",
+      "绝对收益",
+      "低相关"
+    ],
+    "data_source": "amac.org.cn",
+    "category": "公募基金",
+    "synced_at": "2026-05-22T22:42:58.596780"
+  },
+  {
+    "product_id": "INS004",
+    "name": "分红型年金险",
+    "type": "分红保险",
+    "risk_level": "R2",
+    "min_amount": 10000,
+    "lock_period": "5年以上",
+    "benchmark": "2.0%保底+分红（历史约3.5%）",
+    "underlying": [
+      "固定收益+权益分红"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型"
+    ],
+    "historical_return_1y": "—",
+    "historical_return_3y": "—",
+    "fee": "—",
+    "redemption": "按保单约定",
+    "status": "在售",
+    "tags": [
+      "分红",
+      "年金",
+      "养老"
+    ],
+    "data_source": "nfra.gov.cn",
+    "category": "保险理财",
+    "synced_at": "2026-05-22T22:42:58.596782"
+  },
+  {
+    "product_id": "BD005",
+    "name": "可转债打新基金",
+    "type": "可转债基金",
+    "risk_level": "R3",
+    "min_amount": 1000,
+    "lock_period": "3个月",
+    "benchmark": "3.0%-6.0%",
+    "underlying": [
+      "新发可转债",
+      "已上市可转债"
+    ],
+    "suitable_for": [
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "5.0%",
+    "historical_return_3y": "4.5%",
+    "fee": "管理费0.60%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "可转债",
+      "打新",
+      "弹性"
+    ],
+    "data_source": "chinabond.com.cn",
+    "category": "债券",
+    "synced_at": "2026-05-22T22:42:58.596783"
+  },
+  {
+    "product_id": "BD006",
+    "name": "高等级信用债基金",
+    "type": "信用债基金",
+    "risk_level": "R2",
+    "min_amount": 100,
+    "lock_period": "30天",
+    "benchmark": "3.0%-4.0%",
+    "underlying": [
+      "AA+级以上信用债",
+      "中期票据"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "3.5%",
+    "historical_return_3y": "3.6%",
+    "fee": "管理费0.40%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "信用债",
+      "高等级",
+      "稳健收益"
+    ],
+    "data_source": "chinabond.com.cn",
+    "category": "债券",
+    "synced_at": "2026-05-22T22:42:58.596785"
+  },
+  {
+    "product_id": "BD007",
+    "name": "政策性金融债指数",
+    "type": "利率债基金",
+    "risk_level": "R2",
+    "min_amount": 100,
+    "lock_period": "30天",
+    "benchmark": "2.5%-3.0%",
+    "underlying": [
+      "国开债",
+      "农发债",
+      "进出口行债"
+    ],
+    "suitable_for": [
+      "保守型",
+      "稳健型",
+      "平衡型",
+      "进取型",
+      "激进型"
+    ],
+    "historical_return_1y": "2.8%",
+    "historical_return_3y": "2.9%",
+    "fee": "管理费0.30%/年",
+    "redemption": "T+2",
+    "status": "在售",
+    "tags": [
+      "利率债",
+      "政策性银行",
+      "低风险"
+    ],
+    "data_source": "chinabond.com.cn",
+    "category": "债券",
+    "synced_at": "2026-05-22T22:42:58.596787"
+  },
+  {
+    "product_id": "TR002",
+    "name": "房地产信托计划",
+    "type": "信托",
+    "risk_level": "R5",
+    "min_amount": 1000000,
+    "lock_period": "2年",
+    "benchmark": "6.0%-9.0%",
+    "underlying": [
+      "商业地产项目"
+    ],
+    "suitable_for": [
+      "激进型"
+    ],
+    "historical_return_1y": "—",
+    "historical_return_3y": "—",
+    "fee": "管理费1.8%/年",
+    "redemption": "到期分配",
+    "status": "在售",
+    "tags": [
+      "信托",
+      "房地产",
+      "高门槛",
+      "高风险"
+    ],
+    "data_source": "chinatrc.com.cn",
+    "category": "信托",
+    "synced_at": "2026-05-22T22:42:58.596788"
   }
 ]
