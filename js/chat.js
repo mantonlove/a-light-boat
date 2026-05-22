@@ -301,7 +301,7 @@ function addMessage(role, content, isFallback = false) {
 
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  if (role === 'ai') {
+  if (role === 'ai' || role === 'assistant') {
     avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
   } else {
     const userInfo = Storage.get('qingzhou_userInfo');
@@ -326,7 +326,7 @@ function addMessage(role, content, isFallback = false) {
   contentDiv.innerHTML = content;
   bubble.appendChild(contentDiv);
 
-  if (role === 'ai') {
+  if (role === 'ai' || role === 'assistant') {
     const tag = document.createElement('span');
     tag.className = 'compliance-tag';
     tag.textContent = '⚠️ 理财非存款，产品有风险，投资须谨慎。以上建议仅供参考，不构成投资承诺。';
