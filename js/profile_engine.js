@@ -96,15 +96,28 @@ function buildSystemPrompt(mode) {
     prompt += `\n注意：用户档案尚不完整（缺失：${missing.join('、')}）。在推荐具体产品前，请先通过自然对话了解缺失信息。\n`;
   }
 
-  // 注入 demo 产品数据（RAG 知识库）
-  const products = getProductData();
-  if (products && products.length > 0) {
-    prompt += '\n\n---\n## 知识库产品数据\n';
-    prompt += `数据版本：${PRODUCT_META?.version||'1.0'} | 更新于：${PRODUCT_META?.updated||'2026-05-22'} | 共${PRODUCT_META?.count||41}只产品\n`;
-    prompt += '数据来源：中国理财网/中基协/金融监管总局/中债登/中信登（监管机构指定官方平台）\n';
-    prompt += '以下是你唯一可以引用的产品信息，严禁编造产品数据。如需查询最新产品信息，请建议用户访问对应官方平台。\n\n';
-    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 业绩比较基准 | 适合客群 | 类别 |\n';
-    products.forEach(p => {
+  // 注入知识库产品——按用户画像过滤，至多15只最匹配产品
+  const allProducts = getProductData();
+  if (allProducts && allProducts.length > 0) {
+    // 按风险等级过滤：不超过用户等级+1
+    let filtered = allProducts;
+    if (profile.risk?.level) {
+      const maxRisk = Math.min(5, parseInt(profile.risk.level.replace('R','')) + 1);
+      filtered = filtered.filter(p => parseInt(p.risk_level.replace('R','')) <= maxRisk);
+    }
+    // 按金额过滤：起购金额不超过可投金额
+    if (profile.finance.amount) {
+      filtered = filtered.filter(p => p.min_amount <= profile.finance.amount);
+    }
+    // 取前15只
+    const top15 = filtered.slice(0, 15);
+
+    prompt += '\n\n---\n## 知识库产品数据（按用户画像过滤后最匹配的' + top15.length + '只）\n';
+    prompt += `数据版本：${PRODUCT_META?.version||'1.0'} | 更新于：${PRODUCT_META?.updated||'2026-05-22'} | 知识库共${PRODUCT_META?.count||1260}只\n`;
+    prompt += '同步频率：银行理财/基金/债券每日，保险/信托每周。数据源：中国理财网/中基协/金融监管总局/中债登/中信登\n';
+    prompt += '以下是你唯一可以引用的产品信息，严禁编造。如需更多产品，请建议用户访问对应官方平台。\n\n';
+    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 基准 | 客群 | 类别 |\n';
+    top15.forEach(p => {
       prompt += `| ${p.name} | ${p.risk_level} | ${p.type} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${p.suitable_for?.join('/')} | ${p.category||''} |\n`;
     });
   }
@@ -171,6 +184,13 @@ const BASE_SYSTEM_PROMPT = `# 角色
 - 强烈负面情绪（投诉/愤怒/恐惧）
 - 明确购买意向（AI 不能代操作交易）
 - 合规风险词（"起诉""银保监""律师"）
+
+# 拒绝与替代路径
+当无法满足用户要求时（风险错配/金额不足/期限不匹配/无匹配产品），必须：
+1. 明确说明拒绝原因（哪个约束不满足）
+2. 提供1-2个在约束边界内最接近的替代方案
+3. 解释替代方案与原要求的差异
+禁止只拒绝不给替代路径。
 
 # 保险/存款产品措辞
 即便技术上"保本保息"正确，也禁止在理财对话上下文中使用此措辞。使用"受存款保险保障""本金有保障"等表述。`;
