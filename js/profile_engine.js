@@ -211,7 +211,10 @@ function handleProfileUpdate(updates) {
     }
   }
 
-  if (changed) Storage.set('qingzhou_chatHistory', []);
+  if (changed) {
+    Storage.set('qingzhou_chatHistory', []);
+    if (typeof showToast === 'function') showToast('档案已更新，对话上下文已刷新');
+  }
   return null;
 }
 

@@ -332,8 +332,14 @@ function addMessage(role, content, isFallback = false) {
     bubble.appendChild(badge);
   }
 
+  // 去重：移除 AI 回复中已有的合规标签文本，避免双重显示
+  let cleanContent = content;
+  if (role === 'ai') {
+    cleanContent = cleanContent.replace(/<br>?\s*(⚠️|【|\\[).*?(理财非存款|产品有风险|投资须谨慎|不构成投资).*?(<br>|$)/gi, '');
+  }
+
   const contentDiv = document.createElement('div');
-  contentDiv.innerHTML = content;
+  contentDiv.innerHTML = cleanContent;
   bubble.appendChild(contentDiv);
 
   if (role === 'ai') {
@@ -557,6 +563,7 @@ function startQuestionnaire(callback) {
 
     // 清除对话历史——强制后续对话基于最新画像，不被旧数据污染
     Storage.set('qingzhou_chatHistory', []);
+    showToast('对话已刷新，后续回复将基于最新画像');
 
     scrollToBottom();
     if (cb) cb(result);
