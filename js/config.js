@@ -6,5 +6,5 @@ const API_CONFIG = {
   endpoint: 'YOUR_API_ENDPOINT',
   token: 'YOUR_API_TOKEN',
   timeout: 15000,
-  useFallback: false
+  useFallback: true
 };

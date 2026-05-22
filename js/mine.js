@@ -3,11 +3,18 @@
  */
 
 let currentMode = 'classic';
+const FONT_SIZE_MAP = { small: '12px', medium: '16px', large: '24px', xlarge: '32px' };
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
-  currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
+  // 优先使用 localStorage 记住用户最后选择
+  currentMode = Storage.get('qingzhou_mode') || params.get('mode') || 'classic';
+  Storage.set('qingzhou_mode', currentMode);
   document.body.className = 'mode-' + currentMode;
+
+  // 应用字体大小
+  const savedFontSize = Storage.get('qingzhou_fontSize') || 'medium';
+  document.documentElement.style.fontSize = FONT_SIZE_MAP[savedFontSize] || '16px';
 
   renderModeSelector();
   renderFontSize();
@@ -25,9 +32,9 @@ function goBack() {
 function renderModeSelector() {
   const container = document.getElementById('modeSelector');
   const modes = [
-    { id: 'classic', name: '经典版', icon: '💼' },
-    { id: 'senior', name: '银发族模式', icon: '🌅' },
-    { id: 'youth', name: 'Z世代模式', icon: '🎯' }
+    { id: 'youth', name: '青春版', icon: '🎯' },
+    { id: 'senior', name: '关怀版', icon: '🌅' },
+    { id: 'classic', name: '经典版', icon: '💼' }
   ];
   container.innerHTML = '';
   modes.forEach(m => {
@@ -37,8 +44,8 @@ function renderModeSelector() {
     div.onclick = () => {
       currentMode = m.id;
       Storage.set('qingzhou_mode', m.id);
-      renderModeSelector();
       document.body.className = 'mode-' + m.id;
+      renderModeSelector();
       showToast('已切换到 ' + m.name);
     };
     container.appendChild(div);
@@ -62,16 +69,11 @@ function renderFontSize() {
     btn.textContent = s.label;
     btn.onclick = () => {
       Storage.set('qingzhou_fontSize', s.id);
-      applyFontSize(s.id);
+      document.documentElement.style.fontSize = FONT_SIZE_MAP[s.id] || '16px';
       renderFontSize();
     };
     row.appendChild(btn);
   });
-}
-
-function applyFontSize(size) {
-  const map = { small: '14px', medium: '16px', large: '20px', xlarge: '24px' };
-  document.documentElement.style.fontSize = map[size] || '16px';
 }
 
 // ── Voice Toggle ──
@@ -122,8 +124,8 @@ function renderArchive() {
   ];
 
   const history = Storage.getProfileHistory();
-
   let html = '';
+
   fields.forEach(f => {
     const val = profile[f.key];
     const display = f.format ? f.format(val) : (val || '—');
@@ -140,15 +142,13 @@ function renderArchive() {
   html += '<div style="text-align:center;margin-top:12px;"><button class="retry-btn" onclick="showToast(\'档案已导出（模拟）\')">导出档案</button></div>';
   document.getElementById('archiveContent').innerHTML = html;
 
-  // Populate timelines
   fields.forEach(f => {
     const list = document.getElementById('timeline-' + f.key);
     if (!list) return;
     const items = history.filter(h => h.field === f.key);
-    if (items.length === 0) {
-      list.innerHTML = '<div class="timeline-item" style="color:var(--text-muted);">暂无变更记录</div>';
-    } else {
-      list.innerHTML = items.map(h => `
+    list.innerHTML = items.length === 0
+      ? '<div class="timeline-item" style="color:var(--text-muted);">暂无变更记录</div>'
+      : items.map(h => `
         <div class="timeline-item">
           <span class="time">${new Date(h.timestamp).toLocaleString('zh-CN')}</span>
           <span class="source">[${h.source}]</span>
@@ -156,7 +156,6 @@ function renderArchive() {
           ${h.context ? '<br><span style="color:var(--text-muted);">"' + h.context + '"</span>' : ''}
         </div>
       `).join('');
-    }
   });
 }
 
@@ -198,13 +197,41 @@ function logout() {
 }
 
 function editProfile() {
-  const name = prompt('输入昵称：', '张三');
+  const name = prompt('输入昵称：', document.getElementById('profileName').textContent);
   if (name) {
     const info = Storage.get('qingzhou_userInfo') || {};
     info.nickname = name;
     Storage.set('qingzhou_userInfo', info);
     document.getElementById('profileName').textContent = name;
     showToast('昵称已更新');
+  }
+}
+
+function changePhone() {
+  const phone = prompt('输入新手机号：', '13812341234');
+  if (phone && phone.length >= 11) {
+    const masked = phone.slice(0, 3) + '****' + phone.slice(-4);
+    document.getElementById('accountPhone').textContent = masked;
+    showToast('手机号已更新');
+  }
+}
+
+function changeEmail() {
+  const email = prompt('输入新邮箱：', 'zhangsan@example.com');
+  if (email && email.includes('@')) {
+    const parts = email.split('@');
+    const masked = parts[0].slice(0, 3) + '***@' + parts[1];
+    document.getElementById('accountEmail').textContent = masked;
+    showToast('邮箱已更新');
+  }
+}
+
+function changePassword() {
+  const pw = prompt('输入新密码（至少6位）：');
+  if (pw && pw.length >= 6) {
+    showToast('密码已修改');
+  } else if (pw) {
+    showToast('密码长度不足6位');
   }
 }
 

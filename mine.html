@@ -18,7 +18,7 @@
     <div style="flex:1;">
       <div style="font-size:var(--font-size-lg);font-weight:700;" id="profileName">张三</div>
       <div style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:4px;">
-        手机银行 LV3 客户 · 风险偏好：<span id="profileRisk" style="color:var(--accent);">未评估</span>
+        风险偏好：<span id="profileRisk" style="color:var(--accent);">未评估</span>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="retry-btn" onclick="editProfile()">编辑个人资料</button>
@@ -37,7 +37,7 @@
       <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin:16px 0 12px;">字体大小</p>
       <div class="font-size-row" id="fontSizeRow"></div>
       <div class="toggle-row">
-        <div><div class="toggle-label">语音播报</div><div class="toggle-desc">AI 回复自动朗读，朗读完毕自动续听（仅银发族模式）</div></div>
+        <div><div class="toggle-label">语音播报</div><div class="toggle-desc">AI 回复自动朗读，朗读完毕自动续听</div></div>
         <div class="toggle-switch" id="voiceToggle" onclick="toggleVoice()"></div>
       </div>
     </div>
@@ -74,9 +74,9 @@
   <div class="section">
     <div class="section-title">账户安全</div>
     <div class="card">
-      <div class="toggle-row"><div><div class="toggle-label">绑定手机</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">138****1234 <button class="retry-btn" style="padding:2px 8px;font-size:11px;">更换</button></span></div>
-      <div class="toggle-row"><div><div class="toggle-label">绑定邮箱</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">zhang***@**.com <button class="retry-btn" style="padding:2px 8px;font-size:11px;">更换</button></span></div>
-      <div class="toggle-row"><div><div class="toggle-label">登录密码</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">******** <button class="retry-btn" style="padding:2px 8px;font-size:11px;">修改</button></span></div>
+      <div class="toggle-row"><div><div class="toggle-label">绑定手机</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);"><span id="accountPhone">138****1234</span> <button class="retry-btn" style="padding:2px 8px;font-size:11px;" onclick="changePhone()">更换</button></span></div>
+      <div class="toggle-row"><div><div class="toggle-label">绑定邮箱</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);"><span id="accountEmail">zhang***@**.com</span> <button class="retry-btn" style="padding:2px 8px;font-size:11px;" onclick="changeEmail()">更换</button></span></div>
+      <div class="toggle-row"><div><div class="toggle-label">登录密码</div></div><span style="font-size:var(--font-size-sm);color:var(--text-muted);">******** <button class="retry-btn" style="padding:2px 8px;font-size:11px;" onclick="changePassword()">修改</button></span></div>
       <div style="text-align:center;margin-top:var(--spacing-md);">
         <button class="retry-btn" onclick="logout()" style="color:var(--danger);border-color:var(--danger);">退出当前账号</button>
       </div>
@@ -84,10 +84,10 @@
   </div>
 </div>
 
-<script src="js/storage.js"></script>
-<script src="js/config.js"></script>
-<script src="js/router.js"></script>
-<script src="js/profile_engine.js"></script>
-<script src="js/mine.js"></script>
+<script src="js/storage.js?v=4"></script>
+<script src="js/config.js?v=4"></script>
+<script src="js/router.js?v=4"></script>
+<script src="js/profile_engine.js?v=4"></script>
+<script src="js/mine.js?v=4"></script>
 </body>
 </html>

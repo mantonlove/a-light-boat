@@ -8,20 +8,40 @@ const PRESET_QUESTIONS = {
   youth: ['20万，3年不用，怎么配？', '帮我对比两只基金', '每月定投 1000 元怎么选？', '有没有行业 ETF 推荐？']
 };
 
-const MODE_NAMES = { classic: '经典版', senior: '银发族模式', youth: 'Z世代模式' };
+const MODE_NAMES = { classic: '经典版', senior: '关怀版', youth: '青春版' };
 let currentMode = 'classic';
 let isListening = false;
 let pendingImage = null;
 let handoffActive = false;
 
+// ── Font size map ──
+const FONT_SIZE_MAP = { small: '12px', medium: '16px', large: '24px', xlarge: '32px' };
+
+function applyFontSize(size) {
+  const px = FONT_SIZE_MAP[size] || '16px';
+  document.documentElement.style.setProperty('--font-size-base', px);
+  document.documentElement.style.setProperty('--font-size-msg', (parseInt(px) - 1) + 'px');
+  document.documentElement.style.setProperty('--font-size-sm', (parseInt(px) - 3) + 'px');
+  document.documentElement.style.setProperty('--font-size-xs', (parseInt(px) - 5) + 'px');
+  document.documentElement.style.setProperty('--font-size-lg', (parseInt(px) + 6) + 'px');
+  document.documentElement.style.setProperty('--font-size-xl', (parseInt(px) + 14) + 'px');
+  document.documentElement.style.fontSize = px;
+}
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
-  currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
+
+  // 优先使用 localStorage 记住用户最后选择
+  currentMode = Storage.get('qingzhou_mode') || params.get('mode') || 'classic';
   Storage.set('qingzhou_mode', currentMode);
 
   document.body.className = 'mode-' + currentMode;
   document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode];
+
+  // 应用保存的字体大小
+  const savedFontSize = Storage.get('qingzhou_fontSize') || 'medium';
+  applyFontSize(savedFontSize);
 
   renderPresets();
   setupVoice();
@@ -35,6 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
     input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   });
   input.focus();
+
+  // 如果是从 mine.html 来的重新评估请求
+  if (params.get('action') === 'reassess') {
+    setTimeout(() => startQuestionnaire(), 800);
+  }
 });
 
 // ── Presets ──
@@ -53,10 +78,16 @@ function renderPresets() {
 // ── Voice ──
 function setupVoice() {
   const btn = document.getElementById('voiceBtn');
+  // 所有模式均显示语音按钮，关怀版默认大按钮
+  btn.classList.remove('hidden');
   if (currentMode === 'senior') {
-    btn.classList.remove('hidden');
+    btn.style.width = '72px';
+    btn.style.height = '72px';
+    btn.style.fontSize = '28px';
   } else {
-    btn.classList.add('hidden');
+    btn.style.width = '40px';
+    btn.style.height = '40px';
+    btn.style.fontSize = '16px';
   }
 }
 
@@ -94,20 +125,16 @@ function toggleVoice() {
     btn.textContent = '🎤';
     isListening = false;
     if (currentMode === 'senior') {
-      setTimeout(() => {
-        showToast('没听清，您再试一次？');
-      }, 300);
+      setTimeout(() => showToast('没听清，您再试一次？'), 300);
     }
   };
 
   recognition.onend = () => {
     if (isListening && currentMode === 'senior') {
-      // Auto-retry once for senior mode
       try { recognition.start(); } catch (e) { isListening = false; btn.textContent = '🎤'; }
     }
   };
 
-  // Timeout
   setTimeout(() => {
     if (isListening) {
       try { recognition.stop(); } catch (e) {}
@@ -141,12 +168,16 @@ function acceptPrivacy() {
   document.getElementById('privacyGuide').classList.add('hidden');
 }
 
-// ── Voice Guide (senior) ──
+// ── Voice Guide ──
 function checkVoiceGuide() {
-  if (currentMode !== 'senior' || Storage.get('qingzhou_voiceGuideRead')) return;
+  if (Storage.get('qingzhou_voiceGuideRead')) return;
+  // 关怀版首次默认开启语音播报
+  if (currentMode === 'senior') {
+    Storage.set('qingzhou_voiceEnabled', true);
+  }
   Storage.set('qingzhou_voiceGuideRead', true);
 
-  if ('speechSynthesis' in window) {
+  if (currentMode === 'senior' && 'speechSynthesis' in window) {
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(
         '您好，我是轻舟，您的专属理财顾问。您可以直接对我说话，我会用语音回复您。试试问我：什么是理财产品？'
@@ -154,7 +185,6 @@ function checkVoiceGuide() {
       utterance.lang = 'zh-CN';
       utterance.rate = 0.85;
       utterance.onend = () => {
-        // Open mic after guide
         if (Storage.get('qingzhou_voiceEnabled')) toggleVoice();
       };
       speechSynthesis.speak(utterance);
@@ -191,14 +221,12 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  // Injection detection
   if (Router.detectInjection(text)) {
     addMessage('ai', '⚠️ 抱歉，您的输入包含不符合理财顾问服务规范的内容，我无法处理该请求。作为合规的银行理财顾问，我只能基于您的财务状况和风险偏好，提供客观的产品信息和配置建议。如有具体理财需求，欢迎重新描述。');
     input.value = '';
     return;
   }
 
-  // Add user message
   const userContent = pendingImage
     ? `<img src="${pendingImage}" style="max-width:200px;border-radius:8px;margin-bottom:6px;display:block;"><div>${escapeHtml(text)}</div>`
     : escapeHtml(text);
@@ -207,53 +235,46 @@ async function sendMessage() {
   document.getElementById('sendBtn').disabled = true;
   removeImage();
 
-  // Save to history
   const history = Storage.get('qingzhou_chatHistory') || [];
   history.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
   Storage.set('qingzhou_chatHistory', history);
 
-  // L1 route
   const route = Router.route(text);
   if (route.action === 'compliance_block') {
     addMessage('ai', '⚠️ 理财非存款，产品有风险，投资须谨慎。我不能对产品收益做出任何保证或承诺。您可以通过我行 APP 查看产品的完整风险说明书和过往业绩后再做判断。如有疑问，欢迎随时咨询。');
     return;
   }
 
-  // Loading
   const loadingMsg = addLoadingDots();
   scrollToBottom();
 
-  // Call API
   const result = await Api.sendMessage(text, currentMode);
 
-  // Remove loading
   loadingMsg.remove();
 
-  // Render reply
   const replyHtml = escapeHtml(result.reply).replace(/\n/g, '<br>');
   const msgEl = addMessage('ai', replyHtml, result.isFallback);
 
-  // TTS for senior mode
-  if (currentMode === 'senior') {
+  // TTS for any mode with voice enabled
+  const voiceEnabled = Storage.get('qingzhou_voiceEnabled');
+  if (voiceEnabled) {
     addTtsButton(msgEl, result.reply);
-    if (Storage.get('qingzhou_voiceEnabled')) {
-      speakText(result.reply, () => {
-        // Auto-continue listening after TTS
-        setTimeout(() => {
-          if (Storage.get('qingzhou_voiceEnabled') && !isListening) {
-            toggleVoice();
-          }
-        }, 1500);
-      });
-    }
+    speakText(result.reply, () => {
+      setTimeout(() => {
+        if (Storage.get('qingzhou_voiceEnabled') && !isListening) {
+          toggleVoice();
+        }
+      }, 1500);
+    });
+  } else if (currentMode === 'senior') {
+    // 关怀版即使未开自动朗读也显示播放按钮
+    addTtsButton(msgEl, result.reply);
   }
 
-  // Show toast for profile update
   if (result.toast && !result.isFallback) {
     showToast(result.toast);
   }
 
-  // Save AI reply to history
   history.push({ role: 'assistant', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
   Storage.set('qingzhou_chatHistory', history);
 
@@ -310,12 +331,6 @@ function addLoadingDots() {
   const dots = document.createElement('div');
   dots.className = 'loading-dots';
   dots.innerHTML = '<span></span><span></span><span></span>';
-  if (currentMode === 'senior' || currentMode === 'classic') {
-    const text = document.createElement('span');
-    text.style.cssText = 'font-size:var(--font-size-sm);color:var(--text-muted);margin-left:8px;';
-    text.textContent = '正在为您查询……';
-    dots.appendChild(text);
-  }
   bubble.appendChild(dots);
   div.appendChild(avatar);
   div.appendChild(bubble);
@@ -346,7 +361,6 @@ function addTtsButton(msgEl, text) {
 function speakText(text, onEnd) {
   if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
   speechSynthesis.cancel();
-  // Strip markdown/compliance tags for cleaner speech
   const cleanText = text.replace(/⚠️.*/s, '').replace(/\n\n/g, '。').trim();
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'zh-CN';
@@ -357,8 +371,6 @@ function speakText(text, onEnd) {
 
 // ── Navigation ──
 function goTo(url) {
-  const params = new URLSearchParams();
-  params.set('mode', currentMode);
   window.location.href = url + '?mode=' + currentMode;
 }
 
