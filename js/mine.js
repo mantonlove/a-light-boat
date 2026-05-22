@@ -36,6 +36,17 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRiskProfile();
   renderArchive();
   renderPrefs();
+
+  // 恢复已保存的账户安全信息
+  const savedPhone = Storage.get('qingzhou_accountPhone');
+  if (savedPhone) {
+    document.getElementById('accountPhone').textContent = savedPhone.slice(0, 3) + '****' + savedPhone.slice(-4);
+  }
+  const savedEmail = Storage.get('qingzhou_accountEmail');
+  if (savedEmail) {
+    const parts = savedEmail.split('@');
+    document.getElementById('accountEmail').textContent = parts[0].slice(0, 3) + '***@' + (parts[1] || '');
+  }
 });
 
 function goBack() {
@@ -140,7 +151,7 @@ function renderArchive() {
   const fields = [
     { key: 'goal', label: '投资目标' },
     { key: 'horizon', label: '投资期限' },
-    { key: 'amount', label: '可投金额', format: v => v ? v + ' 元' : '—' },
+    { key: 'amount', label: '可投金额', format: v => v ? (v >= 10000 ? (v/10000).toFixed(0) + ' 万元' : v.toLocaleString() + ' 元') : '—' },
     { key: 'income', label: '收入来源' },
     { key: 'interests', label: '关注领域', format: v => Array.isArray(v) ? v.join('、') : (v || '—') }
   ];
@@ -154,7 +165,8 @@ function renderArchive() {
     html += `<div class="toggle-row" style="flex-wrap:wrap;">
       <div style="flex:1;">
         <div class="toggle-label">${f.label}</div>
-        <span style="font-size:var(--font-size-msg);font-weight:600;">${display}</span>
+        <span style="font-size:var(--font-size-msg);font-weight:600;" id="archiveVal-${f.key}">${display}</span>
+        <button class="retry-btn" style="padding:2px 8px;font-size:11px;margin-left:8px;" onclick="editArchiveField('${f.key}','${f.label}','${escapeHtml(String(val||''))}')">✎ 编辑</button>
         <button class="timeline-toggle" onclick="toggleTimeline(this, '${f.key}')">🕐</button>
         <div class="timeline-list" id="timeline-${f.key}"></div>
       </div>
@@ -173,7 +185,7 @@ function renderArchive() {
       : items.map(h => `
         <div class="timeline-item">
           <span class="time">${new Date(h.timestamp).toLocaleString('zh-CN')}</span>
-          <span class="source">[${h.source}]</span>
+          <span class="source">[${({chat_extraction:'对话提取',manual_edit:'手动修改',risk_assessment:'风险评估',chat_confirmed:'对话确认',system_default:'系统默认'})[h.source]||h.source}]</span>
           ${h.oldValue || '无'} → ${h.newValue}
           ${h.context ? '<br><span style="color:var(--text-muted);">"' + h.context + '"</span>' : ''}
         </div>
@@ -263,11 +275,13 @@ function editProfile() {
 }
 
 function changePhone() {
+  const saved = Storage.get('qingzhou_accountPhone') || '13812341234';
   openModal('更换绑定手机', [
-    { label: '新手机号', type: 'tel', value: '13812341234', placeholder: '输入11位手机号' }
+    { label: '新手机号', type: 'tel', value: saved, placeholder: '输入11位手机号' }
   ], (phone) => {
     if (phone && phone.length >= 11) {
       const masked = phone.slice(0, 3) + '****' + phone.slice(-4);
+      Storage.set('qingzhou_accountPhone', phone);
       document.getElementById('accountPhone').textContent = masked;
       showToast('手机号已更新');
     } else {
@@ -277,12 +291,14 @@ function changePhone() {
 }
 
 function changeEmail() {
+  const saved = Storage.get('qingzhou_accountEmail') || 'zhangsan@example.com';
   openModal('更换绑定邮箱', [
-    { label: '新邮箱', type: 'email', value: 'zhangsan@example.com', placeholder: '输入邮箱地址' }
+    { label: '新邮箱', type: 'email', value: saved, placeholder: '输入邮箱地址' }
   ], (email) => {
     if (email && email.includes('@')) {
       const parts = email.split('@');
       const masked = parts[0].slice(0, 3) + '***@' + parts[1];
+      Storage.set('qingzhou_accountEmail', email);
       document.getElementById('accountEmail').textContent = masked;
       showToast('邮箱已更新');
     } else {
@@ -297,6 +313,7 @@ function changePassword() {
     { label: '确认新密码', type: 'password', placeholder: '再次输入' }
   ], (values) => {
     if (values[0] && values[0].length >= 6 && values[0] === values[1]) {
+      Storage.set('qingzhou_accountPassword', values[0]);
       showToast('密码已修改');
     } else if (values[0] !== values[1]) {
       showToast('两次密码不一致');
@@ -304,6 +321,42 @@ function changePassword() {
       showToast('密码长度不足6位');
     }
   });
+}
+
+function editArchiveField(key, label, currentValue) {
+  openModal('编辑' + label, [
+    { label: label, value: currentValue, placeholder: '输入新的' + label }
+  ], (newValue) => {
+    if (!newValue || !newValue.trim()) return;
+    const val = newValue.trim();
+    const profile = Storage.get('qingzhou_userProfile') || {};
+    const oldValue = profile[key] || null;
+
+    // 格式化：amount 去掉"元""万"等，存数字
+    if (key === 'amount') {
+      const num = parseInt(val.replace(/[^0-9]/g, ''));
+      if (isNaN(num)) { showToast('请输入有效数字'); return; }
+      profile[key] = num;
+    } else if (key === 'interests') {
+      profile[key] = val.split(/[,，、\s]+/).filter(Boolean);
+    } else {
+      profile[key] = val;
+    }
+
+    Storage.set('qingzhou_userProfile', profile);
+    Storage.addProfileHistory({
+      field: key, oldValue, newValue: profile[key],
+      source: 'manual_edit', timestamp: new Date().toISOString(),
+      confidence: 1, context: '用户在"我的"页面手动编辑', confirmed: true
+    });
+    if (typeof onProfileChanged === 'function') onProfileChanged();
+    renderArchive();
+    showToast(label + '已更新');
+  });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function startReassessment() {
