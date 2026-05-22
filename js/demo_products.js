@@ -1252,3 +1252,4 @@ const DEMO_PRODUCTS = [
     "category": "信托"
   }
 ];
+const PRODUCT_META = {"version":"1.0.0","updated":"2026-05-22T22:10:01.790166","count":41,"sources":5,"note":"Demo数据，字段参照官方登记格式。生产环境中通过平台API实现自动同步。"};

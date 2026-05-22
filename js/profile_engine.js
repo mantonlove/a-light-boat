@@ -99,10 +99,13 @@ function buildSystemPrompt(mode) {
   // 注入 demo 产品数据（RAG 知识库）
   const products = getProductData();
   if (products && products.length > 0) {
-    prompt += '\n\n---\n## 知识库产品数据（以下是你唯一可以引用的产品信息，严禁编造产品数据）\n';
-    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 业绩比较基准 | 适合客群 |\n';
+    prompt += '\n\n---\n## 知识库产品数据\n';
+    prompt += `数据版本：${PRODUCT_META?.version||'1.0'} | 更新于：${PRODUCT_META?.updated||'2026-05-22'} | 共${PRODUCT_META?.count||41}只产品\n`;
+    prompt += '数据来源：中国理财网/中基协/金融监管总局/中债登/中信登（监管机构指定官方平台）\n';
+    prompt += '以下是你唯一可以引用的产品信息，严禁编造产品数据。如需查询最新产品信息，请建议用户访问对应官方平台。\n\n';
+    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 业绩比较基准 | 适合客群 | 类别 |\n';
     products.forEach(p => {
-      prompt += `| ${p.name} | ${p.risk_level} | ${p.type} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${p.suitable_for?.join('/')} |\n`;
+      prompt += `| ${p.name} | ${p.risk_level} | ${p.type} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${p.suitable_for?.join('/')} | ${p.category||''} |\n`;
     });
   }
 
