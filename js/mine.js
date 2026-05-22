@@ -270,25 +270,33 @@ function closeModal() {
   modalCallback = null;
 }
 
+function handleAvatarUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const info = Storage.get('qingzhou_userInfo') || {};
+    info.avatar = dataUrl;
+    Storage.set('qingzhou_userInfo', info);
+    document.getElementById('profileAvatar').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    showToast('头像已更新');
+  };
+  reader.readAsDataURL(file);
+}
+
 function editProfile() {
   const currentName = document.getElementById('profileName').textContent;
   openModal('编辑个人资料', [
-    { label: '昵称', value: currentName, placeholder: '输入您的昵称' },
-    { label: '头像链接（可选）', value: '', placeholder: '输入图片URL，留空则不变' }
-  ], (values) => {
-    const name = values[0];
-    const avatarUrl = values[1];
-    const info = Storage.get('qingzhou_userInfo') || {};
+    { label: '昵称', value: currentName, placeholder: '输入您的昵称' }
+  ], (name) => {
     if (name && name.trim()) {
+      const info = Storage.get('qingzhou_userInfo') || {};
       info.nickname = name.trim();
+      Storage.set('qingzhou_userInfo', info);
       document.getElementById('profileName').textContent = name.trim();
+      showToast('昵称已更新');
     }
-    if (avatarUrl && avatarUrl.trim()) {
-      info.avatar = avatarUrl.trim();
-      document.getElementById('profileAvatar').innerHTML = `<img src="${avatarUrl.trim()}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-    }
-    Storage.set('qingzhou_userInfo', info);
-    showToast('资料已更新');
   });
 }
 
