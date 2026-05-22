@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V6 龙虾系统 · 完整设计方案</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px 60px; line-height: 1.8; font-size: 15px; }
+  h1 { color: #f78166; font-size: 32px; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #30363d; padding-bottom: 20px; }
+  h2 { color: #58a6ff; font-size: 22px; margin-top: 40px; margin-bottom: 16px; border-left: 4px solid #58a6ff; padding-left: 12px; }
+  h3 { color: #d2a8ff; font-size: 17px; margin-top: 24px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: #21262d; color: #58a6ff; padding: 8px 12px; text-align: left; border: 1px solid #30363d; }
+  td { padding: 8px 12px; border: 1px solid #30363d; }
+  tr:nth-child(even) { background: #161b22; }
+  code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #f78166; }
+  pre { background: #161b22; padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 10px 0 20px; border: 1px solid #30363d; font-size: 13px; line-height: 1.6; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin: 0 2px; }
+  .tag-red { background: #da3633; color: #fff; }
+  .tag-green { background: #238636; color: #fff; }
+  .tag-yellow { background: #9e6a03; color: #fff; }
+  .tag-blue { background: #1f6feb; color: #fff; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin: 4px 0; }
+  .highlight { color: #f78166; font-weight: bold; }
+  .section-divider { border: none; border-top: 1px solid #30363d; margin: 30px 0; }
+</style>
+</head>
+<body>
+
+<h1>V6 龙虾系统 · 完整设计方案</h1>
+
+<p style="text-align:center;color:#8b949e;margin-top:8px;">基于 Openclaw 2026.5.x | 7虾架构 | V6-TCS 量化评分 | 自进化闭环</p>
+
+<h2>一、架构总览</h2>
+
+<pre>
+                            用户
+                             │
+                             ▼
+              ┌──────────────────────────┐
+              │       门虾 gate           │
+              │     (Haiku 4.5, 极速)     │
+              │                          │
+              │  S 级 → 秒答              │
+              │  非S级 → 「策虾在处理了」   │
+              └──────────┬───────────────┘
+                         │ sessions_spawn(plan)
+                         ▼
+              ┌──────────────────────────┐
+              │       策虾 plan           │
+              │     (Sonnet 4.6)          │
+              │                          │
+              │  S/A/B/C/D 路由派虾        │
+              │  定方案 · 拆任务 · 派虾     │
+              │  分身(高上下文) · 并行      │
+              │  汇总 · 交付               │
+              └──────────┬───────────────┘
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+   ┌────────────┐ ┌────────────┐ ┌────────────┐
+   │ 笔虾 scribe │ │ 算虾 calc  │ │ 工虾 forge │
+   │  (Sonnet)  │ │  (Opus)    │ │  (Sonnet)  │
+   │ 文档/PPT   │ │ 数据/测算   │ │ 代码/架构   │
+   └─────┬──────┘ └─────┬──────┘ └─────┬──────┘
+         └──────────────┴──────────────┘
+                        │
+                        ▼
+              ┌──────────────────────────┐
+              │       审虾 audit          │
+              │     (Opus 4.7)            │
+              │  SALF审查 · V6-TCS评分     │
+              │  一票否决 · 质检打回        │
+              └──────────┬───────────────┘
+                         │ 问题抄送
+                         ▼
+              ┌──────────────────────────┐
+              │       记虾 memory          │
+              │     (Sonnet 4.6)          │
+              │                          │
+              │  重要信息归档 · 文件管理     │
+              │  模型对比追踪 · V6缺陷文档   │
+              │  .learnings→永久记忆       │
+              │  支撑Openclaw持续进化       │
+              └──────────────────────────┘
+</pre>
+
+<hr class="section-divider">
+
+<h2>二、七虾定义</h2>
+
+<h3>1. 门虾 <code>gate</code> — 纯对话界面</h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-haiku-4-5</td></tr>
+<tr><td>Sandbox</td><td>off (需完整文件访问)</td></tr>
+<tr><td>Workspace</td><td>~/CC/</td></tr>
+<tr><td>delegationMode</td><td>prefer (强制偏好委托)</td></tr>
+</table>
+<p><span class="highlight">SOUL.md 铁律（仅3条）：</span></p>
+<ol>
+<li>能 1-2 句话回答的 → 直接答 (S级)</li>
+<li>其他的 → <code>sessions_spawn(agentId: "plan")</code> → 立即回复「收到，策虾在处理了」</li>
+<li>绝不做任何需要思考超过 5 秒的事</li>
+</ol>
+
+<h3>2. 策虾 <code>plan</code> — 系统大脑</h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-sonnet-4-6</td></tr>
+<tr><td>maxSpawnDepth</td><td>2 (可 spawn depth-2 执行虾)</td></tr>
+<tr><td>allowAgents</td><td>["scribe", "calc", "forge", "audit"]</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+<tr><td>Workspace</td><td>~/CC/</td></tr>
+</table>
+<p><span class="highlight">核心职责：</span>收任务 → S/A/B/C/D 分级 → 出方案 → 派虾 → <code>sessions_yield</code> → 汇总 → 交付。D 级任务用 <code>context: "fork"</code> spawn 策虾分身并行。</p>
+
+<h3>3. 笔虾 <code>scribe</code></h3>
+<p>文档 / PPT / BP / 论文 / PPTX / DOCX 全链路。模型 Sonnet 4.6，Docker sandbox。</p>
+
+<h3>4. 算虾 <code>calc</code></h3>
+<p>数据分析 / 测算 / Stata / Excel / 市场模型。模型 Opus 4.7，Docker sandbox。</p>
+
+<h3>5. 工虾 <code>forge</code></h3>
+<p>代码开发 / 架构设计 / 部署 / 调试。模型 Sonnet 4.6，Docker sandbox。</p>
+
+<h3>6. 审虾 <code>audit</code></h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-opus-4-7</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+<tr><td>触发方式</td><td>策虾 spawn (C/D级必调) + 用户直接唤出</td></tr>
+</table>
+<p><span class="highlight">职责：</span>SALF 五维度审查（S20/A30/L20/F15/R15 ≥80通过）+ V6-TCS 评分 + 一票否决（数据造假/抄袭/敏感泄露）</p>
+
+<h3>7. 记虾 <code>memory</code> — 新增</h3>
+<table>
+<tr><th>配置项</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-sonnet-4-6</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+<tr><td>Workspace</td><td>~/.openclaw/workspace/</td></tr>
+<tr><td>触发方式</td><td>审虾抄送 + Cron(20:00/21:00/23:00) + 用户「记住这个」</td></tr>
+</table>
+<p><span class="highlight">五大职责：</span></p>
+<ol>
+<li><b>重要信息归档</b> — 用户要求的→MEMORY.md / 可复用经验→TOOLS.md / 最佳实践→AGENTS.md / 行为偏好→SOUL.md</li>
+<li><b>文件管理</b> — 清理冗余、控制字符预算、memory/按日期归档(超90天压缩)、目录清晰命名一致</li>
+<li><b>模型量化追踪</b> — 维护「模型对比.md」按模型×任务类型交叉对比矩阵，供策虾做模型选择</li>
+<li><b>V6缺陷文档</b> — 系统性问题汇总(非个案)，分类：架构缺陷/模型瓶颈/流程断裂/文件混乱/安全风险。每条标注严重度P0-P2+触发频率+临时规避+V7建议。为V7设计直接输入</li>
+<li><b>自改进闭环</b> — .learnings/ recurring≥3次→promote / 可封装→Skill / 每月进化报告</li>
+</ol>
+
+<hr class="section-divider">
+
+<h2>三、S/A/B/C/D 路由派虾</h2>
+<table>
+<tr><th>级</th><th>条件</th><th>策虾做法</th><th>审虾</th></tr>
+<tr><td><span class="tag tag-green">S</span></td><td>门虾自己能答的</td><td>回门虾「这个你自己答」</td><td>否</td></tr>
+<tr><td><span class="tag tag-blue">A</span></td><td>单一场景 / ≤2000字</td><td>spawn 1只执行虾 → 汇总交付</td><td>否</td></tr>
+<tr><td><span class="tag tag-yellow">B</span></td><td>标准交付 / 2000-8000字</td><td>spawn 执行虾+要求V6-TCS自评 → 汇总</td><td>否</td></tr>
+<tr><td><span class="tag tag-red">C</span></td><td>对外提交 / 竞赛 / 正式</td><td>spawn 执行虾 → spawn 审虾(SALF+V6-TCS) → 修改 → 交付</td><td>是</td></tr>
+<tr><td><span class="tag tag-red">D</span></td><td>多文件 / 多阶段 / 重大项目</td><td>先出方案 → 分身并行(fork) → spawn多虾 → 审虾终审 → 汇总</td><td>是(终审)</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>四、V6-TCS 任务完成度评分标准（100分制）</h2>
+<p style="color:#f78166;font-weight:bold;">设计原则：跨任务类型通用，足够苛刻。满分100 = 完美，非卓越不可得。</p>
+
+<h3>D1. 需求覆盖度 — 30分</h3>
+<table>
+<tr><th>分数</th><th>标准</th></tr>
+<tr><td>28-30</td><td>完全覆盖显性+隐性需求。主动补充用户未提及但关键的边缘情况。用户觉得比预期多</td></tr>
+<tr><td>24-27</td><td>完全覆盖显性需求。大部分隐性需求触及。无遗漏</td></tr>
+<tr><td>19-23</td><td>覆盖所有显性需求。隐性需求未触及</td></tr>
+<tr><td>14-18</td><td>遗漏1项显性需求，或1项关键需求理解偏差</td></tr>
+<tr><td>9-13</td><td>遗漏2-3项显性需求，或核心需求理解偏差</td></tr>
+<tr><td>0-3</td><td>答非所问。大部分需求未满足</td></tr>
+</table>
+<p><span class="highlight">扣分触发：</span>用户说了X但输出无X(-5/项)、暗示了Y但没识别(-3/项)、自作主张加用户没说的内容(-3/项)</p>
+
+<h3>D2. 输出正确性 — 25分</h3>
+<table>
+<tr><th>分数</th><th>标准</th></tr>
+<tr><td>23-25</td><td>零错误。数据可溯源、逻辑完整无跳跃、代码可运行+边界测试通过、计算可复现</td></tr>
+<tr><td>19-22</td><td>无实质性错误。极少量不影响使用的边缘瑕疵</td></tr>
+<tr><td>15-18</td><td>1处实质性错误（数据错误/逻辑矛盾/代码bug/计算偏差>5%/引用失真）</td></tr>
+<tr><td>10-14</td><td>2-3处实质性错误</td></tr>
+<tr><td>5-9</td><td>多处错误，方向对但仍可挽救</td></tr>
+<tr><td>0-4</td><td>核心结论错误，需完全重做。存在数据造假嫌疑</td></tr>
+</table>
+<p><span class="highlight">一票否决：</span>数据造假/大段抄袭/引用不存在文献→0分，记入V6缺陷</p>
+
+<h3>D3. 交付质量 — 20分</h3>
+<table>
+<tr><th>分数</th><th>标准</th></tr>
+<tr><td>18-20</td><td>超出预期。信息密度极高、零废话、结构精炼、可直接交付第三方。读起来不像AI写的</td></tr>
+<tr><td>15-17</td><td>达到预期。简洁清晰，少量微调(&lt;10%改动)。无明显AI套话</td></tr>
+<tr><td>11-14</td><td>基本可用。有明显冗余或粗糙，需20-30%改动</td></tr>
+<tr><td>7-10</td><td>勉强可用。大量AI痕迹（「在当今时代」「综上所述」「值得注意的是」），需>50%改动</td></tr>
+<tr><td>0-2</td><td>完全不可用。需要重写</td></tr>
+</table>
+<p><span class="highlight">扣分触发：</span>「综上所述」/「值得注意的是」/「在当今时代」(-2/类)、emoji滥用(-1/个)、段落超8行(-1/处)、结论不先行(-3)</p>
+
+<h3>D4. 规范遵循度 — 15分</h3>
+<table>
+<tr><th>分数</th><th>标准</th></tr>
+<tr><td>13-15</td><td>严格遵循所有规范。三线表参数/字体/字号/行距100%准确。引用一致</td></tr>
+<tr><td>10-12</td><td>遵循主要规范，1-2处小偏离（如字体设了但eastAsia没设）</td></tr>
+<tr><td>7-9</td><td>遵循了但执行粗糙（三线表线粗不一致、表注位置不对）</td></tr>
+<tr><td>4-6</td><td>多处规范偏离</td></tr>
+<tr><td>0</td><td>完全不符合规范。根本不知道有规范</td></tr>
+</table>
+
+<h3>D5. 效率与成本 — 10分</h3>
+<table>
+<tr><th>分数</th><th>标准</th></tr>
+<tr><td>9-10</td><td>模型选择最优+路径无冗余+token效率极佳</td></tr>
+<tr><td>7-8</td><td>模型合理，路径基本高效，少量可优化冗余</td></tr>
+<tr><td>5-6</td><td>模型合理但路径有优化空间（串行可并行的子任务、重复读取）</td></tr>
+<tr><td>3-4</td><td>模型偏高（轻任务用Opus）或路径明显冗余</td></tr>
+<tr><td>0</td><td>严重浪费（重跑>3次、反复spawn同一任务）</td></tr>
+</table>
+
+<h3>总分等级</h3>
+<table>
+<tr><th>分数</th><th>等级</th><th>含义</th></tr>
+<tr><td>95-100</td><td><span class="tag tag-green">A+</span></td><td>卓越。可直接对外交付。策虾无需修改直接给门虾</td></tr>
+<tr><td>85-94</td><td><span class="tag tag-blue">A</span></td><td>优秀。微调(&lt;10%)后可用</td></tr>
+<tr><td>75-84</td><td><span class="tag tag-yellow">B</span></td><td>良好。需局部修改(10-30%)</td></tr>
+<tr><td>65-74</td><td><span class="tag tag-yellow">C</span></td><td>合格。需较大修改(30-50%)。审虾打回一次</td></tr>
+<tr><td>50-64</td><td><span class="tag tag-red">D</span></td><td>不合格。需重做。记虾记录</td></tr>
+<tr><td>&lt;50</td><td><span class="tag tag-red">F</span></td><td>严重失败。打回重做+记入V6缺陷+策虾重新评估方案</td></tr>
+</table>
+
+<h3>按任务类型的加权（记虾追踪用）</h3>
+<table>
+<tr><th>任务类型</th><th>D1需求</th><th>D2正确</th><th>D3质量</th><th>D4规范</th><th>D5效率</th></tr>
+<tr><td>文档/BP/论文</td><td>30</td><td>20</td><td>25</td><td>15</td><td>10</td></tr>
+<tr><td>数据分析/测算</td><td>25</td><td>30</td><td>15</td><td>10</td><td>20</td></tr>
+<tr><td>代码开发</td><td>25</td><td>30</td><td>15</td><td>10</td><td>20</td></tr>
+<tr><td>PPT/演示</td><td>25</td><td>15</td><td>30</td><td>20</td><td>10</td></tr>
+<tr><td>设计/原型</td><td>25</td><td>15</td><td>30</td><td>15</td><td>15</td></tr>
+<tr><td>审查/复盘</td><td>20</td><td>30</td><td>20</td><td>10</td><td>20</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>五、记虾的模型量化对比</h2>
+<pre>
+# V6 模型表现追踪（滚动30天）
+
+## 加权平均分（按模型 × 任务类型）
+| 模型        | 文档写作 | 数据分析 | 代码开发 | 设计交付 | 审查复盘 | 综合 |
+|------------|:------:|:------:|:------:|:------:|:------:|:------:|
+| Haiku 4.5  |  68    |  55    |  60    |  62    |  58    |  61   |
+| Sonnet 4.6 |  82    |  72    |  80    |  78    |  74    |  78   |
+| Opus 4.7   |  88    |  86    |  79    |  84    |  90    |  85   |
+
+## 效率对比
+| 模型        | 平均Token/任务 | 平均耗时 | 平均重做率 |
+|------------|:------------:|:------:|:--------:|
+| Haiku 4.5  |    1,200     |   3s   |   42%    |
+| Sonnet 4.6 |    3,800     |  18s   |   15%    |
+| Opus 4.7   |    5,200     |  35s   |    8%    |
+</pre>
+
+<hr class="section-divider">
+
+<h2>六、信息流闭环</h2>
+<pre>
+用户 → 门虾 → 策虾 → 执行虾 → 审虾 → 策虾 → 门虾 → 用户
+                    │         │
+                    │    SALF 问题清单
+                    │    V6-TCS 得分
+                    ▼         │
+                 执行虾自评    ▼
+                           记虾
+                    ┌───────┼───────┐
+                    ▼       ▼       ▼
+                 MEMORY.md 模型对比 V6缺陷
+                 永久记忆   追踪表   系统文档
+                    │       │       │
+                    └───────┴───────┘
+                            │
+                    每月进化报告 → V7 设计输入
+</pre>
+
+<hr class="section-divider">
+
+<h2>七、Cron 调度</h2>
+<table>
+<tr><th>时间</th><th>执行虾</th><th>动作</th></tr>
+<tr><td>20:00</td><td>记虾</td><td>文件管理扫描：检查workspace结构，清理冗余，检查各文件字符预算</td></tr>
+<tr><td>21:00</td><td>记虾</td><td>归档当日.learnings/新条目，检查recurring pattern，promote到永久记忆</td></tr>
+<tr><td>22:00</td><td>审虾</td><td>当日产出SALF审查（如有C/D级未审任务优先审）</td></tr>
+<tr><td>23:00</td><td>记虾</td><td>写入memory/YYYY-MM-DD.md日记录，更新模型追踪数据+模型对比表，检查是否需更新V6缺陷文档</td></tr>
+<tr><td>周一 09:00</td><td>记虾</td><td>生成上周V6进化报告：改进统计、新增缺陷、模型表现趋势、文件健康度</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>八、V5 → V6 对比</h2>
+<table>
+<tr><th>维度</th><th>V5</th><th>V6</th></tr>
+<tr><td>主入口</td><td>MZ 队长（概念，实际混在一起）</td><td>门虾 gate（3条铁律，永不阻塞）</td></tr>
+<tr><td>管理</td><td>无，MZ自己拆</td><td>策虾 plan（专职规划+派发+分身）</td></tr>
+<tr><td>执行</td><td>8虾（含低频虾）</td><td>3虾：笔/算/工（高频精简）</td></tr>
+<tr><td>质检</td><td>SALF + 复盘虾</td><td>审虾 audit（SALF + V6-TCS 双评分）</td></tr>
+<tr><td>记忆</td><td>无专门角色</td><td>记虾 memory（归档+文件管理+进化追踪）</td></tr>
+<tr><td>路由</td><td>S/A/B/C/D（概念）</td><td>策虾内执行（工程化+模型选择优化）</td></tr>
+<tr><td>评分</td><td>SALF 单框架</td><td>SALF + V6-TCS 双框架（五维×加权×模型对比）</td></tr>
+<tr><td>进化</td><td>手动</td><td>V6缺陷文档→月度进化报告→V7输入</td></tr>
+<tr><td>安全</td><td>7条规则</td><td>Docker sandbox + tool policy + 审虾一票否决</td></tr>
+<tr><td>文件管理</td><td>分散、无标准</td><td>记虾统一管理、定期清理、字符预算控制</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>九、实施路径</h2>
+<table>
+<tr><th>Phase</th><th>内容</th></tr>
+<tr><td>1</td><td>安装 Openclaw → 配门虾 gate（SOUL.md 仅3条铁律）</td></tr>
+<tr><td>2</td><td>策虾 plan + 笔/算/工三只执行虾 → agentToAgent 联通</td></tr>
+<tr><td>3</td><td>审虾 audit（SALF + V6-TCS）+ 记虾 memory（五大职责）</td></tr>
+<tr><td>4</td><td>策虾 AGENTS.md 完整路由规则 + 分身规则 + 并行规则</td></tr>
+<tr><td>5</td><td>记虾 Cron（20:00/21:00/23:00 + 周一进化报告）</td></tr>
+<tr><td>6</td><td>飞书 channel 接入（远期，关停 bridge.js）</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>十、各虾 SOUL 一句话</h2>
+<table>
+<tr><th>虾</th><th>一句话</th></tr>
+<tr><td>门虾 gate</td><td>「收到。策虾在处理了。」</td></tr>
+<tr><td>策虾 plan</td><td>「让我看看这个任务怎么拆。」</td></tr>
+<tr><td>笔虾 scribe</td><td>「写好了。你看看。」</td></tr>
+<tr><td>算虾 calc</td><td>「数跑完了。结论是…」</td></tr>
+<tr><td>工虾 forge</td><td>「代码写好了。…几个注意事项…」</td></tr>
+<tr><td>审虾 audit</td><td>「审查通过。V6-TCS: 89分。S25/A28/L18/F14/R14。」</td></tr>
+<tr><td>记虾 memory</td><td>「记下了。下一条。」</td></tr>
+</table>
+
+</body>
+</html>
