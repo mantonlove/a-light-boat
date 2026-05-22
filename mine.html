@@ -14,7 +14,8 @@
 
   <!-- Profile Card -->
   <div class="card profile-card">
-    <div class="avatar-large" id="profileAvatar">👤</div>
+    <div class="avatar-large" id="profileAvatar" onclick="document.getElementById('avatarInput').click()" style="cursor:pointer;" title="点击上传头像">👤</div>
+<input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)" style="display:none;">
     <div style="flex:1;">
       <div style="font-size:var(--font-size-lg);font-weight:700;" id="profileName">张三</div>
       <div style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:4px;">
@@ -108,10 +109,10 @@
 .modal-footer .btn-cancel { background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border-color); }
 </style>
 
-<script src="js/storage.js?v=15"></script>
-<script src="js/config.js?v=15"></script>
-<script src="js/router.js?v=15"></script>
-<script src="js/profile_engine.js?v=15"></script>
-<script src="js/mine.js?v=15"></script>
+<script src="js/storage.js?v=16"></script>
+<script src="js/config.js?v=16"></script>
+<script src="js/router.js?v=16"></script>
+<script src="js/profile_engine.js?v=16"></script>
+<script src="js/mine.js?v=16"></script>
 </body>
 </html>
