@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V6.0.2 龙虾系统 · 完整设计方案（终审版）</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px 60px; line-height: 1.8; font-size: 15px; }
+  h1 { color: #f78166; font-size: 32px; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #30363d; padding-bottom: 20px; }
+  h2 { color: #58a6ff; font-size: 22px; margin-top: 40px; margin-bottom: 16px; border-left: 4px solid #58a6ff; padding-left: 12px; }
+  h3 { color: #d2a8ff; font-size: 17px; margin-top: 24px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: #21262d; color: #58a6ff; padding: 8px 12px; text-align: left; border: 1px solid #30363d; }
+  td { padding: 8px 12px; border: 1px solid #30363d; }
+  tr:nth-child(even) { background: #161b22; }
+  code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #f78166; }
+  pre { background: #161b22; padding: 16px 20px; border-radius: 8px; overflow-x: auto; margin: 10px 0 20px; border: 1px solid #30363d; font-size: 13px; line-height: 1.6; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin: 0 2px; }
+  .tag-red { background: #da3633; color: #fff; }
+  .tag-green { background: #238636; color: #fff; }
+  .tag-yellow { background: #9e6a03; color: #fff; }
+  .tag-blue { background: #1f6feb; color: #fff; }
+  ul, ol { margin: 8px 0 16px 24px; }
+  li { margin: 4px 0; }
+  .highlight { color: #f78166; font-weight: bold; }
+  .fixed { color: #3fb950; }
+  .new { background: #1b3422; border-left: 4px solid #238636; padding: 12px 16px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .section-divider { border: none; border-top: 1px solid #30363d; margin: 30px 0; }
+</style>
+</head>
+<body>
+
+<h1>V6.0.2 龙虾系统 · 完整设计方案</h1>
+
+<p style="text-align:center;color:#8b949e;margin-top:8px;">基于 Openclaw 2026.5.x | 7虾架构 | V6-TCS v1.2 | 回流容错 | 灰度运营 | 自进化闭环</p>
+<p style="text-align:center;color:#3fb950;margin-top:4px;">V6.0.0(63分)→V6.0.1(88分)→V6.0.2(目标90+)：补全死信运营规则 + 灰度放量熔断标准</p>
+
+<hr class="section-divider">
+
+<h2>变更摘要</h2>
+<table>
+<tr><th>版本</th><th>评分</th><th>变更</th></tr>
+<tr><td>V6.0.0</td><td><span class="tag tag-yellow">63</span></td><td>初版。4严重+4中等问题</td></tr>
+<tr><td>V6.0.1</td><td><span class="tag tag-blue">88</span></td><td>8项全部修复。+回流/兜底/鲁棒/量化S级/记虾拆分/复合加权/通信容错/灰度框架</td></tr>
+<tr><td>V6.0.2</td><td><span class="tag tag-green">目标90+</span></td><td class="fixed">+死信队列运营规则（重试/降级/告警/人工介入）+ 灰度放量门槛与熔断规则</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>一、架构总览</h2>
+
+<pre>
+                            用户
+                             │
+                    ┌────────┴────────┐
+                    │  反馈/取消/中断   │
+                    ▼                 │
+              ┌──────────────────────────┐
+              │       门虾 gate           │
+              │     (Haiku 4.5, 极速)     │
+              │                          │
+              │  S 级? → 秒答             │
+              │  非S级 → spawn 策虾       │
+              │  「收到，策虾在处理了」     │
+              │  识别：取消/中断/紧急      │
+              └──────────┬───────────────┘
+                         │ sessions_spawn(plan)
+                         ▼
+              ┌──────────────────────────┐
+              │       策虾 plan           │
+              │     (Sonnet 4.6)          │
+              │                          │
+              │  S/A/B/C/D 路由派虾        │
+              │  定方案·拆任务·派虾·回流    │
+              │  分身(高上下文)·并行       │
+              │  ★ 最终交付责任人          │
+              └──────────┬───────────────┘
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+   ┌────────────┐ ┌────────────┐ ┌────────────┐
+   │ 笔虾 scribe │ │ 算虾 calc  │ │ 工虾 forge │
+   │  (Sonnet)  │ │  (Opus)    │ │  (Sonnet)  │
+   │ 文档/PPT   │ │ 数据/测算   │ │ 代码/架构   │
+   └─────┬──────┘ └─────┬──────┘ └─────┬──────┘
+         └──────────────┴──────────────┘
+                        │
+                   交付 / 打回
+                        ▼
+              ┌──────────────────────────┐
+              │       审虾 audit          │
+              │     (Opus 4.7)            │
+              │  SALF·V6-TCS·打回(≤2次)  │
+              └──────────┬───────────────┘
+                   数据抄送
+                         ▼
+              ┌──────────────────────────┐
+              │       记虾 memory          │
+              │     (Sonnet 4.6)          │
+              │  归档·追踪·缺陷·文件管理    │
+              │  死信队列扫描与告警         │
+              └──────────────────────────┘
+</pre>
+
+<hr class="section-divider">
+
+<h2>二、七虾定义</h2>
+
+<h3>1. 门虾 <code>gate</code> — 纯对话界面</h3>
+
+<p><span class="highlight">S 级量化判断标准（4条件判断树）</span></p>
+<p>门虾收到用户消息后，按以下判断树决定自己答还是派策虾。必须<b>同时满足全部4个条件</b>才是 S 级：</p>
+<table>
+<tr><th>#</th><th>条件</th><th>不满足示例</th></tr>
+<tr><td>1</td><td>纯信息查询/问答/闲聊（不产生文件、不修改代码、不计算数据）</td><td>「帮我写个BP」→ 非S</td></tr>
+<tr><td>2</td><td>无需读取本地文件即可回答</td><td>「看看上次那个方案」→ 非S</td></tr>
+<tr><td>3</td><td>回复 ≤150字（约3-4句话）</td><td>需要详细解释的 → 非S</td></tr>
+<tr><td>4</td><td>无需联网搜索或超出训练数据的外部知识</td><td>「今天苹果股价」→ 非S</td></tr>
+</table>
+<p><b>任一不满足 → sessions_spawn(agentId: "plan") → 「收到，策虾在处理了」</b></p>
+<p>门虾同时负责识别控制指令：<code>取消/停下/不用了</code>→取消链路。<code>紧急/马上/立刻</code>→P0抢占。</p>
+
+<table>
+<tr><th>配置</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-haiku-4-5</td></tr>
+<tr><td>delegationMode</td><td>prefer</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+</table>
+
+<h3>2. 策虾 <code>plan</code> — 系统大脑 · 最终交付责任人</h3>
+
+<table>
+<tr><th>配置</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-sonnet-4-6（D级超复杂可切 Opus 4.7）</td></tr>
+<tr><td>maxSpawnDepth</td><td>2</td></tr>
+<tr><td>allowAgents</td><td>["scribe", "calc", "forge", "audit"]</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+</table>
+
+<p><b>职责：</b>收任务→S/A/B/C/D分级→出方案→派虾→sessions_yield→汇总→交付。打回时重新评估→同虾修改或换虾重做→再审（≤2轮）。取消时 cascade kill 所有子agent。</p>
+
+<h3>3-5. 执行虾群</h3>
+<table>
+<tr><th>ID</th><th>名</th><th>模型</th><th>Sandbox</th><th>职责</th><th>超时</th></tr>
+<tr><td><code>scribe</code></td><td>笔虾</td><td>Sonnet 4.6</td><td>Docker</td><td>文档/PPT/BP/论文</td><td>600s</td></tr>
+<tr><td><code>calc</code></td><td>算虾</td><td>Opus 4.7</td><td>Docker</td><td>数据分析/测算/Stata</td><td>900s</td></tr>
+<tr><td><code>forge</code></td><td>工虾</td><td>Sonnet 4.6</td><td>Docker</td><td>代码/架构/部署</td><td>600s</td></tr>
+</table>
+
+<h3>6. 审虾 <code>audit</code></h3>
+<table>
+<tr><th>配置</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-opus-4-7</td></tr>
+<tr><td>触发</td><td>策虾 spawn（C/D必调）+ 用户唤出</td></tr>
+</table>
+<p>SALF五维+V6-TCS评分。≥65通过/&lt;65打回策虾（≤2次）→第3次升级用户决策。一票否决：数据造假/抄袭/敏感泄露。审查时顺带标记可promote条目→通知记虾。</p>
+
+<h3>7. 记虾 <code>memory</code></h3>
+<table>
+<tr><th>配置</th><th>值</th></tr>
+<tr><td>模型</td><td>anthropic/claude-sonnet-4-6</td></tr>
+<tr><td>Sandbox</td><td>off</td></tr>
+<tr><td>Workspace</td><td>~/.openclaw/workspace/</td></tr>
+</table>
+<p><b>四职责（V6.0.1精简）：</b></p>
+<ol>
+<li><b>信息归档</b> — 用户要求→MEMORY.md / 审虾标记→通知策虾promote / 行为偏好→SOUL.md</li>
+<li><b>文件管理</b> — 清理冗余、字符预算控制、memory/归档(>90天压缩)</li>
+<li><b>模型追踪</b> — 维护模型对比.md，按模型×任务类型交叉矩阵+周趋势</li>
+<li><b>V6缺陷文档</b> — 系统性问题汇总，P0-P2+频率+规避+V7建议</li>
+</ol>
+<p>进化执行归审虾+策虾。记虾提供数据，审虾/策虾做决策。</p>
+
+<hr class="section-divider">
+
+<h2>三、路由派虾 S/A/B/C/D</h2>
+
+<table>
+<tr><th>级</th><th>条件（策虾判断）</th><th>做法</th><th>审虾</th><th>超时</th></tr>
+<tr><td><span class="tag tag-green">S</span></td><td>门虾已过滤。策虾收到→误判，退回</td><td>回门虾「你自己答」</td><td>否</td><td>—</td></tr>
+<tr><td><span class="tag tag-blue">A</span></td><td>单文件+单任务类型+无需外部数据+预估≤5分钟</td><td>spawn 1只执行虾→汇总</td><td>否</td><td>300s</td></tr>
+<tr><td><span class="tag tag-yellow">B</span></td><td>单文件+单任务类型+可能需查规范/数据+5-15分钟</td><td>spawn执行虾+自评→汇总</td><td>否(可选)</td><td>600s</td></tr>
+<tr><td><span class="tag tag-red">C</span></td><td>正式交付物+需多轮验证</td><td>spawn执行虾→spawn审虾→修改→交付</td><td>是</td><td>900s</td></tr>
+<tr><td><span class="tag tag-red">D</span></td><td>多文件或≥2任务类型或>30分钟</td><td>方案→确认→分身并行→多虾→审虾终审→汇总</td><td>是(终审)</td><td>1800s</td></tr>
+</table>
+
+<p><span class="highlight">兜底规则：</span></p>
+<table>
+<tr><th>场景</th><th>规则</th></tr>
+<tr><td><b>复合任务</b>（涉及≥2个任务类型）</td><td>自动升级 <span class="tag tag-red">D 级</span>。策虾用分身模式并行处理</td></tr>
+<tr><td><b>模糊任务</b>（策虾无法判断级别/范围/标准）</td><td><b>禁止猜测。</b>必须反问用户澄清→等回复后再分级。不问直接做→记入审虾违规记录</td></tr>
+<tr><td><b>两可任务</b>（A/B或B/C边界）</td><td><b>向上取级。</b>A/B→B，B/C→C。宁可多做检查不少做</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>四、V6-TCS v1.2 评分标准</h2>
+<p style="color:#8b949e;">五维度、100分制、跨任务类型通用、足够苛刻。</p>
+
+<h3>D1. 需求覆盖度 — 30分</h3>
+<table>
+<tr><th>分</th><th>标准</th></tr>
+<tr><td>28-30</td><td>完全覆盖显性+隐性需求。主动补充用户未提及但关键的边缘情况。用户觉得比预期多</td></tr>
+<tr><td>24-27</td><td>完全覆盖显性需求。大部分隐性需求触及。无遗漏</td></tr>
+<tr><td>19-23</td><td>覆盖所有显性需求。隐性未触及</td></tr>
+<tr><td>14-18</td><td>遗漏1项显性需求或1项理解偏差</td></tr>
+<tr><td>0-3</td><td>答非所问。大部分未满足</td></tr>
+</table>
+<p>扣分：用户说了X但无X(-5)、暗示Y没识别(-3)、自作主张加内容(-3)</p>
+
+<h3>D2. 输出正确性 — 25分</h3>
+<table>
+<tr><th>分</th><th>标准</th></tr>
+<tr><td>23-25</td><td>零错误。数据可溯源、逻辑无跳跃、代码可运行+边界测试、计算可复现</td></tr>
+<tr><td>19-22</td><td>无实质性错误。极少量边缘瑕疵</td></tr>
+<tr><td>15-18</td><td>1处实质性错误</td></tr>
+<tr><td>0-4</td><td>核心结论错误。存在数据造假嫌疑</td></tr>
+</table>
+<p>一票否决：数据造假/大段抄袭/引用不存在文献→0分→记入V6缺陷</p>
+
+<h3>D3. 交付质量 — 20分</h3>
+<table>
+<tr><th>分</th><th>标准</th></tr>
+<tr><td>18-20</td><td>超出预期。信息密度极高、零废话、可直接交付第三方。不像AI写的</td></tr>
+<tr><td>15-17</td><td>达到预期。简洁清晰，&lt;10%微调。无明显AI套话</td></tr>
+<tr><td>11-14</td><td>基本可用。需20-30%改动</td></tr>
+<tr><td>0-2</td><td>完全不可用。需重写</td></tr>
+</table>
+<p>扣分：「综上所述」「值得注意的是」「在当今时代」(-2/类)、emoji滥用(-1)、段落>8行(-1)、结论不先行(-3)</p>
+
+<h3>D4. 规范遵循度 — 15分</h3>
+<table>
+<tr><th>分</th><th>标准</th></tr>
+<tr><td>13-15</td><td>严格遵循所有规范。三线表/字体/字号/行距100%准确。引用一致</td></tr>
+<tr><td>10-12</td><td>遵循主要规范，1-2处小偏离</td></tr>
+<tr><td>0</td><td>完全不符合规范</td></tr>
+</table>
+
+<h3>D5. 效率与成本 — 10分</h3>
+<table>
+<tr><th>分</th><th>标准</th></tr>
+<tr><td>9-10</td><td>模型最优+路径无冗余+token效率极佳</td></tr>
+<tr><td>7-8</td><td>模型合理，路径高效，少量冗余</td></tr>
+<tr><td>0</td><td>严重浪费（重跑>3次、重复spawn）</td></tr>
+</table>
+
+<h3>总分等级</h3>
+<table>
+<tr><th>分</th><th>等级</th><th>动作</th></tr>
+<tr><td>95-100</td><td><span class="tag tag-green">A+</span> 卓越</td><td>直接交付。记虾记录为标杆</td></tr>
+<tr><td>85-94</td><td><span class="tag tag-blue">A</span> 优秀</td><td>微调后可用</td></tr>
+<tr><td>75-84</td><td><span class="tag tag-yellow">B</span> 良好</td><td>局部修改</td></tr>
+<tr><td>65-74</td><td><span class="tag tag-yellow">C</span> 合格</td><td>审虾打回1次</td></tr>
+<tr><td>50-64</td><td><span class="tag tag-red">D</span> 不合格</td><td>打回重做。记虾记录</td></tr>
+<tr><td>&lt;50</td><td><span class="tag tag-red">F</span> 严重失败</td><td>打回+记入V6缺陷+策虾重评方案</td></tr>
+</table>
+<p>用户好评(+2分，上限100)。用户不满意(-5分，强制打回)。</p>
+
+<h3>按任务类型加权矩阵</h3>
+<table>
+<tr><th>任务类型</th><th>D1需求</th><th>D2正确</th><th>D3质量</th><th>D4规范</th><th>D5效率</th></tr>
+<tr><td>文档/BP/论文</td><td>30</td><td>20</td><td>25</td><td>15</td><td>10</td></tr>
+<tr><td>数据分析/测算</td><td>25</td><td>30</td><td>15</td><td>10</td><td>20</td></tr>
+<tr><td>代码开发</td><td>25</td><td>30</td><td>15</td><td>10</td><td>20</td></tr>
+<tr><td>PPT/演示</td><td>25</td><td>15</td><td>30</td><td>20</td><td>10</td></tr>
+<tr><td>设计/原型</td><td>25</td><td>15</td><td>30</td><td>15</td><td>15</td></tr>
+<tr><td>审查/复盘</td><td>20</td><td>30</td><td>20</td><td>10</td><td>20</td></tr>
+</table>
+
+<p><span class="highlight">复合任务加权：</span>涉及≥2类型→各类型权重平均值。≥4类型→取「文档/BP/论文」通用基准。记虾单独统计「复合」列。</p>
+
+<hr class="section-divider">
+
+<h2>五、回流与容错链路</h2>
+
+<h3>5.1 审虾打回回流</h3>
+<pre>
+审虾 V6-TCS &lt; 65
+  │
+  ▼
+策虾收到打回 + 问题清单（具体扣分项和原因）
+  │
+  ├─ 第1次打回：分析问题 → minor fix(同虾修改) / major fix(换虾重做) → 再审
+  ├─ 第2次打回：换模型(Sonnet→Opus) 或 换策略(拆分更细) → 再审
+  └─ 第3次仍&lt;65：升级用户决策
+        ├─ 用户接受 → 标记「用户豁免」交付，记虾记录
+        ├─ 用户继续 → 策虾重新出方案（重置打回计数）
+        └─ 用户放弃 → 任务关闭，记虾记录+标注原因
+</pre>
+
+<h3>5.2 用户反馈回流</h3>
+<pre>
+用户：「这个不对/不好/改一下XX」
+  → 门虾识别为反馈（非新任务）→ sessions_send 策虾
+  → 策虾判断：轻量(自改) / 重做(spawn虾) / 澄清(反问)
+  → 修改 → 交付 → 用户确认
+</pre>
+
+<p><span class="highlight">最终交付责任人：策虾。</span>问责链：用户→门虾→<b>策虾</b>→执行虾。审虾是质量顾问，不对交付负责。</p>
+
+<hr class="section-divider">
+
+<h2>六、任务控制机制</h2>
+
+<h3>6.1 错误重试</h3>
+<table>
+<tr><th>故障类型</th><th>重试策略</th></tr>
+<tr><td>sessions_spawn 失败</td><td>自动重试1次(5s间隔)→仍失败→通知门虾告知用户「系统忙，稍后重试」</td></tr>
+<tr><td>执行虾超时</td><td>策虾检查部分产出→有价值汇总交付 / 无价值→换虾重试1次</td></tr>
+<tr><td>执行虾异常(非0 exit)</td><td>策虾读错误→可自动修复→同虾重试 / 不可修复→换虾或降级需求</td></tr>
+<tr><td>模型不可用(限流/宕机)</td><td>自动 fallback(Opus→Sonnet→Haiku)→降级标注→记虾记录→成本补偿</td></tr>
+<tr><td>Cron 失败(记虾/审虾)</td><td>下次Cron自动补跑(检查上次成功时间戳，>2倍间隔→触发补跑)</td></tr>
+</table>
+
+<h3>6.2 任务取消</h3>
+<pre>
+用户：「取消/停下/不用了/stop」
+  → 门虾识别 → sessions_send 策虾 {action:"cancel"}
+  → 策虾 /subagents kill all (cascade)
+  → 策虾→门虾：「已取消。完成:XX。未完成:YY。」
+  → 门虾→用户
+</pre>
+
+<h3>6.3 优先级抢占</h3>
+<table>
+<tr><th>级</th><th>触发词</th><th>行为</th></tr>
+<tr><td><span class="tag tag-red">P0 紧急</span></td><td>「紧急/马上/立刻/urgent」</td><td>门虾通知策虾暂停当前→新任务优先→旧任务排队恢复</td></tr>
+<tr><td><span class="tag tag-yellow">P1 普通</span></td><td>默认</td><td>FIFO排队，不打断进行中</td></tr>
+<tr><td><span class="tag tag-blue">P2 后台</span></td><td>「有空再做/不急」</td><td>入后台队列，Cron空闲时段自动执行</td></tr>
+</table>
+
+<h3>6.4 超时保护</h3>
+<table>
+<tr><th>级</th><th>超时</th><th>行为</th></tr>
+<tr><td>A</td><td>300s</td><td>策虾检查部分产出→有价值汇总/无价值重试1次</td></tr>
+<tr><td>B</td><td>600s</td><td>同上</td></tr>
+<tr><td>C</td><td>900s</td><td>有价值汇总+标记不完整 / 无价值换模型重试1次</td></tr>
+<tr><td>D</td><td>1800s</td><td>各分身已完成→先交付 / 超时分身→换策略重试1次</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>七、Agent间通信容错规格</h2>
+
+<table>
+<tr><th>通信类型</th><th>超时</th><th>重试</th><th>降级</th></tr>
+<tr><td>门虾→策虾 spawn</td><td>30s</td><td>重试1次(5s)→告知用户</td><td>「系统忙，稍后重试」</td></tr>
+<tr><td>策虾→执行虾 spawn</td><td>30s</td><td>重试1次→换虾</td><td>降级需求范围</td></tr>
+<tr><td>策虾→审虾 spawn</td><td>30s</td><td>重试1次→跳过审查(标记)</td><td>交付标注「未经审查」</td></tr>
+<tr><td>执行虾→策虾 announce</td><td>runTimeout+60s</td><td>网关自动重试队列</td><td>sessions_history回拉</td></tr>
+<tr><td>审虾→记虾 数据抄送</td><td>30s</td><td>记虾下次Cron补扫(幂等)</td><td>不阻塞主链路</td></tr>
+<tr><td>任意→任意 sessions_send</td><td>15s</td><td>重试1次→死信队列</td><td>记虾Cron重投</td></tr>
+</table>
+
+<div class="new">
+<h3>7.1 死信队列运营规则 <span class="fixed">[V6.0.2 新增]</span></h3>
+
+<p><span class="highlight">存储位置：</span><code>~/.openclaw/workspace/.dead-letter/</code>，每条死信为独立 JSON 文件。</p>
+
+<p><span class="highlight">死信条目结构：</span></p>
+<pre>
+{
+  "id": "dl-YYYYMMDD-NNN",
+  "createdAt": "ISO-8601",
+  "source": "senderAgentId",
+  "target": "receiverAgentId",
+  "type": "sessions_send|announce|data_copy",
+  "payload": { ... },
+  "retryCount": 0,
+  "lastRetryAt": null,
+  "status": "pending"
+}
+</pre>
+
+<h4>重试与降级策略</h4>
+<table>
+<tr><th>重试次数</th><th>间隔</th><th>行为</th></tr>
+<tr><td>第1次</td><td>创建后5分钟</td><td>记虾 Cron 自动重投。成功→标记 resolved</td></tr>
+<tr><td>第2次</td><td>上次重试后15分钟</td><td>记虾 Cron 自动重投。成功→标记 resolved</td></tr>
+<tr><td>第3次</td><td>上次重试后60分钟</td><td>记虾 Cron 自动重投。成功→标记 resolved</td></tr>
+<tr><td>3次全部失败</td><td>—</td><td>标记 <code>lost</code>。提取关键信息→写入当日 memory/YYYY-MM-DD.md 丢失记录。原始死信归档到 <code>.dead-letter/.archive/</code>（保留30天）</td></tr>
+</table>
+
+<h4>告警触发阈值</h4>
+<table>
+<tr><th>条件</th><th>级别</th><th>动作</th></tr>
+<tr><td>死信队列 pending >5条（24h内累积）</td><td><span class="tag tag-yellow">⚠ 警告</span></td><td>记虾次日 Cron 写入 MEMORY.md 告警标记。门虾下次对话时主动提醒用户</td></tr>
+<tr><td>死信队列 pending >10条（24h内累积）</td><td><span class="tag tag-red">🔴 严重</span></td><td>记虾立即（不等 Cron）sessions_send 门虾「系统通信异常，死信队列积压>10条」。门虾主动通知用户。记入 V6 缺陷文档（P1）</td></tr>
+<tr><td>同一通信类型 lost >3条（7天内）</td><td><span class="tag tag-yellow">⚠ 警告</span></td><td>记虾标记该通信类型为「通信瓶颈」。记入 V6 缺陷文档（P2）。建议策虾调整该类型通信的降级策略</td></tr>
+<tr><td>连续7天死信队列为0</td><td><span class="tag tag-green">✅ 健康</span></td><td>记虾在周报中标注「通信健康度：优秀」</td></tr>
+</table>
+
+<h4>人工介入流程</h4>
+<ol>
+<li>死信 pending >10条 → 记虾通知门虾 → 门虾告知用户 → 用户决定：
+  <ul>
+    <li><b>「忽略继续」</b>→ 记虾归档所有死信为 lost（不清除），系统继续运行。下个 Cron 重新评估</li>
+    <li><b>「暂停排查」</b>→ 策虾暂停接受新任务（已在执行的不中断）。记虾整理死信汇总报告（按通信类型/源agent/目标agent分类）。用户排查后发「恢复」→策虾恢复</li>
+  </ul>
+</li>
+<li>死信单条包含关键数据（如用户明确要求的归档指令）→ 标记 lost 前由记虾提取 payload 内容→尝试手动执行归档 → 标注「手动补偿」</li>
+</ol>
+
+<h4>死信清理</h4>
+<ul>
+<li>resolved 死信：保留7天后自动删除</li>
+<li>lost 死信：归档到 .archive/，保留30天后自动删除</li>
+<li>每月1日清理过期归档（记虾 Cron 09:00）</li>
+</ul>
+</div>
+
+<hr class="section-divider">
+
+<h2>八、灰度上线路径与熔断规则 <span class="fixed">[V6.0.2 强化]</span></h2>
+
+<h3>8.1 三阶段灰度</h3>
+
+<table>
+<tr><th>阶段</th><th>范围</th><th>验证目标</th><th colspan="2">放量门槛（进入下一阶段的必要条件）</th></tr>
+<tr>
+  <td><span class="tag tag-green">G1</span></td>
+  <td><b>门虾 only</b><br>无策虾，门虾直接对话<br>S级自答，非S级告知「暂不支持」</td>
+  <td>验证门虾不阻塞<br>S级判断树准确率<br>Haiku延迟</td>
+  <td>
+    ✅ S级判断准确率 ≥90%（人工抽查50条）<br>
+    ✅ 平均响应 &lt;2s<br>
+    ✅ 零阻塞事故（门虾沉默>10s计1次事故）<br>
+    ✅ 稳定运行 ≥48小时
+  </td>
+</tr>
+<tr>
+  <td><span class="tag tag-yellow">G2</span></td>
+  <td><b>门虾+策虾+笔虾</b><br>仅A/B级文档任务<br>无审虾，策虾自检</td>
+  <td>验证派发链路<br>验证分身模式<br>验证打回回流</td>
+  <td>
+    ✅ 策虾派发成功率 ≥85%（spawn成功/总spawn）<br>
+    ✅ 打回回流无断点（策虾收到打回→重派→再审，人工验证5条）<br>
+    ✅ 策虾方案质量 ≥75分（人工评估10个方案）<br>
+    ✅ 稳定运行 ≥72小时<br>
+    ✅ 死信队列 pending &lt;3条
+  </td>
+</tr>
+<tr>
+  <td><span class="tag tag-red">G3</span></td>
+  <td><b>全虾上线</b><br>笔/算/工/审/记 全部接入<br>全任务类型+全Cron</td>
+  <td>验证全链路<br>验证审虾+记虾协同<br>验证Cron+容错<br>验证取消/中断/优先级</td>
+  <td>
+    <b>全量上线标准：</b><br>
+    ✅ C/D级任务一次通过率 ≥60%<br>
+    ✅ 用户满意度 ≥80%（用户好评/总交付）<br>
+    ✅ 取消链路响应 &lt;5s<br>
+    ✅ 死信队列 7日积压 &lt;5条<br>
+    ✅ 无P0缺陷超过48小时未修复<br>
+    ✅ 稳定运行 ≥7天
+  </td>
+</tr>
+</table>
+
+<h3>8.2 熔断规则</h3>
+<table>
+<tr><th>触发条件</th><th>级别</th><th>动作</th></tr>
+<tr>
+  <td>门虾出现阻塞事故（沉默>10s）</td>
+  <td><span class="tag tag-red">P0 熔断</span></td>
+  <td><b>立即回滚至上一阶段。</b>停止策虾 spawn，门虾恢复纯对话模式。排查根因→修复→重新申请进入当前阶段</td>
+</tr>
+<tr>
+  <td>策虾 spawn 连续失败 ≥5次（1h内）</td>
+  <td><span class="tag tag-red">P0 熔断</span></td>
+  <td><b>暂停策虾。</b>门虾告知用户「系统维护中」。排查通信/模型问题→修复→恢复。记入 V6 缺陷（P0）</td>
+</tr>
+<tr>
+  <td>执行虾输出质量断崖下降（V6-TCS均分日环比下降>20分）</td>
+  <td><span class="tag tag-yellow">P1 预警</span></td>
+  <td><b>不熔断，但暂停新任务进入该虾。</b>审虾回溯最近10个任务→分析原因（模型升级？prompt变更？）→修复→恢复。记入 V6 缺陷</td>
+</tr>
+<tr>
+  <td>死信队列 pending >10条（24h）</td>
+  <td><span class="tag tag-yellow">P1 预警</span></td>
+  <td><b>不熔断，触发人工介入。</b>按 §七.7.1 死信告警流程处理。不影响正常任务链路</td>
+</tr>
+<tr>
+  <td>同一执行虾连续3次被打回（V6-TCS &lt;65）</td>
+  <td><span class="tag tag-yellow">P1 预警</span></td>
+  <td><b>冻结该虾。</b>策虾停止向该虾派任务。审虾检查其最近10个任务→判断是模型问题/上下文污染/任务不匹配→修复→解冻。记入 V6 缺陷</td>
+</tr>
+<tr>
+  <td>用户满意度日环比下降>30%</td>
+  <td><span class="tag tag-yellow">P1 预警</span></td>
+  <td><b>不熔断。</b>审虾回溯当日所有交付→定位问题→提出修复建议。记虾记录趋势</td>
+</tr>
+</table>
+
+<h3>8.3 回滚流程</h3>
+<ol>
+<li>触发熔断 → 门虾立即收到通知（sessions_send from 审虾/记虾/策虾）</li>
+<li>门虾告知用户：「系统检测到异常，已暂停XX功能。其他功能正常。」</li>
+<li>回滚操作：
+  <ul>
+    <li><b>G3→G2</b>：策虾停止 spawn 算虾/工虾/审虾。A/B级笔虾任务继续。Cron 保留记虾（文件管理+追踪不中断）。</li>
+    <li><b>G2→G1</b>：策虾停止接受新任务。已完成的任务正常交付。门虾恢复纯对话模式。</li>
+    <li><b>G1→下线</b>：门虾停止运行。用户直接使用底层 Claude Code。</li>
+  </ul>
+</li>
+<li>修复验证：在回滚后的稳定阶段修复根因→人工验证（至少5个测试用例）→重新申请进入下一阶段</li>
+</ol>
+
+<hr class="section-divider">
+
+<h2>九、Cron 调度</h2>
+<table>
+<tr><th>时间</th><th>执行虾</th><th>动作</th></tr>
+<tr><td>08:00 每日</td><td>记虾</td><td>成本统计：前一日各模型token消耗+预估费用+异常波动告警(日环比>50%→标记)</td></tr>
+<tr><td>20:00 每日</td><td>记虾</td><td>文件管理扫描：workspace结构健康度、清理冗余、字符预算检查、死信队列状态</td></tr>
+<tr><td>21:00 每日</td><td>记虾</td><td>归档当日 .learnings/ 新条目、检查 recurring pattern(≥3次→标记)、通知审虾可promote条目、死信重投(第1/2/3次)</td></tr>
+<tr><td>22:00 每日</td><td>审虾</td><td>扫描当日C/D级任务V6-TCS得分、异常低分(&lt;50)重点审查、处理记虾标记的promote建议</td></tr>
+<tr><td>23:00 每日</td><td>记虾</td><td>写入 memory/YYYY-MM-DD.md 日记录、更新模型追踪+模型对比表、检查V6缺陷文档更新、死信告警阈值检查</td></tr>
+<tr><td>09:00 周一</td><td>审虾</td><td>生成上周V6进化周报：改进统计+新增缺陷(P0/P1/P2)+模型表现趋势+文件健康度+通信健康度+本周建议</td></tr>
+<tr><td>09:00 每月1日</td><td>记虾</td><td>清理过期死信归档(>30天)、清理过期memory文件(>90天→压缩)、生成月度成本报告</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>十、模型量化对比（记虾维护）</h2>
+<pre>
+# V6 模型表现追踪（滚动30天）
+
+## 加权平均分（按模型 × 任务类型）
+| 模型        | 文档写作 | 数据分析 | 代码开发 | 设计交付 | 审查复盘 | 复合任务 | 综合 |
+|------------|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+| Haiku 4.5  |  68    |  55    |  60    |  62    |  58    |  —*    |  61   |
+| Sonnet 4.6 |  82    |  72    |  80    |  78    |  74    |  76    |  78   |
+| Opus 4.7   |  88    |  86    |  79    |  84    |  90    |  85    |  85   |
+* Haiku 不参与复合任务
+
+## 效率对比
+| 模型        | 均Token/任务 | 均耗时 | V6-TCS均分 | 一次通过率 | 打回率 |
+|------------|:----------:|:----:|:--------:|:--------:|:-----:|
+| Haiku 4.5  |   1,200    |  3s  |   61     |   58%    |  42%  |
+| Sonnet 4.6 |   3,800    | 18s  |   78     |   85%    |  15%  |
+| Opus 4.7   |   5,200    | 35s  |   85     |   92%    |   8%  |
+
+## 通信健康度（7日滚动）
+| 通信类型 | 总次数 | 成功率 | 均延迟 | 死信数 |
+|---------|:-----:|:-----:|:-----:|:-----:|
+| gate→plan spawn | n | xx% | xs | n |
+| plan→scribe spawn | n | xx% | xs | n |
+| plan→calc spawn | n | xx% | xs | n |
+| plan→forge spawn | n | xx% | xs | n |
+| plan→audit spawn | n | xx% | xs | n |
+| audit→memory copy | n | xx% | xs | n |
+</pre>
+
+<hr class="section-divider">
+
+<h2>十一、信息流闭环</h2>
+<pre>
+                    ┌────────── 用户 ──────────┐
+                    │ 新任务    反馈    取消/中断  │
+                    ▼           │         │
+              ┌──────────────────────────┐
+              │       门虾 gate           │
+              │  S?→自答 : spawn策虾     │
+              │  识别取消/紧急 → send策虾  │
+              └──────────┬───────────────┘
+                         │
+              ┌──────────▼──────────────┐
+              │       策虾 plan          │
+              │  分级→方案→派虾→汇总      │
+              │  ★ 最终交付责任人         │
+              │  打回←重派←再审(≤2次)    │
+              │  取消→cascade kill       │
+              └──────────┬──────────────┘
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+     笔虾/算虾/工虾  笔虾/算虾/工虾  笔虾/算虾/工虾
+          │              │              │
+          └──────────────┴──────────────┘
+                         │
+                    交付 / 打回(&lt;65分)
+                         ▼
+              ┌──────────────────────────┐
+              │       审虾 audit          │
+              │  SALF + V6-TCS           │
+              │  ≥65→交付 : &lt;65→打回策虾 │
+              └──────────┬───────────────┘
+                   数据抄送(非阻塞)
+                         ▼
+              ┌──────────────────────────┐
+              │       记虾 memory          │
+              │  归档+追踪+缺陷+文件管理    │
+              │  死信扫描+告警+重投         │
+              └──────────────────────────┘
+                         │
+              熔断信号(死信>10/阻塞/P0)
+                         ▼
+                      门虾 → 用户
+</pre>
+
+<hr class="section-divider">
+
+<h2>十二、实施路径</h2>
+<table>
+<tr><th>Phase</th><th>内容</th><th>灰度</th></tr>
+<tr><td>P1</td><td>安装 Openclaw → 门虾 gate（SOUL.md：3铁律+4条件S级判断树+控制指令识别）</td><td>G1</td></tr>
+<tr><td>P2</td><td>策虾 plan + 笔虾 scribe → agentToAgent → 验证 A/B 级派发+打回回流</td><td>G2</td></tr>
+<tr><td>P3</td><td>算虾 calc + 工虾 forge + 审虾 audit → 全任务类型 → 验证 C/D 级全链路+回流</td><td>G3前期</td></tr>
+<tr><td>P4</td><td>记虾 memory + 全部 Cron + 死信队列 + 告警阈值配置</td><td>G3中期</td></tr>
+<tr><td>P5</td><td>验证取消/中断/优先级抢占+死信运营+熔断回滚+灰度放量标准+全场景V6-TCS评分</td><td>G3后期</td></tr>
+<tr><td>P6</td><td>飞书 channel 接入（关停 bridge.js）→ binding 规则关联群聊→agent</td><td>G4(远期)</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>十三、V5 → V6.0 → V6.0.1 → V6.0.2 对比</h2>
+<table>
+<tr><th>维度</th><th>V5</th><th>V6.0</th><th>V6.0.1</th><th>V6.0.2</th></tr>
+<tr><td>主入口</td><td>MZ概念</td><td>门虾3铁律</td><td class="fixed">+4条件S级判断树+控制指令</td><td class="fixed">同V6.0.1</td></tr>
+<tr><td>管理</td><td>无</td><td>策虾派发</td><td class="fixed">+交付责任人+打回重派+降级+超时</td><td class="fixed">+熔断响应</td></tr>
+<tr><td>执行</td><td>8虾</td><td>3虾</td><td class="fixed">+超时保护</td><td class="fixed">+质量断崖熔断</td></tr>
+<tr><td>质检</td><td>SALF+复盘</td><td>审虾双评分</td><td class="fixed">+打回≤2次+升级用户+promote通知</td><td class="fixed">+质量异常回溯</td></tr>
+<tr><td>记忆</td><td>无</td><td>记虾5职责</td><td class="fixed">记虾4职责(拆分进化)</td><td class="fixed">+死信运营+成本统计</td></tr>
+<tr><td>路由</td><td>S/A/B/C/D概念</td><td>策虾执行</td><td class="fixed">+复合/模糊/两可+判断树</td><td class="fixed">同V6.0.1</td></tr>
+<tr><td>评分</td><td>SALF</td><td>V6-TCS</td><td class="fixed">v1.1+复合加权+好评加分</td><td class="fixed">v1.2同</td></tr>
+<tr><td>回流</td><td>无</td><td>无</td><td class="fixed">打回→重派→再审+用户反馈</td><td class="fixed">同V6.0.1</td></tr>
+<tr><td>容错</td><td>无</td><td>无</td><td class="fixed">重试+取消+中断+优先级+超时+降级+死信</td><td class="fixed">+死信运营(重投/告警/人工/清理)</td></tr>
+<tr><td>通信</td><td>无</td><td>无</td><td class="fixed">6种通信×超时/重试/降级</td><td class="fixed">+死信条目结构+通信健康度追踪</td></tr>
+<tr><td>上线</td><td>直接跑</td><td>全量</td><td class="fixed">三阶段灰度框架</td><td class="fixed">+放量门槛(量化)+熔断规则+回滚流程</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>十四、各虾 SOUL 一句话</h2>
+<table>
+<tr><th>虾</th><th>一句话</th></tr>
+<tr><td>门虾 gate</td><td>「收到。策虾在处理了。」</td></tr>
+<tr><td>策虾 plan</td><td>「让我看看这个任务怎么拆。出问题我负责。」</td></tr>
+<tr><td>笔虾 scribe</td><td>「写好了。你看看。」</td></tr>
+<tr><td>算虾 calc</td><td>「数跑完了。结论是…」</td></tr>
+<tr><td>工虾 forge</td><td>「代码写好了。…几个注意事项…」</td></tr>
+<tr><td>审虾 audit</td><td>「V6-TCS: 89分。通过。」/「58分。打回。原因：D2数据源未标注。」</td></tr>
+<tr><td>记虾 memory</td><td>「记下了。数据已归档。…死信队列正常。」</td></tr>
+</table>
+
+</body>
+</html>
