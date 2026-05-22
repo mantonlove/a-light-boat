@@ -332,14 +332,8 @@ function addMessage(role, content, isFallback = false) {
     bubble.appendChild(badge);
   }
 
-  // 去重：移除 AI 回复中已有的合规标签文本，避免双重显示
-  let cleanContent = content;
-  if (role === 'ai') {
-    cleanContent = cleanContent.replace(/<br>?\s*(⚠️|【|\\[).*?(理财非存款|产品有风险|投资须谨慎|不构成投资).*?(<br>|$)/gi, '');
-  }
-
   const contentDiv = document.createElement('div');
-  contentDiv.innerHTML = cleanContent;
+  contentDiv.innerHTML = content;
   bubble.appendChild(contentDiv);
 
   if (role === 'ai') {
