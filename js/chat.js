@@ -507,7 +507,7 @@ function startQuestionnaire(callback) {
     bubble.innerHTML = `
       <div class="quiz-progress">📋 风险偏好评估 · ${currentQ + 1}/${RISK_QUESTIONS.length}</div>
       <div class="quiz-question">${q.q}</div>
-      <div class="quiz-options">${q.opts.map((o, i) => `<div class="quiz-option" data-idx="${i}">${o}（${q.scores[i]}分）</div>`).join('')}</div>
+      <div class="quiz-options">${q.opts.map((o, i) => `<div class="quiz-option" data-idx="${i}"><span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:2px solid var(--border-color);font-size:12px;font-weight:700;color:var(--text-muted);flex-shrink:0;">${'ABCD'[i]}</span><span>${o}</span></div>`).join('')}</div>
     `;
     quizDiv.appendChild(avatar);
     quizDiv.appendChild(bubble);
