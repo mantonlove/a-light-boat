@@ -227,12 +227,6 @@ async function sendMessage() {
     return;
   }
 
-  // 重新测评 —— 在任何路由之前拦截，直接弹出8题问卷
-  if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
-    startQuestionnaire();
-    return;
-  }
-
   const userContent = pendingImage
     ? `<img src="${pendingImage}" style="max-width:200px;border-radius:8px;margin-bottom:6px;display:block;"><div>${escapeHtml(text)}</div>`
     : escapeHtml(text);
@@ -240,6 +234,12 @@ async function sendMessage() {
   input.value = '';
   document.getElementById('sendBtn').disabled = true;
   removeImage();
+
+  // 重新测评 —— 先显示用户消息+清空输入框，再弹问卷
+  if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
+    startQuestionnaire();
+    return;
+  }
 
   const history = Storage.get('qingzhou_chatHistory') || [];
   history.push({ role: 'user', content: text, timestamp: new Date().toISOString() });

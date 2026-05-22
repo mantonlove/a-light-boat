@@ -179,7 +179,7 @@ body.mode-youth {
 .message.user .avatar { background: var(--brand-500); color: #fff; }
 .message .bubble { padding: var(--spacing-md); border-radius: var(--border-radius); font-size: var(--font-size-msg); line-height: 1.65; word-break: break-word; }
 .message.ai .bubble { background: var(--bg-bubble-ai); color: var(--text-bubble-ai); border: 1px solid var(--border-color); border-top-left-radius: 6px; box-shadow: var(--shadow-sm); }
-.message.user .bubble { background: var(--bg-bubble-user); color: var(--text-bubble-user); border-top-right-radius: 6px; box-shadow: var(--shadow-brand); }
+.message.user .bubble { background: #257AFF !important; color: #FFFFFF !important; border-top-right-radius: 6px; box-shadow: 0 4px 16px rgba(37,122,255,0.3); padding: 14px 18px; font-weight: 500; }
 .message .bubble .compliance-tag { display: block; margin-top: var(--spacing-sm); padding: 6px 10px; background: var(--compliance-bg); border-radius: var(--border-radius-sm); font-size: 11px; color: var(--compliance-tag); font-weight: 500; line-height: 1.4; }
 .message .bubble .fallback-badge { display: inline-block; font-size: 10px; color: var(--text-muted); background: var(--bg-primary); padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; }
 
