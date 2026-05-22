@@ -196,43 +196,83 @@ function logout() {
   }
 }
 
+// ── Modal Helpers ──
+let modalCallback = null;
+function openModal(title, fields, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = fields.map((f, i) =>
+    `<label>${f.label}</label><input type="${f.type||'text'}" id="modalField${i}" value="${f.value||''}" placeholder="${f.placeholder||''}" autocomplete="off">`
+  ).join('');
+  document.getElementById('modalOverlay').classList.remove('hidden');
+  document.getElementById('modalField0')?.focus();
+  modalCallback = cb;
+  document.getElementById('modalConfirm').onclick = () => {
+    const values = fields.map((_, i) => document.getElementById('modalField' + i)?.value || '');
+    closeModal();
+    if (cb) cb(values.length === 1 ? values[0] : values);
+  };
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  modalCallback = null;
+}
+
 function editProfile() {
-  const name = prompt('输入昵称：', document.getElementById('profileName').textContent);
-  if (name) {
-    const info = Storage.get('qingzhou_userInfo') || {};
-    info.nickname = name;
-    Storage.set('qingzhou_userInfo', info);
-    document.getElementById('profileName').textContent = name;
-    showToast('昵称已更新');
-  }
+  openModal('编辑个人资料', [
+    { label: '昵称', value: document.getElementById('profileName').textContent, placeholder: '输入您的昵称' }
+  ], (name) => {
+    if (name && name.trim()) {
+      const info = Storage.get('qingzhou_userInfo') || {};
+      info.nickname = name.trim();
+      Storage.set('qingzhou_userInfo', info);
+      document.getElementById('profileName').textContent = name.trim();
+      showToast('昵称已更新');
+    }
+  });
 }
 
 function changePhone() {
-  const phone = prompt('输入新手机号：', '13812341234');
-  if (phone && phone.length >= 11) {
-    const masked = phone.slice(0, 3) + '****' + phone.slice(-4);
-    document.getElementById('accountPhone').textContent = masked;
-    showToast('手机号已更新');
-  }
+  openModal('更换绑定手机', [
+    { label: '新手机号', type: 'tel', value: '13812341234', placeholder: '输入11位手机号' }
+  ], (phone) => {
+    if (phone && phone.length >= 11) {
+      const masked = phone.slice(0, 3) + '****' + phone.slice(-4);
+      document.getElementById('accountPhone').textContent = masked;
+      showToast('手机号已更新');
+    } else {
+      showToast('手机号格式不正确');
+    }
+  });
 }
 
 function changeEmail() {
-  const email = prompt('输入新邮箱：', 'zhangsan@example.com');
-  if (email && email.includes('@')) {
-    const parts = email.split('@');
-    const masked = parts[0].slice(0, 3) + '***@' + parts[1];
-    document.getElementById('accountEmail').textContent = masked;
-    showToast('邮箱已更新');
-  }
+  openModal('更换绑定邮箱', [
+    { label: '新邮箱', type: 'email', value: 'zhangsan@example.com', placeholder: '输入邮箱地址' }
+  ], (email) => {
+    if (email && email.includes('@')) {
+      const parts = email.split('@');
+      const masked = parts[0].slice(0, 3) + '***@' + parts[1];
+      document.getElementById('accountEmail').textContent = masked;
+      showToast('邮箱已更新');
+    } else {
+      showToast('邮箱格式不正确');
+    }
+  });
 }
 
 function changePassword() {
-  const pw = prompt('输入新密码（至少6位）：');
-  if (pw && pw.length >= 6) {
-    showToast('密码已修改');
-  } else if (pw) {
-    showToast('密码长度不足6位');
-  }
+  openModal('修改登录密码', [
+    { label: '新密码', type: 'password', placeholder: '至少6位' },
+    { label: '确认新密码', type: 'password', placeholder: '再次输入' }
+  ], (values) => {
+    if (values[0] && values[0].length >= 6 && values[0] === values[1]) {
+      showToast('密码已修改');
+    } else if (values[0] !== values[1]) {
+      showToast('两次密码不一致');
+    } else {
+      showToast('密码长度不足6位');
+    }
+  });
 }
 
 function startReassessment() {
