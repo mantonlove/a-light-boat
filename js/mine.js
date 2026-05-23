@@ -438,36 +438,51 @@ function selectVoice(id) {
 }
 
 function previewVoice(id) {
-  if (!('speechSynthesis' in window)) { showToast('您的浏览器不支持语音合成'); return; }
-  speechSynthesis.cancel();
-
   const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
-    { id: 'gentle-female', rate: 0.95, pitch: 1.05, voiceName: 'Tingting' },
-    { id: 'deep-male', rate: 0.90, pitch: 0.90, voiceName: 'Eddy' },
-    { id: 'lively-female', rate: 1.05, pitch: 1.15, voiceName: 'Flo' },
-    { id: 'soft-female', rate: 0.92, pitch: 1.00, voiceName: 'Shelley' },
-    { id: 'warm-male', rate: 0.88, pitch: 0.95, voiceName: 'Reed' }
+    { id: 'gentle-female', name: '温润女声', rate: 0.95 },
+    { id: 'deep-male', name: '沉稳男声', rate: 0.90 },
+    { id: 'lively-female', name: '活泼女声', rate: 1.05 },
+    { id: 'soft-female', name: '知性女声', rate: 0.92 },
+    { id: 'warm-male', name: '磁性男声', rate: 0.88 }
   ];
   const preset = presets.find(v => v.id === id) || presets[0];
+  const text = '您好，我是轻舟，您的智慧银行理财顾问。很高兴为您服务。';
 
-  const doPreview = (voices) => {
-    const utterance = new SpeechSynthesisUtterance('您好，我是轻舟，您的智慧银行理财顾问。很高兴为您服务。');
-    utterance.lang = 'zh-CN';
-    utterance.rate = preset.rate;
-    utterance.pitch = preset.pitch;
-    if (typeof matchVoice === 'function') {
-      const voice = matchVoice(preset, voices || []);
-      if (voice) utterance.voice = voice;
-    }
-    speechSynthesis.speak(utterance);
+  // 优先使用 server.py TTS（macOS say 命令，音质好）
+  fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, voice: id, rate: preset.rate })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('TTS server error');
+    return res.blob();
+  })
+  .then(blob => {
+    new Audio(URL.createObjectURL(blob)).play();
     showToast('试听中...');
-  };
-
-  if (typeof loadVoices === 'function') {
-    loadVoices().then(doPreview);
-  } else {
-    doPreview([]);
-  }
+  })
+  .catch(() => {
+    // Fallback: Web Speech API
+    if (!('speechSynthesis' in window)) { showToast('您的浏览器不支持语音合成'); return; }
+    speechSynthesis.cancel();
+    const doPreview = (voices) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-CN';
+      utterance.rate = preset.rate;
+      if (typeof matchVoice === 'function') {
+        const voice = matchVoice(preset, voices || []);
+        if (voice) utterance.voice = voice;
+      }
+      speechSynthesis.speak(utterance);
+      showToast('试听中...');
+    };
+    if (typeof loadVoices === 'function') {
+      loadVoices().then(doPreview);
+    } else {
+      doPreview([]);
+    }
+  });
 }
 
 function showToast(msg) {

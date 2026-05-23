@@ -396,31 +396,49 @@ function addTtsButton(msgEl, text) {
 }
 
 function speakText(text, onEnd) {
-  if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
-  speechSynthesis.cancel();
-
   const cleanText = text.replace(/⚠️[^]*/g, '').replace(/\n\n/g, '。').replace(/\n/g, '').trim();
   if (!cleanText) { if (onEnd) onEnd(); return; }
 
-  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { rate: 0.95, pitch: 1.0 };
-  const doSpeak = (voices) => {
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'zh-CN';
-    utterance.rate = preset.rate;
-    utterance.pitch = preset.pitch;
-    if (typeof matchVoice === 'function') {
-      const voice = matchVoice(preset, voices || []);
-      if (voice) utterance.voice = voice;
-    }
-    if (onEnd) utterance.onend = onEnd;
-    speechSynthesis.speak(utterance);
-  };
+  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { id: 'gentle-female', rate: 0.95 };
+  const voiceId = preset.id || 'gentle-female';
 
-  if (typeof loadVoices === 'function') {
-    loadVoices().then(doSpeak);
-  } else {
-    doSpeak([]);
-  }
+  // 优先使用 server.py TTS（macOS say 命令，音质好）
+  const ttsUrl = '/api/tts';
+  fetch(ttsUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: cleanText, voice: voiceId, rate: preset.rate })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('TTS server error');
+    return res.blob();
+  })
+  .then(blob => {
+    const audio = new Audio(URL.createObjectURL(blob));
+    if (onEnd) audio.onended = onEnd;
+    audio.play().catch(() => { if (onEnd) onEnd(); });
+  })
+  .catch(() => {
+    // Fallback: 浏览器 Web Speech API
+    if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
+    speechSynthesis.cancel();
+    const doSpeak = (voices) => {
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'zh-CN';
+      utterance.rate = preset.rate;
+      if (typeof matchVoice === 'function') {
+        const voice = matchVoice(preset, voices || []);
+        if (voice) utterance.voice = voice;
+      }
+      if (onEnd) utterance.onend = onEnd;
+      speechSynthesis.speak(utterance);
+    };
+    if (typeof loadVoices === 'function') {
+      loadVoices().then(doSpeak);
+    } else {
+      doSpeak([]);
+    }
+  });
 }
 
 // ── Navigation ──
