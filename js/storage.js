@@ -107,7 +107,7 @@ const Storage = {
 };
 
 // ══════ 共享字体工具（chat.js & mine.js 共用，消除重复定义） ══════
-const FONT_SIZE_MAP = { small:'14px', medium:'16px', large:'20px', xlarge:'26px' };
+const FONT_SIZE_MAP = { small:'14px', medium:'16px', large:'20px' };
 const MODE_DEFAULT_FONT = { classic:'medium', senior:'large', youth:'small' };
 
 function applyFontSize(size) {

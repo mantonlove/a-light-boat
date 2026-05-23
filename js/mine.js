@@ -110,8 +110,7 @@ function renderFontSize() {
   const sizes = [
     { id: 'small', label: '小' },
     { id: 'medium', label: '中' },
-    { id: 'large', label: '大' },
-    { id: 'xlarge', label: '超大' }
+    { id: 'large', label: '大' }
   ];
   const current = Storage.get('qingzhou_fontSize') || 'medium';
   row.innerHTML = '';
