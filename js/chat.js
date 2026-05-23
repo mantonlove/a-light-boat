@@ -336,13 +336,6 @@ function addMessage(role, content, isFallback = false) {
   contentDiv.innerHTML = content;
   bubble.appendChild(contentDiv);
 
-  if (role === 'ai' || role === 'assistant') {
-    const tag = document.createElement('span');
-    tag.className = 'compliance-tag';
-    tag.textContent = '⚠️ 理财非存款，产品有风险，投资须谨慎。以上建议仅供参考，不构成投资承诺。';
-    bubble.appendChild(tag);
-  }
-
   div.appendChild(avatar);
   div.appendChild(bubble);
   container.appendChild(div);
