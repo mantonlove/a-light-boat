@@ -14,7 +14,7 @@
 <div class="chat-container">
   <!-- Sidebar -->
   <div class="chat-sidebar">
-    <img src="assets/logo.png" alt="轻舟" class="logo-img" onclick="goTo('index.html')" style="cursor:pointer;" title="返回首页">
+    <img src="assets/logo.png" alt="轻舟" class="logo-img">
     <div class="nav-icon active" title="对话">💬</div>
     <div class="nav-icon" onclick="goTo('dashboard.html')" title="资产方案">📊</div>
     <div class="nav-icon" onclick="goTo('mine.html')" title="我的">👤</div>
@@ -26,11 +26,9 @@
     <div class="chat-header-left">
       <span class="logo-text" style="font-size:var(--font-size-lg);"><img src="assets/logo.png" alt="轻舟" style="height:28px;"><span style="font-size:var(--font-size-lg);font-weight:700;margin-left:8px;">轻舟</span>
       <span class="mode-badge" id="modeBadge" onclick="switchMode()" style="cursor:pointer;" title="点击切换模式">经典版</span>
-      <span class="handoff-badge" id="handoffBadge">🔴 转接中</span>
+      
     </div>
-    <div class="chat-header-right">
-      <button onclick="goTo('mine.html')">👤 我的</button>
-    </div>
+    
   </div>
 
   <!-- Preset questions -->
@@ -74,7 +72,7 @@
       <input type="file" id="imageInput" accept="image/*" capture="environment" onchange="handleImageUpload(event)" style="display:none;">
       <textarea id="userInput" rows="1" placeholder="输入您的问题..." onkeydown="handleKeyDown(event)"></textarea>
       <button class="voice-btn hidden" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎤</button>
-      <button class="dashboard-btn" onclick="goTo('dashboard.html')" title="推荐方案">📊</button>
+      
       <button class="send-btn" onclick="sendMessage()" id="sendBtn" disabled>↑</button>
     </div>
   </div>
