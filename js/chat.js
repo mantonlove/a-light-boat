@@ -399,33 +399,28 @@ function speakText(text, onEnd) {
   if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
   speechSynthesis.cancel();
 
-  // Remove compliance tag and clean text
   const cleanText = text.replace(/⚠️[^]*/g, '').replace(/\n\n/g, '。').replace(/\n/g, '').trim();
   if (!cleanText) { if (onEnd) onEnd(); return; }
 
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  utterance.lang = 'zh-CN';
-
-  // Apply voice preset
-  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { rate: 0.9, pitch: 1.0 };
-  utterance.rate = preset.rate;
-  utterance.pitch = preset.pitch;
-
-  // Try to find a matching system voice
-  if ('speechSynthesis' in window) {
-    const voices = speechSynthesis.getVoices();
-    const zhVoices = voices.filter(v => v.lang.startsWith('zh'));
-    if (zhVoices.length > 0) {
-      // Prefer female voice for female presets, male for male presets
-      const wantFemale = preset.id.includes('female');
-      const match = zhVoices.find(v => wantFemale ? v.name.includes('Female') || v.name.includes('Tingting') || v.name.includes('Xiaoxiao') : v.name.includes('Male') || v.name.includes('Yunxi'));
-      if (match) utterance.voice = match;
-      else if (zhVoices.length > 0) utterance.voice = zhVoices[0];
+  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { rate: 0.95, pitch: 1.0 };
+  const doSpeak = (voices) => {
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'zh-CN';
+    utterance.rate = preset.rate;
+    utterance.pitch = preset.pitch;
+    if (typeof matchVoice === 'function') {
+      const voice = matchVoice(preset, voices || []);
+      if (voice) utterance.voice = voice;
     }
-  }
+    if (onEnd) utterance.onend = onEnd;
+    speechSynthesis.speak(utterance);
+  };
 
-  if (onEnd) utterance.onend = onEnd;
-  speechSynthesis.speak(utterance);
+  if (typeof loadVoices === 'function') {
+    loadVoices().then(doSpeak);
+  } else {
+    doSpeak([]);
+  }
 }
 
 // ── Navigation ──

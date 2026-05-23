@@ -128,16 +128,58 @@ function applyFontSize(size) {
   document.documentElement.style.setProperty('--fs-xl', (pxi+14)+'px');
 }
 
-// ══════ 语音预设（5种可选声音）══════
+// ══════ 语音预设（5种可选声音，映射到系统真实语音）══════
 const VOICE_PRESETS = [
-  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '温和亲切，语速适中', rate: 0.90, pitch: 1.10 },
-  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '低沉稳重，专业可信', rate: 0.85, pitch: 0.75 },
-  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '轻快明亮，有节奏感', rate: 1.05, pitch: 1.30 },
-  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '端庄知性，娓娓道来', rate: 0.92, pitch: 1.05 },
-  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '温暖磁性，娓娓道来', rate: 0.82, pitch: 0.85 }
+  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '温和亲切，语速适中', rate: 0.95, pitch: 1.05, voiceName: 'Tingting' },
+  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '低沉稳重，专业可信', rate: 0.90, pitch: 0.90, voiceName: 'Eddy' },
+  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '轻快明亮，有节奏感', rate: 1.05, pitch: 1.15, voiceName: 'Flo' },
+  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '端庄知性，娓娓道来', rate: 0.92, pitch: 1.00, voiceName: 'Shelley' },
+  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '温暖磁性，娓娓道来', rate: 0.88, pitch: 0.95, voiceName: 'Reed' }
 ];
 
 function getVoicePreset() {
   const id = Storage.get(STORAGE_KEYS.VOICE_PRESET) || 'gentle-female';
   return VOICE_PRESETS.find(v => v.id === id) || VOICE_PRESETS[0];
+}
+
+/** 异步加载系统语音列表（voices 在首次调用后才异步就绪） */
+let _cachedVoices = null;
+function loadVoices() {
+  if (_cachedVoices && _cachedVoices.length > 0) return Promise.resolve(_cachedVoices);
+  return new Promise((resolve) => {
+    if (typeof speechSynthesis === 'undefined') { resolve([]); return; }
+    const voices = speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      _cachedVoices = voices;
+      resolve(voices);
+      return;
+    }
+    speechSynthesis.onvoiceschanged = () => {
+      _cachedVoices = speechSynthesis.getVoices();
+      resolve(_cachedVoices);
+    };
+    // Timeout fallback
+    setTimeout(() => {
+      if (!_cachedVoices) { _cachedVoices = speechSynthesis.getVoices(); }
+      resolve(_cachedVoices);
+    }, 2000);
+  });
+}
+
+/** 根据预设找到最匹配的系统语音 */
+function matchVoice(preset, voices) {
+  if (!voices || voices.length === 0) return null;
+  const zhVoices = voices.filter(v => v.lang === 'zh-CN');
+  if (zhVoices.length === 0) return null;
+
+  // 精确匹配预设指定的语音名
+  if (preset.voiceName) {
+    const exact = zhVoices.find(v => v.name === preset.voiceName);
+    if (exact) return exact;
+    const partial = zhVoices.find(v => v.name.includes(preset.voiceName));
+    if (partial) return partial;
+  }
+
+  // 回退：第一个zh-CN语音
+  return zhVoices[0];
 }
