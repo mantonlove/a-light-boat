@@ -440,7 +440,8 @@ function showToast(msg) {
 // ── Handoff ──
 function triggerHandoff(reason) {
   handoffActive = true;
-  document.getElementById('handoffBadge').classList.add('active');
+  const badge = document.getElementById('handoffBadge');
+  if (badge) badge.classList.add('active');
   Storage.addKeyMoment('触发 Handoff：' + reason);
 
   const profile = assembleProfile();

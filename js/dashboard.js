@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
   currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
   document.body.className = 'mode-' + currentMode;
 
+  // 应用字体大小
+  const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
+  applyFontSize(savedFontSize);
+
   renderDashboard();
 });
 
@@ -40,19 +44,19 @@ function renderDashboard() {
 function renderRiskGauge(profile) {
   const card = document.getElementById('riskGaugeCard');
   if (!profile.risk) {
-    card.innerHTML = '<h3>风险偏好</h3><p style="color:var(--text-muted);">尚未评估</p>';
+    card.innerHTML = '<h3>风险偏好</h3><p style="color:#6B7A8C;">尚未评估</p>';
     return;
   }
   const percent = (profile.risk.score / 54) * 100;
   card.innerHTML = `
     <h3>风险偏好</h3>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <span style="font-size:var(--font-size-lg);font-weight:700;">${profile.risk.label} · 评分 ${profile.risk.score}/54</span>
-      <button class="retry-btn" onclick="goBack()">调整风险偏好</button>
+      <span style="font-size:20px;font-weight:700;">${profile.risk.label} · 评分 ${profile.risk.score}/54</span>
+      <button onclick="goBack()" style="background:#0A1628;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;">调整风险偏好</button>
     </div>
-    <div class="risk-gauge"><div class="gauge-dot" style="left:${percent}%;"></div></div>
+    <div class="risk-bar"><div class="risk-dot" style="left:${percent}%;"></div></div>
     <div class="risk-labels"><span>保守</span><span>稳健</span><span>平衡</span><span>进取</span><span>激进</span></div>
-    <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:8px;">基于风险评估问卷 + AI 对话分析</p>
+    <p style="font-size:13px;color:#6B7A8C;margin-top:8px;">基于风险评估问卷 + AI 对话分析</p>
   `;
 }
 
@@ -69,13 +73,13 @@ function renderPieChart(allocation) {
     type: 'doughnut',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: bgColors, borderWidth: 2, borderColor: getComputedStyle(document.body).getPropertyValue('--bg-card').trim() || '#fff' }]
+      datasets: [{ data, backgroundColor: bgColors, borderWidth: 2, borderColor: '#fff' }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
-        legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 }, color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim() || '#6B7280' } }
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 13 }, color: '#6B7280' } }
       }
     }
   });
@@ -90,7 +94,7 @@ function renderLineChart(allocation) {
   const base = [0, 0.4, 0.7, 1.0, 1.3, 1.6, 1.9, 2.2, 2.5, 2.8, 3.2, 4.5];
   const optimistic = [0, 0.6, 0.9, 1.3, 1.7, 2.1, 2.5, 2.9, 3.3, 3.7, 4.2, 5.5];
 
-  const textColor = getComputedStyle(document.body).getPropertyValue('--text-secondary').trim() || '#6B7280';
+  const textColor = '#6B7280';
 
   lineChart = new Chart(ctx, {
     type: 'line',
@@ -126,13 +130,13 @@ function renderMetrics(allocation) {
   const analysis = RiskCalc.analyzePortfolio(allocation.allocation, simData);
 
   row.innerHTML = `
-    <div class="metric-card"><div class="metric-value">${(analysis.annualizedReturn*100).toFixed(1)}%</div><div class="metric-label">年化收益率</div></div>
-    <div class="metric-card"><div class="metric-value">${(analysis.maxDrawdown*100).toFixed(1)}%</div><div class="metric-label">最大回撤</div></div>
-    <div class="metric-card"><div class="metric-value">${analysis.sharpeRatio.toFixed(2)}</div><div class="metric-label">夏普比率</div></div>
-    <div class="metric-card"><div class="metric-value">${analysis.sortinoRatio.toFixed(2)}</div><div class="metric-label">Sortino比率</div></div>
-    <div class="metric-card"><div class="metric-value">${(analysis.cVaR95*100).toFixed(1)}%</div><div class="metric-label">CVaR(95%)</div></div>
-    <div class="metric-card"><div class="metric-value">${analysis.calmarRatio.toFixed(2)}</div><div class="metric-label">卡尔玛比率</div></div>
-    <div class="metric-card"><div class="metric-value">${(analysis.valueAtRisk95*100).toFixed(1)}%</div><div class="metric-label">VaR(95%)</div></div>
+    <div class="metric-box"><div class="val">${(analysis.annualizedReturn*100).toFixed(1)}%</div><div class="lbl">年化收益率</div></div>
+    <div class="metric-box"><div class="val">${(analysis.maxDrawdown*100).toFixed(1)}%</div><div class="lbl">最大回撤</div></div>
+    <div class="metric-box"><div class="val">${analysis.sharpeRatio.toFixed(2)}</div><div class="lbl">夏普比率</div></div>
+    <div class="metric-box"><div class="val">${analysis.sortinoRatio.toFixed(2)}</div><div class="lbl">Sortino比率</div></div>
+    <div class="metric-box"><div class="val">${(analysis.cVaR95*100).toFixed(1)}%</div><div class="lbl">CVaR(95%)</div></div>
+    <div class="metric-box"><div class="val">${analysis.calmarRatio.toFixed(2)}</div><div class="lbl">卡尔玛比率</div></div>
+    <div class="metric-box"><div class="val">${(analysis.valueAtRisk95*100).toFixed(1)}%</div><div class="lbl">VaR(95%)</div></div>
   `;
 
   // 更新蒙特卡洛折线图
@@ -144,7 +148,7 @@ function renderMonteCarloChart(mc) {
   if (window._mcChart) window._mcChart.destroy();
 
   const months = mc.paths.p50.map((_, i) => i + '月');
-  const textColor = getComputedStyle(document.body).getPropertyValue('--text-secondary').trim() || '#6B7280';
+  const textColor = '#6B7280';
 
   window._mcChart = new Chart(ctx, {
     type: 'line',
