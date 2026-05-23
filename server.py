@@ -108,29 +108,40 @@ class ProxyHandler(http.server.SimpleHTTPRequestHandler):
             wpm = int(rate * 190)
 
             with tempfile.NamedTemporaryFile(suffix='.aiff', delete=False) as tmp:
-                tmp_path = tmp.name
+                aiff_path = tmp.name
+            wav_path = aiff_path + '.wav'
 
             try:
                 subprocess.run(
-                    ['say', '-v', voice, '-r', str(wpm), text, '-o', tmp_path],
+                    ['say', '-v', voice, '-r', str(wpm), text, '-o', aiff_path],
                     capture_output=True, timeout=10
                 )
 
-                if not os.path.exists(tmp_path) or os.path.getsize(tmp_path) == 0:
+                if not os.path.exists(aiff_path) or os.path.getsize(aiff_path) == 0:
                     raise RuntimeError('TTS generation failed')
 
-                with open(tmp_path, 'rb') as f:
+                # AIFF → WAV (AIFF 不被浏览器支持)
+                subprocess.run(
+                    ['afconvert', '-f', 'WAVE', '-d', 'LEI16@22050', aiff_path, wav_path],
+                    capture_output=True, timeout=5
+                )
+
+                if not os.path.exists(wav_path) or os.path.getsize(wav_path) == 0:
+                    raise RuntimeError('Audio conversion failed')
+
+                with open(wav_path, 'rb') as f:
                     audio_data = f.read()
 
                 self.send_response(200)
-                self.send_header('Content-Type', 'audio/aiff')
+                self.send_header('Content-Type', 'audio/wav')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.send_header('Content-Length', str(len(audio_data)))
                 self.end_headers()
                 self.wfile.write(audio_data)
             finally:
-                if os.path.exists(tmp_path):
-                    os.unlink(tmp_path)
+                for p in [aiff_path, wav_path]:
+                    if os.path.exists(p):
+                        os.unlink(p)
 
         except Exception as e:
             self.send_response(500)
