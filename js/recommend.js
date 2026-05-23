@@ -105,6 +105,13 @@ function renderRecommendations() {
 function renderMarketHot() {
   const el = document.getElementById('marketHot');
   if (!el) return;
+  const section = el.closest('.mine-section');
+  const prefs = Storage.get('qingzhou_preferences') || {};
+  if (!prefs.marketHotPush) {
+    if (section) section.classList.add('hidden');
+    return;
+  }
+  if (section) section.classList.remove('hidden');
 
   // Use MARKET_DATA from market_data.js if available, otherwise show sample
   const marketData = typeof MARKET_DATA !== 'undefined' ? MARKET_DATA : null;
@@ -141,6 +148,13 @@ function renderMarketHot() {
 function renderWeeklyReport() {
   const el = document.getElementById('weeklyReport');
   if (!el) return;
+  const section = el.closest('.mine-section');
+  const prefs = Storage.get('qingzhou_preferences') || {};
+  if (!prefs.weeklyReport) {
+    if (section) section.classList.add('hidden');
+    return;
+  }
+  if (section) section.classList.remove('hidden');
 
   const marketData = typeof MARKET_DATA !== 'undefined' ? MARKET_DATA : null;
 
