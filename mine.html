@@ -74,15 +74,9 @@
 
       <div class="mine-section">
         <div class="sec-label">理财偏好</div>
-        <div class="collapsible open" id="riskCollapse">
-          <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
-            <div class="col-title">
-              <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              风险偏好验证
-            </div>
-            <span class="col-arrow">▼</span>
-          </div>
-          <div class="col-body" id="riskDetail"></div>
+        <div class="card" id="riskCard">
+          <div class="sec-label">风险偏好验证</div>
+          <div id="riskDetail"></div>
         </div>
         <div class="collapsible">
           <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
