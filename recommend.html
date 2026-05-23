@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>轻舟 · 推荐中心</title>
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="logo"><img src="assets/logo.png" alt="轻舟"></div>
+    <div class="nav-icon" title="对话" onclick="goTo('chat.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="nav-icon active" title="推荐中心" onclick="goTo('recommend.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+    </div>
+    <div class="nav-icon" title="我的" onclick="goTo('mine.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div class="brand"><img src="assets/logo.png" alt="">轻<span>舟</span></div>
+      <span class="mode-badge" id="modeBadge" onclick="switchMode()" title="点击切换模式">经典版</span>
+    </div>
+
+    <div style="flex:1;overflow-y:auto">
+    <div class="rec-page">
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden" style="text-align:center;padding:var(--s6) var(--s4);color:var(--ink-40)">
+        <div style="font-size:40px;margin-bottom:var(--s2);opacity:0.5">📊</div>
+        <h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px">暂无推荐方案</h3>
+        <p style="font-size:13px">让轻舟为您配置专属方案。返回聊天页，试试这样说：</p>
+        <div style="margin-top:var(--s2);display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+          <span class="preset-inline" style="margin:0"><span class="preset-chip" onclick="goTo('chat.html')">帮我配置一下资金</span></span>
+          <span class="preset-inline" style="margin:0"><span class="preset-chip" onclick="goTo('chat.html')">20万3年不用怎么配</span></span>
+          <span class="preset-inline" style="margin:0"><span class="preset-chip" onclick="goTo('chat.html')">推荐适合的投资组合</span></span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div id="recContent">
+
+        <!-- 当前推荐 -->
+        <div class="mine-section">
+          <div class="sec-label">当前推荐</div>
+          <div class="rec-current" id="currentRec"></div>
+        </div>
+
+        <!-- 历史推荐 -->
+        <div class="mine-section">
+          <div class="collapsible" id="historyCollapse">
+            <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
+              <div class="col-title">
+                <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                历史推荐
+              </div>
+              <span class="col-arrow">▼</span>
+            </div>
+            <div class="col-body" id="historyList"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js?v=5"></script>
+<script src="js/profile_engine.js?v=5"></script>
+<script src="js/recommend.js?v=5"></script>
+</body>
+</html>

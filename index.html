@@ -7,425 +7,67 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>轻舟 — 智慧银行理财顾问</title>
+<link rel="stylesheet" href="css/style.css?v=5">
 <style>
-  :root {
-    --sky-top: #E8F4FD;
-    --sky-bottom: #FFFFFF;
-    --water-deep: #B3D9FF;
-    --water-shallow: #D6ECFF;
-    --brand: #257AFF;
-    --brand-light: #3E95FF;
-    --text: #1A2332;
-    --text-secondary: #5F6E82;
-    --text-muted: #8D9AAA;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    background: #fff;
-    color: var(--text);
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-
-  /* ══════ Hero: 天空 + Logo ══════ */
-  .hero {
-    position: relative;
-    width: 100%;
-    height: 100vh;
-    background: linear-gradient(180deg, #D6ECFF 0%, #E8F4FD 30%, #F4F9FD 55%, #FFFFFF 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  /* Floating particles */
-  .particles {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-  .particle {
-    position: absolute;
-    background: rgba(37,122,255,0.08);
-    border-radius: 50%;
-    animation: floatUp 8s infinite ease-in;
-  }
-  .particle:nth-child(1) { width:6px;height:6px;left:15%;bottom:-10%;animation-delay:0s;animation-duration:9s; }
-  .particle:nth-child(2) { width:4px;height:4px;left:25%;bottom:-10%;animation-delay:2s;animation-duration:7s; }
-  .particle:nth-child(3) { width:8px;height:8px;left:40%;bottom:-10%;animation-delay:4s;animation-duration:11s; }
-  .particle:nth-child(4) { width:5px;height:5px;left:55%;bottom:-10%;animation-delay:1s;animation-duration:8s; }
-  .particle:nth-child(5) { width:7px;height:7px;left:70%;bottom:-10%;animation-delay:3s;animation-duration:10s; }
-  .particle:nth-child(6) { width:4px;height:4px;left:85%;bottom:-10%;animation-delay:5s;animation-duration:6s; }
-  @keyframes floatUp {
-    0% { transform: translateY(0) scale(1); opacity:0; }
-    10% { opacity:0.8; }
-    90% { opacity:0.3; }
-    100% { transform: translateY(-100vh) scale(0.3); opacity:0; }
-  }
-
-  /* Logo area */
-  .hero-logo {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .hero-logo img {
-    width: 180px;
-    height: auto;
-    filter: drop-shadow(0 8px 24px rgba(37,122,255,0.15));
-    animation: logoFloat 3s ease-in-out infinite;
-  }
-  @keyframes logoFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-  }
-  .hero-title {
-    font-size: 52px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    color: var(--text);
-    margin-top: 16px;
-  }
-  .hero-title span {
-    background: linear-gradient(135deg, #257AFF, #58ADFF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .hero-sub {
-    font-size: 18px;
-    color: var(--text-secondary);
-    margin-top: 10px;
-    letter-spacing: 0.06em;
-  }
-
-  /* Scroll hint */
-  .scroll-hint {
-    position: absolute;
-    bottom: 28%;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    animation: hintBounce 2s ease-in-out infinite;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: opacity 0.3s;
-  }
-  .scroll-hint:hover { opacity: 1; }
-  .scroll-hint span { font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em; }
-  .scroll-hint .arrow { width: 20px; height: 20px; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(45deg); }
-  @keyframes hintBounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
-  }
-
-  /* ══════ Water Waves ══════ */
-  .waves {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 35%;
-    z-index: 5;
-    pointer-events: none;
-  }
-  .wave {
-    position: absolute;
-    bottom: 0;
-    left: -5%;
-    width: 110%;
-    height: 100%;
-  }
-  .wave svg { width: 100%; height: 100%; display: block; }
-  .wave-back {
-    z-index: 1;
-    opacity: 0.3;
-    animation: waveDrift 12s ease-in-out infinite;
-  }
-  .wave-mid {
-    z-index: 2;
-    opacity: 0.5;
-    animation: waveDrift 10s ease-in-out infinite reverse;
-  }
-  .wave-front {
-    z-index: 3;
-    opacity: 0.8;
-    animation: waveDrift 8s ease-in-out infinite;
-  }
-  @keyframes waveDrift {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(3%); }
-  }
-
-  /* ══════ Cards Section ══════ */
-  .cards-section {
-    position: relative;
-    z-index: 20;
-    background: #fff;
-    padding: 60px 80px 100px;
-    margin-top: -5px;
-  }
-  .cards-section .section-label {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 40px;
-  }
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 36px;
-    max-width: 1300px;
-    margin: 0 auto;
-  }
-
-  .card {
-    position: relative;
-    background: #fff;
-    border-radius: 28px;
-    padding: 44px 36px 36px;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
-    display: flex;
-    flex-direction: column;
-    border: 1px solid rgba(37,122,255,0.06);
-    box-shadow: 0 2px 20px rgba(37,122,255,0.04);
-  }
-  .card:nth-child(1) { transform: translateY(0); }
-  .card:nth-child(2) { transform: translateY(-24px); }
-  .card:nth-child(3) { transform: translateY(-12px); }
-  .card:hover {
-    transform: translateY(-32px) !important;
-    box-shadow: 0 20px 60px rgba(37,122,255,0.10);
-    border-color: rgba(37,122,255,0.12);
-  }
-  .card .card-icon {
-    width: 56px; height: 56px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    margin-bottom: 22px;
-  }
-  .card.youth .card-icon { background: #F0EDFF; }
-  .card.senior .card-icon { background: #FFF3EB; }
-  .card.classic .card-icon { background: #E6F2FF; }
-  .card .card-name {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-  .card .card-who {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 16px;
-  }
-  .card .card-features {
-    list-style: none;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 2.2;
-    margin-bottom: 28px;
-    flex: 1;
-  }
-  .card .card-features li::before {
-    content: ''; display: inline-block;
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    margin-right: 10px;
-    vertical-align: middle;
-  }
-  .card.youth .card-features li::before { background: #6C5CE7; }
-  .card.senior .card-features li::before { background: #FF8C42; }
-  .card.classic .card-features li::before { background: #257AFF; }
-
-  .card .card-action {
-    display: block;
-    width: 100%;
-    padding: 14px 0;
-    border-radius: 14px;
-    text-align: center;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.25s;
-    letter-spacing: 0.02em;
-  }
-  .card.youth .card-action { background: linear-gradient(135deg,#6C5CE7,#8B7CF6); color: #fff; }
-  .card.senior .card-action { background: linear-gradient(135deg,#FF8C42,#FFA94D); color: #fff; }
-  .card.classic .card-action { background: linear-gradient(135deg,#257AFF,#3E95FF); color: #fff; }
-  .card .card-action:hover { opacity: 0.9; transform: scale(1.02); }
-  .card .card-note {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-align: center;
-    margin-top: 12px;
-  }
-
-  /* ══════ Bottom ══════ */
-  .bottom-bar {
-    text-align: center;
-    padding: 0 80px 60px;
-    background: #fff;
-  }
-  .trust-strip {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 32px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-  }
-  .trust-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-  .trust-item .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--brand);
-  }
-  .compliance-note {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.8;
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 16px 24px;
-    background: rgba(255,251,245,0.6);
-    border-radius: 12px;
-  }
-
-  @media (max-width: 900px) {
-    .cards { grid-template-columns: 1fr; max-width: 440px; }
-    .card:nth-child(1),
-    .card:nth-child(2),
-    .card:nth-child(3) { transform: translateY(0) !important; }
-    .hero { height: 70vh; }
-    .hero-title { font-size: 36px; }
-  }
+  body { background: var(--surface); }
 </style>
 </head>
 <body>
 
-<!-- ══════ Hero ══════ -->
-<section class="hero">
-  <!-- Particles -->
-  <div class="particles">
-    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-  </div>
+<div class="welcome-page">
+  <div class="wl-tag">选择您的体验模式</div>
+  <h1>轻<span>舟</span></h1>
+  <p class="wl-sub">您的智慧银行理财顾问</p>
 
-  <!-- Logo -->
-  <div class="hero-logo">
-    <img src="assets/logo.png" alt="轻舟">
-    <div class="hero-title">轻<span>舟</span></div>
-    <div class="hero-sub">您的智慧银行理财顾问</div>
-  </div>
-
-  <!-- Scroll hint -->
-  <div class="scroll-hint" onclick="document.querySelector('.cards-section').scrollIntoView({behavior:'smooth'})">
-    <span>选择模式</span>
-    <div class="arrow"></div>
-  </div>
-
-  <!-- Water Waves -->
-  <div class="waves">
-    <div class="wave wave-back">
-      <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
-        <path fill="#B3D9FF" d="M0,160 C240,80 480,240 720,200 C960,160 1200,80 1440,160 L1440,320 L0,320 Z"/>
-      </svg>
-    </div>
-    <div class="wave wave-mid">
-      <svg viewBox="0 0 1440 280" preserveAspectRatio="none">
-        <path fill="#C8E5FF" d="M0,140 C180,200 420,60 720,120 C1020,180 1200,100 1440,140 L1440,280 L0,280 Z"/>
-      </svg>
-    </div>
-    <div class="wave wave-front">
-      <svg viewBox="0 0 1440 240" preserveAspectRatio="none">
-        <path fill="#E6F2FF" d="M0,100 C300,180 600,40 900,100 C1200,160 1350,90 1440,100 L1440,240 L0,240 Z"/>
-      </svg>
-    </div>
-  </div>
-</section>
-
-<!-- ══════ Cards ══════ -->
-<section class="cards-section">
-  <div class="section-label">选择您的体验模式</div>
-  <div class="cards">
-    <!-- Youth -->
-    <div class="card youth" onclick="enter('youth')">
-      <div class="card-icon">🎯</div>
-      <div class="card-name">青春版</div>
-      <div class="card-who">适合年轻客户</div>
-      <ul class="card-features">
-        <li>数据可视化、图表驱动交互</li>
-        <li>ESG、AI、ETF 等新概念产品</li>
-        <li>快节奏对话，专业不啰嗦</li>
-      </ul>
-      <button class="card-action">进入青春版</button>
-      <div class="card-note">随时可切换</div>
-    </div>
-    <!-- Senior -->
-    <div class="card senior" onclick="enter('senior')">
-      <div class="card-icon">🌅</div>
-      <div class="card-name">关怀版</div>
-      <div class="card-who">适合老年客户</div>
-      <ul class="card-features">
-        <li>全程语音对话，无需打字</li>
-        <li>大字号、高对比度配色</li>
-        <li>生活化语言讲解金融概念</li>
-      </ul>
-      <button class="card-action">进入关怀版</button>
-      <div class="card-note">首次自动开启语音引导</div>
-    </div>
-    <!-- Classic -->
-    <div class="card classic" onclick="enter('classic')">
-      <div class="card-icon">💼</div>
-      <div class="card-name">经典版</div>
-      <div class="card-who">适合普通成年客户</div>
-      <ul class="card-features">
+  <div class="wl-cards">
+    <!-- 经典版 -->
+    <div class="wl-card" onclick="enter('classic')">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>
+      </div>
+      <div class="wc-name">经典版</div>
+      <div class="wc-who">适合普通成年客户</div>
+      <ul class="wc-features">
         <li>全品类理财产品查询与对比</li>
         <li>基于风险偏好的配置建议</li>
         <li>专业市场数据与宏观解读</li>
       </ul>
-      <button class="card-action">进入经典版</button>
-      <div class="card-note">随时可切换</div>
+      <div class="wc-btn primary">进入经典版</div>
+    </div>
+
+    <!-- 关怀版 -->
+    <div class="wl-card" onclick="enter('senior')">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg>
+      </div>
+      <div class="wc-name">关怀版</div>
+      <div class="wc-who">适合老年客户</div>
+      <ul class="wc-features">
+        <li>全程语音对话，无需打字</li>
+        <li>大字号、高对比度配色</li>
+        <li>生活化语言讲解金融概念</li>
+      </ul>
+      <div class="wc-btn primary">进入关怀版</div>
+    </div>
+
+    <!-- 青春版 -->
+    <div class="wl-card" onclick="enter('youth')">
+      <div class="wc-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+      </div>
+      <div class="wc-name">青春版</div>
+      <div class="wc-who">适合年轻客户</div>
+      <ul class="wc-features">
+        <li>数据可视化、图表驱动交互</li>
+        <li>ESG、AI、ETF 等新概念</li>
+        <li>快节奏对话，专业不啰嗦</li>
+      </ul>
+      <div class="wc-btn primary">进入青春版</div>
     </div>
   </div>
-</section>
+</div>
 
-<!-- ══════ Bottom ══════ -->
-<section class="bottom-bar">
-  <div class="trust-strip">
-    <div class="trust-item"><span class="dot"></span> 元景万悟智能体平台</div>
-    <div class="trust-item"><span class="dot"></span> 30个官方金融数据源</div>
-    <div class="trust-item"><span class="dot"></span> 四层合规审核护栏</div>
-    <div class="trust-item"><span class="dot"></span> 多模态大模型驱动</div>
-  </div>
-  <div class="compliance-note">
-    ⚠️ 理财非存款，产品有风险，投资须谨慎。本平台信息仅供参考，不构成投资建议。
-  </div>
-</section>
-
-<script src="js/storage.js?v=11"></script>
+<script src="js/storage.js?v=5"></script>
 <script>
 function enter(mode) {
   Storage.set('qingzhou_mode', mode);

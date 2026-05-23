@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>MZ V6 系统 · 部署后终审</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px 60px; line-height: 2; font-size: 15px; }
+  h1 { color: #f78166; font-size: 28px; text-align: center; border-bottom: 2px solid #30363d; padding-bottom: 20px; }
+  h2 { color: #58a6ff; font-size: 20px; margin-top: 36px; border-left: 4px solid #58a6ff; padding-left: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: #21262d; color: #58a6ff; padding: 8px 12px; text-align: left; border: 1px solid #30363d; }
+  td { padding: 8px 12px; border: 1px solid #30363d; }
+  tr:nth-child(even) { background: #161b22; }
+  .tg { background: #238636; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  .ty { background: #9e6a03; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  .tr { background: #da3633; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  pre { background: #161b22; padding: 16px; border-radius: 8px; border: 1px solid #30363d; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>MZ V6 龙虾系统 · 部署后终审</h1>
+
+<p style="text-align:center;color:#8b949e;">V6-TCS v2.0（扩大量化范围）· 8维度 × 100分 · Seed 2.0 Pro 评审</p>
+
+<h2>一、V6-TCS v2.0 — 新增三个维度</h2>
+
+<p>原 v1.2 仅覆盖设计层面（需求/正确性/质量/规范/效率），未覆盖部署后的运维、集成、自愈能力。v2.0 扩充为 8 维度：</p>
+
+<table>
+<tr><th>#</th><th>维度</th><th>说明</th><th>v1.2</th><th>v2.0</th></tr>
+<tr><td>D1</td><td>需求覆盖度</td><td>用户需求是否被满足</td><td>30</td><td>20</td></tr>
+<tr><td>D2</td><td>系统正确性</td><td>架构逻辑、权限、数据安全</td><td>25</td><td>15</td></tr>
+<tr><td>D3</td><td>交付可用性</td><td>用户能否实际使用</td><td>20</td><td>15</td></tr>
+<tr><td>D4</td><td>规范遵循度</td><td>是否按设计执行</td><td>15</td><td>10</td></tr>
+<tr><td>D5</td><td>效率与成本</td><td>模型选择和资源效率</td><td>10</td><td>10</td></tr>
+<tr><td><span class="tg">D6</span></td><td>运维可靠性</td><td>进程守护、崩溃恢复、session冲突、配置持久化</td><td>—</td><td>10</td></tr>
+<tr><td><span class="tg">D7</span></td><td>集成成熟度</td><td>飞书API权限、消息去重、bridge稳定性</td><td>—</td><td>10</td></tr>
+<tr><td><span class="tg">D8</span></td><td>自愈与观测</td><td>日志、告警、自动修复、故障诊断</td><td>—</td><td>10</td></tr>
+</table>
+
+<h2>二、系统现状</h2>
+
+<table>
+<tr><th>项目</th><th>状态</th></tr>
+<tr><td>Openclaw</td><td>2026.5.20 · Gateway运行中 · 2 plugins (browser + memory-core)</td></tr>
+<tr><td>7虾</td><td>全部就位 · gate/plan/scribe/calc/forge/audit/memory · 8 active sessions</td></tr>
+<tr><td>模型</td><td>DeepSeek V4 Flash/Pro/Reasoner/Chat + ARK Seed 2.0 Pro</td></tr>
+<tr><td>飞书</td><td>bridge.js v3 · launchd · DM+群@mention · search:message已开通</td></tr>
+<tr><td>消息去重</td><td>msg_id + content 双重 · 确认1:1不再重复</td></tr>
+<tr><td>Cron</td><td>8条间隔制 · 22h-720h · 升级后通过CLI恢复</td></tr>
+<tr><td>密钥</td><td>4个Key在Keychain · zshrc已清理</td></tr>
+<tr><td>浏览器</td><td>Chromium headless · SSRF已配置 · 按需不自动启动</td></tr>
+<tr><td>Skills</td><td>50+3(pdf/word-docx-1/xlsx-cn)</td></tr>
+<tr><td>Bridge进程</td><td><span class="tg">1个</span>（已修复双重进程bug）</td></tr>
+</table>
+
+<h2>三、已知缺陷</h2>
+
+<table>
+<tr><th>#</th><th>缺陷</th><th>严重度</th><th>状态</th></tr>
+<tr><td>1</td><td>QMD不能索引CC目录（474文件搜索不到）</td><td class="ty">P1</td><td>上游限制，待升级</td></tr>
+<tr><td>2</td><td>Docker未运行（笔算工三虾sandbox=off）</td><td class="ty">P1</td><td>操作问题</td></tr>
+<tr><td>3</td><td>原生飞书channel未接入</td><td class="ty">P2</td><td>Phase 6远期</td></tr>
+<tr><td>4</td><td>session重置时间不可配</td><td class="ty">P2</td><td>版本限制</td></tr>
+<tr><td>5</td><td>Cron不能写入openclaw.json（升级丢失）</td><td class="tr">P0->已修复</td><td>CLI管理已解决</td></tr>
+<tr><td>6</td><td>双重bridge进程导致消息重复</td><td class="tr">P0->已修复</td><td>进程去重已解决</td></tr>
+</table>
+
+<h2>四、审核要求</h2>
+<ol>
+<li>按 V6-TCS v2.0 八维度评分（D1-D8），加权总分</li>
+<li>重点审查新增的 D6/D7/D8 维度——运维可靠性、集成成熟度、自愈能力</li>
+<li>对每条已知缺陷给出修复优先级和时间建议</li>
+<li>一句话总结当前成熟度</li>
+</ol>
+
+</body>
+</html>

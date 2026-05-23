@@ -312,11 +312,11 @@ function addMessage(role, content, isFallback = false) {
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
   if (role === 'ai' || role === 'assistant') {
-    avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+    avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">';
   } else {
     const userInfo = Storage.get('qingzhou_userInfo');
     if (userInfo?.avatar) {
-      avatar.innerHTML = `<img src="${userInfo.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      avatar.innerHTML = `<img src="${userInfo.avatar}" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">`;
     } else {
       avatar.textContent = '👤';
     }
@@ -356,7 +356,7 @@ function addLoadingDots() {
   div.id = 'loadingMsg';
   const avatar = document.createElement('div');
   avatar.className = 'avatar';
-  avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+  avatar.innerHTML = '<img src="assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover;">';
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
   const dots = document.createElement('div');
@@ -450,7 +450,12 @@ function speakText(text, onEnd) {
 
 // ── Navigation ──
 function goTo(url) {
-  window.location.href = url + '?mode=' + currentMode;
+  // 推荐中心和我的页面不需要 mode 参数跳转
+  if (url === 'recommend.html' || url === 'mine.html') {
+    window.location.href = url + '?mode=' + currentMode;
+  } else {
+    window.location.href = url + '?mode=' + currentMode;
+  }
 }
 
 function switchMode() {

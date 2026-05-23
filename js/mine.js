@@ -3,6 +3,7 @@
  */
 
 let currentMode = 'classic';
+const MODE_NAMES = { classic: '经典版', senior: '关怀版', youth: '青春版' };
 // FONT_SIZE_MAP, MODE_DEFAULT_FONT, applyFontSize 定义在 storage.js（共享模块）
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // 恢复头像
   if (userInfo?.avatar) {
-    document.getElementById('profileAvatar').innerHTML = `<img src="${userInfo.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    document.getElementById('profileAvatar').innerHTML = `<img src="${userInfo.avatar}" style="width:100%;height:100%;border-radius:16px;object-fit:cover;">`;
   }
 
   // 恢复已保存的账户安全信息
@@ -47,33 +48,53 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+function goTo(url) {
+  window.location.href = url + '?mode=' + currentMode;
+}
+
+function switchMode() {
+  const modes = ['classic', 'senior', 'youth'];
+  const idx = modes.indexOf(currentMode);
+  currentMode = modes[(idx + 1) % 3];
+  Storage.set('qingzhou_mode', currentMode);
+  document.body.className = 'mode-' + currentMode;
+  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode] || '经典版';
+  applyFontSize(Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium');
+  renderModeSelector();
+  showToast('已切换到 ' + (MODE_NAMES[currentMode] || '经典版'));
+}
+
 function goBack() {
   window.location.href = 'chat.html?mode=' + (Storage.get('qingzhou_mode') || currentMode);
 }
 
 // ── Mode Selector ──
+const MODE_ICONS = {
+  classic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>',
+  senior: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg>',
+  youth: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>'
+};
+
 function renderModeSelector() {
   const container = document.getElementById('modeSelector');
   const modes = [
-    { id: 'youth', name: '青春版', icon: '🎯' },
-    { id: 'senior', name: '关怀版', icon: '🌅' },
-    { id: 'classic', name: '经典版', icon: '💼' }
+    { id: 'classic', name: '经典版' },
+    { id: 'senior', name: '关怀版' },
+    { id: 'youth', name: '青春版' }
   ];
   container.innerHTML = '';
   modes.forEach(m => {
     const div = document.createElement('div');
     div.className = 'mode-opt' + (currentMode === m.id ? ' active' : '');
-    div.innerHTML = `<div class="icon">${m.icon}</div><div class="label">${m.name}</div>`;
+    div.innerHTML = `<div class="m-icon">${MODE_ICONS[m.id]}</div><div class="m-label">${m.name}</div>`;
     div.onclick = () => {
       currentMode = m.id;
       Storage.set('qingzhou_mode', m.id);
       document.body.className = 'mode-' + m.id;
-      // 联动字体到模式默认值
       const defaultFont = MODE_DEFAULT_FONT[m.id] || 'medium';
       Storage.set('qingzhou_fontSize', defaultFont);
       applyFontSize(defaultFont);
       renderFontSize();
-      // 联动语音：关怀版默认开启
       if (m.id === 'senior') Storage.set('qingzhou_voiceEnabled', true);
       renderVoiceToggle();
       renderModeSelector();
@@ -228,12 +249,23 @@ window.toggleTimeline = function(btn, key) {
 };
 
 // ── Preferences ──
+const PREF_ITEMS = [
+  { key: 'recommendByRisk', label: '根据风险偏好推荐' },
+  { key: 'recommendByHorizon', label: '根据投资期限筛选' },
+  { key: 'marketHotPush', label: '市场热点推送' },
+  { key: 'weeklyReport', label: '每周市场周报' }
+];
+
 function renderPrefs() {
+  const container = document.getElementById('prefsBody');
+  if (!container) return;
   const prefs = Storage.get('qingzhou_preferences') || {};
-  ['recommendByRisk', 'recommendByHorizon', 'marketHotPush', 'weeklyReport'].forEach((key, i) => {
-    const el = document.getElementById('pref' + (i + 1));
-    if (prefs[key]) el.classList.add('on'); else el.classList.remove('on');
-  });
+  container.innerHTML = PREF_ITEMS.map(p => `
+    <div class="trow">
+      <div class="tl">${p.label}</div>
+      <div class="toggle${prefs[p.key] ? ' on' : ''}" onclick="togglePref('${p.key}',this)"></div>
+    </div>
+  `).join('');
 }
 
 window.togglePref = function(key, el) {

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>MZ V6 系统 · 终审（全部核心缺陷已修复）</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; background: #0d1117; color: #c9d1d9; padding: 40px 60px; line-height: 2; font-size: 15px; }
+  h1 { color: #f78166; font-size: 28px; text-align: center; border-bottom: 2px solid #30363d; padding-bottom: 20px; }
+  h2 { color: #58a6ff; font-size: 20px; margin-top: 36px; border-left: 4px solid #58a6ff; padding-left: 12px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+  th { background: #21262d; color: #58a6ff; padding: 8px 12px; text-align: left; border: 1px solid #30363d; }
+  td { padding: 8px 12px; border: 1px solid #30363d; }
+  tr:nth-child(even) { background: #161b22; }
+  .tg { background: #238636; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  .ty { background: #9e6a03; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  pre { background: #161b22; padding: 16px; border-radius: 8px; border: 1px solid #30363d; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>MZ V6 龙虾系统 · 终审</h1>
+
+<p style="text-align:center;color:#8b949e;">V6-TCS v2.0 · 8维度 · 全部核心缺陷已修复 · 与上次评分（82分）对比</p>
+
+<h2>一、当前系统状态</h2>
+<table>
+<tr><th>维度</th><th>状态</th></tr>
+<tr><td>Openclaw</td><td>2026.5.20 · Gateway运行中 · 2 plugins (browser + memory-core)</td></tr>
+<tr><td>7虾</td><td>全部就位 · gate/plan/scribe/calc/forge/audit/memory · 笔算工已启用Docker sandbox</td></tr>
+<tr><td>模型</td><td>DeepSeek V4 Flash/Pro/Reasoner/Chat + ARK Seed 2.0 Pro</td></tr>
+<tr><td>飞书</td><td>bridge.js v3 (launchd守护) · DM+群@mention · 消息双重去重 · 单进程1:1</td></tr>
+<tr><td>Cron</td><td>8条间隔制 (22h~720h) · CLI管理 · session=isolated</td></tr>
+<tr><td>密钥</td><td>4个Key在macOS Keychain · load-keys.sh按需加载 · zshrc已清理</td></tr>
+<tr><td>CC搜索</td><td>symlink绕过QMD限制 · 495个文件可搜索 · MZ策虾已验证</td></tr>
+<tr><td>飞书搜索</td><td>lark-cli --as user · search:message已开通 · 仅廖福临DM可用</td></tr>
+<tr><td>浏览器</td><td>Chromium headless · SSRF已配置 · 按需不自动启动 · 能过Cloudflare</td></tr>
+<tr><td>Skills</td><td>50+3 (pdf/word-docx-1/xlsx-cn)</td></tr>
+<tr><td>MZ能力</td><td>自我查数据 · 搜文件 · 搜飞书 · 开网页 · S级范围已扩大</td></tr>
+</table>
+
+<h2>二、与上次（82分）对比</h2>
+<table>
+<tr><th>#</th><th>上次缺陷</th><th>上次状态</th><th>当前状态</th></tr>
+<tr><td>1</td><td>QMD不能索引CC</td><td class="ty">P1 未修复</td><td class="tg">✅ symlink绕过</td></tr>
+<tr><td>2</td><td>Docker未运行</td><td class="ty">P1 未修复</td><td class="tg">✅ sandbox已启用</td></tr>
+<tr><td>3</td><td>Session冲突</td><td class="ty">P2 未修复</td><td class="tg">✅ isolated+关heartbeat</td></tr>
+<tr><td>4</td><td>双重bridge进程</td><td class="ty">已修复</td><td class="tg">✅ 已验证稳定</td></tr>
+<tr><td>5</td><td>消息重复发送</td><td class="ty">已修复</td><td class="tg">✅ 1:1确认</td></tr>
+<tr><td>6</td><td>Cron升级丢失</td><td class="ty">已修复</td><td class="tg">✅ CLI管理</td></tr>
+<tr><td>7</td><td>飞书原生通道</td><td class="ty">P2 远期</td><td>⏸ 暂缓 (bridge够用)</td></tr>
+</table>
+
+<h2>三、审核要求</h2>
+<ol>
+<li>按 V6-TCS v2.0 八维度评分（D1-D8），加权总分</li>
+<li>对比上次82分，指出本次提升最大的维度</li>
+<li>指出剩余可改进项</li>
+<li>一句话总结</li>
+</ol>
+
+</body>
+</html>

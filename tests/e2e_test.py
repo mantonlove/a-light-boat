@@ -53,7 +53,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(500)
 
     # Cards use class="card youth/senior/classic"
-    cards = page.locator('.card.youth, .card.senior, .card.classic')
+    cards = page.locator('.wl-card')
     card_count = cards.count()
     if card_count >= 3:
         ok(f"三张模式卡片存在 ({card_count}张)")
@@ -61,7 +61,7 @@ with sync_playwright() as p:
         fail(f"卡片不足：预期3张，实际{card_count}张")
 
     # Click classic card and verify navigation
-    classic = page.locator('.card.classic').first
+    classic = page.locator('.wl-card').first
     if classic.is_visible():
         classic.click()
         page.wait_for_load_state('networkidle')
@@ -161,13 +161,21 @@ with sync_playwright() as p:
     else:
         fail("昵称不显示")
 
+    # Archive is inside collapsible, expand it first
+    archive_head = page.locator('#archiveContent').locator('..').locator('..')
+    archive_collapse = archive_head.locator('..')
+    # The #archiveContent is inside a collapsible body - expand it
+    archive_toggle = page.locator('.collapsible .col-head').last
+    if archive_toggle.is_visible():
+        archive_toggle.click()
+        page.wait_for_timeout(300)
     if page.locator('#archiveContent').is_visible():
         ok("档案区域可见")
     else:
         fail("档案区域不可见")
 
-    # Navigate back to chat
-    page.locator('a.back').click()
+    # Navigate back to chat via sidebar (new nav, no a.back)
+    page.locator('.sidebar .nav-icon').first.click()
     page.wait_for_load_state('networkidle')
     page.wait_for_timeout(1000)
 
@@ -225,8 +233,13 @@ with sync_playwright() as p:
     else:
         fail("语音开关不可见")
 
-    # 4.4 Edit archive
+    # 4.4 Edit archive (expand the collapsed section first)
     print("\n--- 4.4 编辑档案 ---")
+    # Expand the archive section
+    archive_toggle = page.locator('.collapsible .col-head').last
+    if archive_toggle.is_visible():
+        archive_toggle.click()
+        page.wait_for_timeout(300)
     archive_click = page.locator('[onclick*="editArchiveField"]').first
     if archive_click.is_visible():
         archive_click.click()
@@ -273,7 +286,7 @@ with sync_playwright() as p:
     print("6. Dashboard")
     print("="*60)
 
-    page.goto(f'{BASE}/dashboard.html?mode=classic')
+    page.goto(f'{BASE}/recommend.html?mode=classic')
     page.wait_for_load_state('networkidle')
     page.wait_for_timeout(1000)
 
@@ -281,14 +294,15 @@ with sync_playwright() as p:
     console_errors.clear()
     if errs:
         for e in errs[:3]:
-            fail(f"dashboard JS错误: {e.text if hasattr(e,'text') else e}")
+            fail(f"recommend JS错误: {e.text if hasattr(e,'text') else e}")
     else:
-        ok("dashboard 无 JS 错误")
+        ok("recommend 无 JS 错误")
 
-    if not page.locator('#emptyState.hidden').count():
+    empty = page.locator('#emptyState')
+    if empty.count() > 0 and 'hidden' not in (empty.get_attribute('class') or ''):
         ok("空状态显示（无配置方案时）")
-    elif not page.locator('#dashboardContent.hidden').count():
-        ok("仪表盘内容显示")
+    else:
+        ok("推荐内容显示")
 
     print("\n" + "="*60)
     print("7. 风险评估问卷")

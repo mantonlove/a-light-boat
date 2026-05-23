@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 · Classic 设计方向</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1A1F2E; --ink-70: #5A6070; --ink-40: #8B919E; --ink-15: #D5D7DD;
+    --surface: #FAF8F5; --surface-card: #FFFFFF; --surface-raised: #F3F0EB;
+    --gold: #C8A45C; --gold-light: #F5ECD7; --gold-dark: #A6863F;
+    --border: #E8E4DC;
+    --display: 'Cormorant Garamond', 'Songti SC', serif;
+    --body: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 48px;
+    --shadow-xs: 0 1px 2px rgba(26,31,46,0.04);
+    --shadow-sm: 0 2px 8px rgba(26,31,46,0.06);
+    --shadow-md: 0 4px 16px rgba(26,31,46,0.08);
+    --r-sm: 8px; --r-md: 16px; --r-lg: 24px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--body); font-size: 14px; line-height: 1.6;
+    background: #EDEAE5; color: var(--ink); -webkit-font-smoothing: antialiased;
+  }
+  .deck { max-width: 1100px; margin: 0 auto; padding: var(--s4); }
+  .deck-header { text-align: center; padding: var(--s5) 0 var(--s4); }
+  .deck-header .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--ink-40); margin-bottom: var(--s2); }
+  .deck-header h1 { font-family: var(--display); font-size: 42px; font-weight: 600; letter-spacing: 0.02em; }
+  .deck-header h1 span { color: var(--gold-dark); }
+  .screen-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); }
+  .screen { background: var(--surface); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-md); }
+  .screen-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-40); padding: var(--s2) var(--s3); border-bottom: 1px solid var(--border); background: var(--surface-raised); display: flex; align-items: center; justify-content: space-between; }
+  .screen-content { padding: var(--s3); }
+  .screen-content.tight { padding: var(--s2) var(--s3); }
+
+  /* ══ Shared ══ */
+  .hdr { display: flex; align-items: center; justify-content: space-between; padding-bottom: var(--s2); margin-bottom: var(--s2); border-bottom: 1px solid var(--border); }
+  .hdr .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-size: 18px; font-weight: 600; }
+  .hdr .brand img { width: 28px; height: 28px; border-radius: 8px; }
+  .hdr .brand span { color: var(--gold-dark); }
+  .tag-gold { padding: 4px 12px; border-radius: 4px; background: var(--gold); color: #fff; font-size: 10px; font-weight: 700; }
+
+  /* Icon helper */
+  .icon-sm { width: 20px; height: 20px; flex-shrink: 0; color: var(--ink); }
+  .icon-md { width: 28px; height: 28px; flex-shrink: 0; }
+
+  /* ══ Chat ══ */
+  .sidebar-sm { width: 52px; min-width: 52px; background: var(--ink); border-radius: var(--r-md); display: flex; flex-direction: column; align-items: center; padding: var(--s2) 0; gap: 20px; }
+  .sidebar-sm .logo-sm { width: 32px; height: 32px; border-radius: 10px; background: var(--gold); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .sidebar-sm .logo-sm img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .sidebar-sm .nav-icon { width: 20px; height: 20px; color: rgba(255,255,255,0.35); cursor: pointer; transition: color 0.2s; }
+  .sidebar-sm .nav-icon.active { color: var(--gold); }
+  .sidebar-sm .nav-icon:hover { color: rgba(255,255,255,0.7); }
+
+  .msg { display: flex; gap: 10px; margin-bottom: var(--s2); }
+  .msg.user { flex-direction: row-reverse; }
+  .msg .av { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .msg.ai .av { background: var(--gold-light); }
+  .msg.user .av { background: var(--ink); color: #fff; }
+  .msg .av svg { width: 16px; height: 16px; }
+  .msg .bub { padding: 10px 14px; border-radius: 12px 12px 12px 3px; max-width: 340px; font-size: 13px; line-height: 1.55; }
+  .msg.ai .bub { background: var(--surface-card); box-shadow: var(--shadow-xs); }
+  .msg.user .bub { background: var(--ink); color: #fff; border-radius: 12px 12px 3px 12px; }
+  .msg .sender { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; color: var(--ink-40); }
+  .msg.user .sender { color: rgba(255,255,255,0.4); }
+  .compliance { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 10px; color: var(--ink-70); font-weight: 500; }
+  .msg.user .compliance { border-top-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); }
+
+  .preset-inline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .preset-inline span { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--ink-15); font-size: 11px; background: var(--surface-card); cursor: pointer; transition: all 0.15s; font-weight: 500; }
+  .preset-inline span:hover { border-color: var(--ink); background: var(--surface-raised); }
+
+  .input-bar { display: flex; align-items: center; gap: 8px; padding: var(--s2) 0 0; margin-top: var(--s2); border-top: 1px solid var(--border); }
+  .input-bar input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--ink-15); background: var(--surface-card); font-size: 13px; font-family: var(--body); outline: none; color: var(--ink); }
+  .input-bar input:focus { border-color: var(--ink); }
+  .input-bar .ib-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--ink-15); background: var(--surface-card); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.15s; color: var(--ink-70); }
+  .input-bar .ib-btn:hover { border-color: var(--ink); color: var(--ink); background: var(--surface-raised); }
+  .input-bar .ib-btn svg { width: 18px; height: 18px; }
+  .input-bar .ib-send { background: var(--ink); border: none; color: #fff; }
+  .input-bar .ib-send:hover { background: var(--gold-dark); }
+  .input-bar .ib-send svg { color: #fff; }
+
+  .data-mini { background: var(--surface); border-radius: var(--r-sm); padding: 12px 14px; margin-top: 10px; }
+  .data-mini .dm-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-40); margin-bottom: 8px; }
+  .data-mini .dm-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+  .data-mini .dm-val { font-family: var(--display); font-size: 24px; font-weight: 600; line-height: 1; }
+  .data-mini .dm-lbl { font-size: 8px; color: var(--ink-40); margin-top: 2px; }
+
+  /* ══ Mine ══ */
+  .profile { background: var(--ink); border-radius: var(--r-md); padding: var(--s3); color: #fff; display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+  .profile .p-av { width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .profile .p-name { font-size: 18px; font-weight: 700; }
+  .profile .p-risk { font-size: 12px; color: var(--gold); margin-top: 2px; font-weight: 500; }
+  .profile .p-acts { display: flex; gap: 8px; margin-top: 10px; }
+  .p-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.08); color: #fff; font-size: 11px; cursor: pointer; font-family: var(--body); }
+
+  .sec-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-40); margin-bottom: var(--s1); }
+
+  .mode-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .mode-opt { padding: 14px 8px; border-radius: var(--r-sm); border: 1.5px solid var(--border); text-align: center; cursor: pointer; transition: all 0.15s; background: var(--surface-card); }
+  .mode-opt.active { border-color: var(--ink); background: var(--surface-raised); }
+  .mode-opt .m-icon { margin-bottom: 6px; color: var(--ink-70); }
+  .mode-opt.active .m-icon { color: var(--ink); }
+  .mode-opt .m-icon svg { width: 24px; height: 24px; }
+  .mode-opt .m-label { font-size: 11px; font-weight: 700; color: var(--ink); }
+
+  .font-row { display: flex; gap: 6px; }
+  .font-opt { padding: 6px 14px; border-radius: 6px; border: 1.5px solid var(--border); font-size: 12px; cursor: pointer; font-weight: 600; background: var(--surface-card); }
+  .font-opt.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+
+  .trow { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .trow:last-child { border-bottom: none; }
+  .trow .tl { font-size: 13px; font-weight: 600; }
+  .trow .td { font-size: 11px; color: var(--ink-40); margin-top: 2px; }
+  .toggle { width: 40px; height: 22px; border-radius: 11px; background: var(--ink-15); position: relative; cursor: pointer; flex-shrink: 0; }
+  .toggle.on { background: var(--ink); }
+  .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+  .toggle.on::after { transform: translateX(18px); }
+
+  .voice-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-sm); border: 1.5px solid transparent; transition: all 0.15s; }
+  .voice-row.active { border-color: var(--ink); background: var(--surface-raised); }
+  .voice-row .v-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--ink-15); flex-shrink: 0; }
+  .voice-row.active .v-radio { border-color: var(--ink); background: var(--ink); }
+  .voice-row .v-name { font-size: 13px; font-weight: 600; }
+  .voice-row .v-desc { font-size: 10px; color: var(--ink-40); }
+  .voice-row .v-test { font-size: 10px; color: var(--ink); border: 1px solid var(--ink-15); border-radius: 4px; padding: 2px 10px; cursor: pointer; flex-shrink: 0; }
+
+  .risk-bar-wrap { margin: var(--s2) 0; }
+  .risk-bar { height: 6px; border-radius: 3px; background: linear-gradient(to right, #10B981, #F59E0B, #EF4444); position: relative; }
+  .risk-dot { position: absolute; top: -5px; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); transform: translateX(-50%); }
+  .risk-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--ink-40); margin-top: 6px; }
+
+  .collapsible { margin-bottom: var(--s2); }
+  .collapsible .col-head { display: flex; align-items: center; justify-content: space-between; padding: var(--s2); cursor: pointer; border-radius: var(--r-sm); background: var(--surface-card); box-shadow: var(--shadow-xs); border: 1px solid var(--border); transition: all 0.15s; user-select: none; }
+  .collapsible .col-head:hover { border-color: var(--ink-15); background: var(--surface-raised); }
+  .col-head .col-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+  .col-head .col-icon { width: 20px; height: 20px; color: var(--ink-70); }
+  .col-head .col-arrow { font-size: 12px; color: var(--ink-40); transition: transform 0.2s; }
+  .collapsible.open .col-arrow { transform: rotate(180deg); }
+  .collapsible .col-body { display: none; padding: var(--s2); background: var(--surface-card); border-radius: 0 0 var(--r-sm) var(--r-sm); border: 1px solid var(--border); border-top: none; margin-top: -1px; }
+  .collapsible.open .col-body { display: block; }
+
+  .archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .archive-cell { background: var(--surface); border-radius: var(--r-sm); padding: 12px 14px; border: 1px solid var(--border); transition: border-color 0.15s; cursor: pointer; }
+  .archive-cell:hover { border-color: var(--ink-15); }
+  .archive-cell.filled { border-color: var(--gold); }
+  .archive-cell .a-label { font-size: 10px; color: var(--ink-40); margin-bottom: 3px; }
+  .archive-cell .a-value { font-size: 14px; font-weight: 600; }
+  .archive-cell .a-hint { font-size: 9px; color: var(--ink-40); margin-top: 2px; }
+
+  .dash-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: var(--s2); }
+  .dash-metric { background: var(--surface); border-radius: var(--r-sm); padding: var(--s2); text-align: center; box-shadow: var(--shadow-xs); }
+  .dash-metric .dm-val { font-family: var(--display); font-size: 24px; font-weight: 600; line-height: 1; }
+  .dash-metric .dm-lbl { font-size: 9px; color: var(--ink-40); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+
+  @keyframes dotBounce { 0%,80%,100% { transform: scale(0.4); } 40% { transform: scale(1); } }
+
+  @media (max-width: 800px) { .screen-row { grid-template-columns: 1fr; } .archive-grid, .dash-metrics { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="deck-header">
+    <div class="tag">Design Direction · Classic Mode</div>
+    <h1>轻<span>舟</span> · 瑞士网格银行</h1>
+  </div>
+
+  <div class="screen-row">
+    <!-- ════ Chat ════ -->
+    <div class="screen">
+      <div class="screen-label"><span>chat.html · 对话核心</span></div>
+      <div class="screen-content" style="display:flex;gap:var(--s2)">
+        <div class="sidebar-sm">
+          <div class="logo-sm"><img src="../../assets/logo.png" alt="轻舟"></div>
+          <!-- Chat icon -->
+          <div class="nav-icon active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <!-- Dashboard icon -->
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          </div>
+          <!-- Profile icon -->
+          <div class="nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+
+        <div style="flex:1;min-width:0">
+          <div class="hdr">
+            <div class="brand"><img src="../../assets/logo.png" alt="">轻<span>舟</span></div>
+            <span class="tag-gold">经典版</span>
+          </div>
+
+          <!-- Welcome + presets -->
+          <div class="msg ai">
+            <div class="av" style="overflow:hidden;padding:0;background:none"><img src="../../assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover"></div>
+            <div>
+              <div class="bub">
+                <div class="sender">轻舟</div>
+                您好，我是轻舟，您的智慧银行理财顾问。请问有什么可以帮您？
+                <div class="preset-inline">
+                  <span>推荐一款稳健型产品</span>
+                  <span>我的风险等级是什么</span>
+                  <span>最近市场怎么样</span>
+                  <span>如何开通手机银行</span>
+                </div>
+                <div class="compliance">⚠️ 理财非存款，产品有风险，投资须谨慎。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- User -->
+          <div class="msg user">
+            <div class="av">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div class="bub"><div class="sender">您</div>20 万，3 年不用，怎么配置？</div>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div class="msg ai">
+            <div class="av" style="overflow:hidden;padding:0;background:none"><img src="../../assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover"></div>
+            <div>
+              <div class="bub">
+                <div class="sender">轻舟 · 分析中</div>
+                <div style="display:flex;gap:4px;padding:4px 0">
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--ink-15);animation:dotBounce 1.4s infinite ease-in-out both;animation-delay:-0.32s"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--ink-15);animation:dotBounce 1.4s infinite ease-in-out both;animation-delay:-0.16s"></span>
+                  <span style="width:5px;height:5px;border-radius:50%;background:var(--ink-15);animation:dotBounce 1.4s infinite ease-in-out both"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI reply with data -->
+          <div class="msg ai">
+            <div class="av" style="overflow:hidden;padding:0;background:none"><img src="../../assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover"></div>
+            <div>
+              <div class="bub">
+                <div class="sender">轻舟</div>
+                基于 R3 平衡型 · 20 万 · 3 年，为您推荐：
+                <div class="data-mini">
+                  <div class="dm-label">收益与风险</div>
+                  <div class="dm-row">
+                    <div><div class="dm-val">3.5–5.5%</div><div class="dm-lbl">预期年化</div></div>
+                    <div><div class="dm-val">−2.8%</div><div class="dm-lbl">最大回撤</div></div>
+                  </div>
+                  <div class="dm-row" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+                    <div><div class="dm-val">1.42</div><div class="dm-lbl">夏普比率</div></div>
+                    <div><div class="dm-val">R3</div><div class="dm-lbl">风险等级</div></div>
+                  </div>
+                </div>
+                <div class="compliance">⚠️ 历史回测不代表未来收益。投资需谨慎。</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input bar -->
+          <div class="input-bar">
+            <input type="text" placeholder="输入您的问题...">
+            <span class="ib-btn" title="语音输入">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </span>
+            <span class="ib-btn" title="人工客服">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+            <span class="ib-btn ib-send">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ Mine ════ -->
+    <div class="screen">
+      <div class="screen-label"><span>mine.html · 我的</span></div>
+      <div class="screen-content tight">
+
+        <!-- Profile Card -->
+        <div class="profile">
+          <div class="p-av">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" width="32" height="32"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div style="flex:1">
+            <div class="p-name">张三</div>
+            <div class="p-risk">风险偏好：平衡型 R3</div>
+            <div class="p-acts">
+              <button class="p-btn">编辑资料</button>
+              <button class="p-btn">切换账号</button>
+              <button class="p-btn">退出</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appearance -->
+        <div class="sec-label">外观与服务</div>
+        <div style="background:var(--surface-card);border-radius:var(--r-sm);padding:var(--s2);box-shadow:var(--shadow-xs);margin-bottom:var(--s2);border:1px solid var(--border)">
+
+          <div style="font-size:10px;color:var(--ink-40);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">界面模式</div>
+          <div class="mode-row" style="margin-bottom:var(--s2)">
+            <!-- Icons: Lucide (ISC License) — landmark / heart-handshake / sparkles -->
+            <div class="mode-opt active">
+              <div class="m-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>
+              </div>
+              <div class="m-label">经典版</div>
+            </div>
+            <div class="mode-opt">
+              <div class="m-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/></svg>
+              </div>
+              <div class="m-label">关怀版</div>
+            </div>
+            <div class="mode-opt">
+              <div class="m-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>
+              </div>
+              <div class="m-label">青春版</div>
+            </div>
+          </div>
+
+          <div style="font-size:10px;color:var(--ink-40);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">字体大小</div>
+          <div class="font-row" style="margin-bottom:var(--s2)">
+            <span class="font-opt">小</span><span class="font-opt active">中</span><span class="font-opt">大</span><span class="font-opt">超大</span>
+          </div>
+
+          <div class="trow">
+            <div><div class="tl">语音播报</div><div class="td">AI 回复自动朗读，朗读完毕自动续听</div></div>
+            <div class="toggle on"></div>
+          </div>
+
+          <div class="collapsible">
+            <div class="col-head" onclick="this.parentElement.classList.toggle('open')" style="margin-top:12px">
+              <div class="col-title">
+                <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                语音音色
+              </div>
+              <span class="col-arrow">▼</span>
+            </div>
+            <div class="col-body">
+              <div class="voice-row active">
+                <div class="v-radio"></div>
+                <div style="flex:1"><div class="v-name">甜美女生</div><div class="v-desc">亲切温暖，自然流畅</div></div>
+                <span class="v-test">试听</span>
+              </div>
+              <div class="voice-row">
+                <div class="v-radio"></div>
+                <div style="flex:1"><div class="v-name">温暖男生</div><div class="v-desc">低沉稳重，专业可信</div></div>
+                <span class="v-test">试听</span>
+              </div>
+              <div class="voice-row">
+                <div class="v-radio"></div>
+                <div style="flex:1"><div class="v-name">播客男生</div><div class="v-desc">磁性醇厚，娓娓道来</div></div>
+                <span class="v-test">试听</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ Collapsible Sections ══ -->
+        <div class="sec-label">理财偏好</div>
+
+        <div class="collapsible">
+          <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
+            <div class="col-title">
+              <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              风险偏好验证
+            </div>
+            <span class="col-arrow">▼</span>
+          </div>
+          <div class="col-body">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="font-family:var(--display);font-size:20px;font-weight:600">平衡型 R3</span>
+              <button class="p-btn" style="color:var(--ink);border-color:var(--border);background:var(--surface);padding:4px 10px;font-size:10px">重新评估</button>
+            </div>
+            <div style="font-size:11px;color:var(--ink-40);margin-bottom:8px">评分 31/54</div>
+            <div class="risk-bar-wrap">
+              <div class="risk-bar"><div class="risk-dot" style="left:57%"></div></div>
+              <div class="risk-labels"><span>保守</span><span>稳健</span><span>平衡</span><span>进取</span><span>激进</span></div>
+            </div>
+            <div style="font-size:11px;color:var(--ink-70);margin-top:10px;line-height:1.8">
+              可承受最大回撤：&lt;5% · 最大建议权益仓位：25%
+            </div>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
+            <div class="col-title">
+              <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              个性化推荐
+            </div>
+            <span class="col-arrow">▼</span>
+          </div>
+          <div class="col-body">
+            <div class="trow"><div class="tl">根据风险偏好推荐</div><div class="toggle on"></div></div>
+            <div class="trow"><div class="tl">根据投资期限筛选</div><div class="toggle on"></div></div>
+            <div class="trow"><div class="tl">市场热点推送</div><div class="toggle"></div></div>
+            <div class="trow"><div class="tl">每周市场周报</div><div class="toggle on"></div></div>
+          </div>
+        </div>
+
+        <!-- ══ Collapsible: 个人档案 ══ -->
+        <div class="sec-label" style="margin-top:var(--s2)">个人档案 · AI 对话自动记录</div>
+        <div class="collapsible">
+          <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
+            <div class="col-title">
+              <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              个人档案
+            </div>
+            <span class="col-arrow">▼</span>
+          </div>
+          <div class="col-body">
+            <!-- 基础画像 -->
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+              <span style="font-size:10px;color:var(--ink-40);font-weight:600">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14" style="vertical-align:-3px;margin-right:2px"><circle cx="8" cy="8" r="7"/><path d="M8 4v4l3 2"/></svg> 基础画像
+              </span>
+              <span style="font-size:8px;color:var(--ink-40);background:var(--surface);padding:1px 6px;border-radius:4px">3/4 已填</span>
+            </div>
+            <div class="archive-grid" style="margin-bottom:var(--s2)">
+              <div class="archive-cell filled"><div class="a-label">年龄段</div><div class="a-value">25–35 岁</div></div>
+              <div class="archive-cell filled"><div class="a-label">职业</div><div class="a-value">互联网从业者</div></div>
+              <div class="archive-cell filled"><div class="a-label">年收入</div><div class="a-value">30–50 万</div></div>
+              <div class="archive-cell"><div class="a-label">家庭状况</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+            </div>
+            <!-- 财务画像 -->
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+              <span style="font-size:10px;color:var(--ink-40);font-weight:600">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14" style="vertical-align:-3px;margin-right:2px"><circle cx="8" cy="8" r="7"/><line x1="8" y1="1" x2="8" y2="15"/><line x1="8" y1="1" x2="5" y2="2"/><line x1="8" y1="1" x2="11" y2="2"/></svg> 财务画像
+              </span>
+              <span style="font-size:8px;color:var(--ink-40);background:var(--surface);padding:1px 6px;border-radius:4px">2/5 已填</span>
+            </div>
+            <div class="archive-grid" style="margin-bottom:var(--s2)">
+              <div class="archive-cell filled"><div class="a-label">可投金额</div><div class="a-value">20 万元</div></div>
+              <div class="archive-cell filled"><div class="a-label">投资期限</div><div class="a-value">3–5 年</div></div>
+              <div class="archive-cell"><div class="a-label">流动性需求</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+              <div class="archive-cell"><div class="a-label">现有资产</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+              <div class="archive-cell"><div class="a-label">负债情况</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+            </div>
+            <!-- 投资偏好 -->
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+              <span style="font-size:10px;color:var(--ink-40);font-weight:600">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="14" height="14" style="vertical-align:-3px;margin-right:2px"><polygon points="8,1 10,6 15,7 11,11 12,16 8,13 4,16 5,11 1,7 6,6"/></svg> 投资偏好
+              </span>
+              <span style="font-size:8px;color:var(--ink-40);background:var(--surface);padding:1px 6px;border-radius:4px">2/4 已填</span>
+            </div>
+            <div class="archive-grid">
+              <div class="archive-cell filled"><div class="a-label">投资目标</div><div class="a-value">财富增值</div></div>
+              <div class="archive-cell filled"><div class="a-label">投资经验</div><div class="a-value">1–3 年</div></div>
+              <div class="archive-cell"><div class="a-label">关注领域</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+              <div class="archive-cell"><div class="a-label">风险态度</div><div class="a-value">—</div><div class="a-hint">点击补充</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account -->
+        <div class="sec-label" style="margin-top:var(--s2)">账户安全</div>
+        <div style="background:var(--surface-card);border-radius:var(--r-sm);padding:0 var(--s2);box-shadow:var(--shadow-xs);border:1px solid var(--border)">
+          <div class="trow"><div class="tl">绑定手机 <span style="color:var(--ink-40);font-weight:400">138****1234</span></div><span style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600">更换</span></div>
+          <div class="trow"><div class="tl">绑定邮箱 <span style="color:var(--ink-40);font-weight:400">zhang***@**.com</span></div><span style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600">更换</span></div>
+          <div class="trow"><div class="tl">登录密码 <span style="color:var(--ink-40);font-weight:400">********</span></div><span style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600">修改</span></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ════ Row 2: 推荐中心 ════ -->
+  <div class="screen-row single">
+    <div class="screen">
+      <div class="screen-label"><span>recommend.html · 推荐中心</span></div>
+      <div class="screen-content tight">
+
+        <!-- Header -->
+        <div class="hdr">
+          <div class="brand"><img src="../../assets/logo.png" alt="">轻<span>舟</span></div>
+          <span class="tag-gold">经典版</span>
+        </div>
+
+        <!-- ══ 当前推荐 ══ -->
+        <div class="sec-label">当前推荐</div>
+        <div style="background:var(--surface-card);border-radius:var(--r-md);padding:var(--s3);box-shadow:var(--shadow-sm);border:1px solid var(--border);margin-bottom:var(--s2)">
+
+          <!-- Portfolio -->
+          <div style="display:flex;gap:var(--s3);align-items:flex-start;margin-bottom:var(--s3)">
+            <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#FF8C42 0% 40%,#6C5CE7 40% 70%,#10B981 70% 90%,#F59E0B 90% 100%);flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-family:var(--display);font-size:18px;font-weight:600;margin-bottom:4px">稳健增值组合</div>
+              <div style="font-size:10px;color:var(--ink-40);margin-bottom:12px">生成于 2026-05-24 · 基于 R3 平衡型</div>
+              <div style="font-size:11px;line-height:2;margin-bottom:8px">
+                <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#FF8C42;margin-right:6px"></span>固收+ · 40% · 预期 3.2%</div>
+                <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6C5CE7;margin-right:6px"></span>指数增强 · 30% · 预期 6.5%</div>
+                <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#10B981;margin-right:6px"></span>短债 · 20% · 预期 2.3%</div>
+                <div><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-right:6px"></span>货币 · 10% · 预期 1.8%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Products in this recommendation -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <!-- Product Card -->
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;border:1px solid var(--border);cursor:pointer;transition:all 0.15s">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-weight:700;font-size:13px">安鑫短债 30 天</span>
+                <span class="risk-badge risk-r2">R2</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink-40);line-height:1.8">
+                <div>基准：2.0–2.5% · 30 天封闭</div>
+                <div>起购：1,000 元 · 费率 0.15%</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+                <span style="font-size:11px;color:var(--ink-70);cursor:pointer;font-weight:500;transition:color 0.15s">查看详情 →</span>
+                <span style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;transition:color 0.15s">发送至聊天 ↗</span>
+              </div>
+            </div>
+            <!-- Product Card -->
+            <div style="background:var(--surface);border-radius:var(--r-sm);padding:14px;border:1px solid var(--border);cursor:pointer;transition:all 0.15s">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="font-weight:700;font-size:13px">稳享固收增强 6M</span>
+                <span class="risk-badge risk-r3">R3</span>
+              </div>
+              <div style="font-size:11px;color:var(--ink-40);line-height:1.8">
+                <div>基准：2.8–3.5% · 180 天封闭</div>
+                <div>起购：10,000 元 · 费率 0.30%</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+                <span style="font-size:11px;color:var(--ink-70);cursor:pointer;font-weight:500;transition:color 0.15s">查看详情 →</span>
+                <span style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;transition:color 0.15s">发送至聊天 ↗</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compliance -->
+          <div style="text-align:center;font-size:10px;color:var(--ink-40);margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--border)">
+            ⚠️ 以上为参考建议，历史回测不代表未来收益。投资需谨慎。
+          </div>
+        </div>
+
+        <!-- ══ 历史推荐 ══ -->
+        <div class="collapsible">
+          <div class="col-head" onclick="this.parentElement.classList.toggle('open')">
+            <div class="col-title">
+              <svg class="col-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              历史推荐
+            </div>
+            <span class="col-arrow">▼</span>
+          </div>
+          <div class="col-body">
+            <div style="font-size:11px;color:var(--ink-70);line-height:2">
+              <!-- History item 1 -->
+              <div style="padding:12px;background:var(--surface);border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-weight:700">保守理财组合</span>
+                  <span style="font-size:10px;color:var(--ink-40)">2026-05-20</span>
+                </div>
+                <div style="font-size:10px;color:var(--ink-40)">货币 60% · 短债 30% · 固收+ 10%</div>
+              </div>
+              <!-- History item 2 -->
+              <div style="padding:12px;background:var(--surface);border-radius:var(--r-sm);cursor:pointer">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span style="font-weight:700">进取成长组合</span>
+                  <span style="font-size:10px;color:var(--ink-40)">2026-05-15</span>
+                </div>
+                <div style="font-size:10px;color:var(--ink-40)">指数增强 50% · 固收+ 30% · 短债 20%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
