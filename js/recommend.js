@@ -36,6 +36,10 @@ function renderRecommendations() {
   const emptyState = document.getElementById('emptyState');
   const recContent = document.getElementById('recContent');
 
+  // 市场热点和周报始终显示
+  renderMarketHot();
+  renderWeeklyReport();
+
   if (!allocation || !allocation.allocation || allocation.allocation.length === 0) {
     emptyState.classList.remove('hidden');
     recContent.classList.add('hidden');
@@ -44,9 +48,6 @@ function renderRecommendations() {
 
   emptyState.classList.add('hidden');
   recContent.classList.remove('hidden');
-
-  renderMarketHot();
-  renderWeeklyReport();
 
   // Render current recommendation
   const colors = ['#FF8C42', '#6C5CE7', '#10B981', '#F59E0B', '#3B82F6', '#EC4899'];
