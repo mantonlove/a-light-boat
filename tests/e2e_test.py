@@ -175,7 +175,7 @@ with sync_playwright() as p:
         fail("档案区域不可见")
 
     # Navigate back to chat via sidebar (new nav, no a.back)
-    page.locator('.sidebar .nav-icon').first.click()
+    page.locator('.sidebar .nav-item').first.click()
     page.wait_for_load_state('networkidle')
     page.wait_for_timeout(1000)
 
