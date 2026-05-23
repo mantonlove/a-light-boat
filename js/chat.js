@@ -82,17 +82,7 @@ function renderPresets() {
 // ── Voice ──
 function setupVoice() {
   const btn = document.getElementById('voiceBtn');
-  // 所有模式均显示语音按钮，关怀版默认大按钮
   btn.classList.remove('hidden');
-  if (currentMode === 'senior') {
-    btn.style.width = '72px';
-    btn.style.height = '72px';
-    btn.style.fontSize = '28px';
-  } else {
-    btn.style.width = '40px';
-    btn.style.height = '40px';
-    btn.style.fontSize = '16px';
-  }
 }
 
 function toggleVoice() {
