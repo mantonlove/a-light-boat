@@ -113,10 +113,16 @@ function applyFontSize(size) {
   const px = FONT_SIZE_MAP[size] || '16px';
   const pxi = parseInt(px);
   document.documentElement.style.fontSize = px;
+  // chat.html 使用的变量名
   document.documentElement.style.setProperty('--font-size-base', px);
   document.documentElement.style.setProperty('--font-size-msg', (pxi-1)+'px');
   document.documentElement.style.setProperty('--font-size-sm', (pxi-3)+'px');
   document.documentElement.style.setProperty('--font-size-xs', (pxi-5)+'px');
   document.documentElement.style.setProperty('--font-size-lg', (pxi+6)+'px');
   document.documentElement.style.setProperty('--font-size-xl', (pxi+14)+'px');
+  // mine.html 使用的变量名
+  document.documentElement.style.setProperty('--fs-base', px);
+  document.documentElement.style.setProperty('--fs-sm', (pxi-3)+'px');
+  document.documentElement.style.setProperty('--fs-lg', (pxi+6)+'px');
+  document.documentElement.style.setProperty('--fs-xl', (pxi+14)+'px');
 }

@@ -203,7 +203,8 @@ function renderArchive() {
   document.getElementById('archiveContent').innerHTML = html;
 
   // Timeline population
-  fields.forEach(f => {
+  const allFields = groups.flatMap(g => g.fields);
+  allFields.forEach(f => {
     const list = document.getElementById('timeline-' + f.key);
     if (!list) return;
     const items = history.filter(h => h.field === f.key);
