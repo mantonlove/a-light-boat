@@ -123,18 +123,18 @@ function renderRiskProfile() {
   const risk = Storage.get('qingzhou_riskProfile');
   const detail = document.getElementById('riskDetail');
   if (!risk) {
-    detail.innerHTML = '<p style="color:var(--text-muted);font-size:var(--font-size-sm);">尚未完成风险评估。轻舟会根据对话逐步了解您的风险偏好，您也可以主动开始评估。</p>';
+    detail.innerHTML = '<p style="color:#6B7A8C;font-size:13px;">尚未完成风险评估。轻舟会根据对话逐步了解您的风险偏好，您也可以主动开始评估。</p>';
     return;
   }
   const gaugePercent = (risk.score / 54) * 100;
   detail.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:var(--font-size-lg);font-weight:700;">${risk.label}（${risk.level}）</span>
-      <span class="risk-score">评分 ${risk.score}/54</span>
+      <span style="font-size:20px;font-weight:700;">${risk.label}（${risk.level}）</span>
+      <span style="font-size:13px;color:#6B7A8C;">评分 ${risk.score}/54</span>
     </div>
-    <div class="risk-gauge"><div class="gauge-dot" style="left:${gaugePercent}%;"></div></div>
+    <div class="risk-gauge"><div class="risk-dot" style="left:${gaugePercent}%;"></div></div>
     <div class="risk-labels"><span>保守</span><span>稳健</span><span>平衡</span><span>进取</span><span>激进</span></div>
-    <div style="margin-top:12px;font-size:var(--font-size-sm);color:var(--text-secondary);">
+    <div style="margin-top:12px;font-size:13px;color:#3A4A5C;">
       <div>可承受最大回撤：${risk.maxDrawdown}</div>
       <div>最大建议权益仓位：${parseInt(risk.maxEquityRatio * 100)}%</div>
     </div>
@@ -144,7 +144,6 @@ function renderRiskProfile() {
 
 // ── Archive with Timeline ──
 function renderArchive() {
-  const profile = Storage.get('qingzhou_userProfile') || {};
   const profile = Storage.get('qingzhou_userProfile') || {};
   const risk = Storage.get('qingzhou_riskProfile');
   const history = Storage.getProfileHistory();
