@@ -105,6 +105,20 @@
   @keyframes toastIn { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
   @keyframes toastOut { from{opacity:1} to{opacity:0} }
 
+  /* 语音选择器 */
+  .voice-selector { display:flex; flex-direction:column; gap:6px; margin-top:14px; }
+  .voice-row { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; border:1.5px solid transparent; cursor:pointer; transition:all .2s; }
+  .voice-row:hover { background:#F8FAFB; }
+  .voice-row.active { border-color:var(--navy); background:#EEF2F7; }
+  .voice-row .voice-radio { width:18px; height:18px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+  .voice-row.active .voice-radio { border-color:var(--navy); background:var(--navy); }
+  .voice-row.active .voice-radio::after { content:''; width:6px; height:6px; border-radius:50%; background:#fff; }
+  .voice-row .voice-label { flex:1; min-width:0; }
+  .voice-row .voice-label .voice-name { font-size:14px; font-weight:600; color:var(--text); }
+  .voice-row .voice-label .voice-desc { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .voice-row .voice-test-btn { font-size:11px; color:var(--navy); cursor:pointer; background:none; border:1px solid var(--navy); border-radius:6px; padding:4px 12px; transition:all .15s; flex-shrink:0; }
+  .voice-row .voice-test-btn:hover { background:var(--navy); color:#fff; }
+
   @media(max-width:600px){ .modes{grid-template-columns:1fr} }
 </style>
 </head>
@@ -192,8 +206,8 @@
   </div>
 </div>
 
-<script src="js/storage.js?v=44"></script>
-<script src="js/profile_engine.js?v=44"></script>
-<script src="js/mine.js?v=44"></script>
+<script src="js/storage.js?v=45"></script>
+<script src="js/profile_engine.js?v=45"></script>
+<script src="js/mine.js?v=45"></script>
 </body>
 </html>
