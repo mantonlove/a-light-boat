@@ -12,6 +12,15 @@
 <body>
 
 <div class="chat-container">
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <img src="assets/logo.png" alt="轻舟" class="logo-img" onclick="goTo('index.html')" style="cursor:pointer;" title="返回首页">
+    <div class="nav-icon active" title="对话">💬</div>
+    <div class="nav-icon" onclick="goTo('dashboard.html')" title="资产方案">📊</div>
+    <div class="nav-icon" onclick="goTo('mine.html')" title="我的">👤</div>
+  </div>
+  <!-- Main -->
+  <div class="chat-main">
   <!-- Header -->
   <div class="chat-header">
     <div class="chat-header-left">
@@ -69,6 +78,7 @@
       <button class="send-btn" onclick="sendMessage()" id="sendBtn" disabled>↑</button>
     </div>
   </div>
+</div>
 </div>
 
 <script src="js/storage.js?v=38"></script>
