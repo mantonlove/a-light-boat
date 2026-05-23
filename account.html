@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>轻舟 · 账户</title>
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="logo"><img src="assets/logo.png" alt="轻舟"></div>
+    <div class="nav-item" onclick="goTo('chat.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="nav-label">对话</span>
+    </div>
+    <div class="nav-item" onclick="goTo('recommend.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+      <span class="nav-label">推荐</span>
+    </div>
+    <div class="nav-item active" onclick="goTo('account.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 0 2h-2a1 1 0 0 0 0 2h2a1 1 0 0 1 0 2H5a2 2 0 0 0 0 4h13a1 1 0 0 0 1-1v-3"/></svg>
+      <span class="nav-label">账户</span>
+    </div>
+    <div class="nav-item" onclick="goTo('mine.html')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span class="nav-label">我的</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div class="brand"><img src="assets/logo.png" alt="">轻<span>舟</span></div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto">
+    <div class="rec-page">
+
+      <!-- 资产总览 -->
+      <div class="mine-section">
+        <div class="sec-label">资产总览</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:var(--s2)" id="assetOverview"></div>
+      </div>
+
+      <!-- 快捷操作 -->
+      <div class="mine-section">
+        <div class="sec-label">快捷操作</div>
+        <div class="card" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;text-align:center" id="quickActions"></div>
+      </div>
+
+      <!-- 我的持仓 -->
+      <div class="mine-section">
+        <div class="sec-label">我的持仓</div>
+        <div class="rec-current" id="holdingsList"></div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js?v=5"></script>
+<script src="js/profile_engine.js?v=5"></script>
+<script src="js/account.js?v=5"></script>
+</body>
+</html>

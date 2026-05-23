@@ -498,6 +498,19 @@ body {
 .product-card .pc-actions .pc-detail { color: var(--ink-70); }
 .product-card .pc-actions .pc-send { color: var(--ink); font-weight: 600; }
 
+/* 指标卡片 */
+.dash-metric {
+  background: var(--surface); border-radius: var(--r-sm);
+  padding: var(--s2); text-align: center; box-shadow: var(--shadow-xs);
+}
+.dash-metric .dm-val {
+  font-family: var(--display); font-size: 24px; font-weight: 600; line-height: 1;
+}
+.dash-metric .dm-lbl {
+  font-size: var(--font-size-xs); color: var(--ink-40); margin-top: 4px;
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+}
+
 /* 风险徽标 */
 .risk-badge {
   display: inline-block; padding: 2px 10px; border-radius: 4px;
