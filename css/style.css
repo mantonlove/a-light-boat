@@ -371,3 +371,221 @@ body.mode-youth {
 .quiz-inline .quiz-option:active { background:var(--accent); color:#fff; transform:scale(.98); }
 .quiz-inline .quiz-option:active span { color:#fff; border-color:rgba(255,255,255,.4); }
 .metrics-row { display:grid; grid-template-columns: repeat(3,1fr); gap: var(--spacing-md); }
+
+/* ═══════════════════════════════════════════════
+   v2 UI升级 — 金融产品级质感
+   ═══════════════════════════════════════════════ */
+
+/* 全局微交互 */
+button, .card, .preset-chip, .mode-option, .quiz-option, .retry-btn {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+button:active, .preset-chip:active, .quiz-option:active {
+  transform: scale(0.97);
+}
+
+/* 升级聊天气泡 */
+.message.ai .bubble {
+  background: #FFFFFF;
+  border: 1px solid #E8ECF1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04);
+  border-radius: 18px 18px 18px 6px;
+}
+.message.user .bubble {
+  background: linear-gradient(135deg, #257AFF 0%, #3E95FF 100%);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(37,122,255,0.2), 0 4px 16px rgba(37,122,255,0.1);
+  border-radius: 18px 18px 6px 18px;
+}
+.message .avatar {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  border: 2px solid #fff;
+}
+
+/* 升级输入栏 */
+.chat-input-area {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.04);
+}
+.input-row textarea {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 12px 18px;
+  font-size: 15px;
+  transition: all 0.25s ease;
+}
+.input-row textarea:focus {
+  background: #FFFFFF;
+  border-color: #257AFF;
+  box-shadow: 0 0 0 3px rgba(37,122,255,0.08);
+}
+.send-btn {
+  border-radius: 14px;
+  background: linear-gradient(135deg, #257AFF, #3E95FF);
+  box-shadow: 0 2px 8px rgba(37,122,255,0.25);
+}
+
+/* 升级聊天头栏 */
+.chat-header {
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+/* 升级预设问题 */
+.preset-chip {
+  background: #F8FAFC;
+  border: 1px solid #E8ECF1;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.preset-chip:hover {
+  background: #EEF4FF;
+  border-color: #257AFF;
+  color: #257AFF;
+  box-shadow: 0 2px 8px rgba(37,122,255,0.1);
+}
+
+/* 升级卡片——毛玻璃质感 */
+.card {
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.04);
+}
+
+/* 升级仪表盘 */
+.dashboard-card {
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 8px 24px rgba(0,0,0,0.04);
+  border-radius: 20px;
+}
+.metric-card {
+  background: linear-gradient(135deg, #F8FAFC, #F0F4F8);
+  border-radius: 16px;
+  padding: 20px 16px;
+}
+.metric-card .metric-value {
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #257AFF, #3E95FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 升级 mine 个人卡片 */
+.profile-card {
+  background: linear-gradient(135deg, #1a3a5c 0%, #257AFF 50%, #3E95FF 100%) !important;
+  box-shadow: 0 4px 20px rgba(37,122,255,0.2), 0 8px 40px rgba(37,122,255,0.1) !important;
+}
+
+/* 升级合规标签 */
+.compliance-tag {
+  background: #FFFBF0;
+  border-left: 3px solid #F59E0B;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 升级 Toast */
+.toast {
+  background: rgba(26,35,50,0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 100px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* 加载点升级 */
+.loading-dots span {
+  background: linear-gradient(135deg, #257AFF, #58ADFF);
+  box-shadow: 0 0 6px rgba(37,122,255,0.3);
+}
+
+/* 滚动条 */
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #D0D8E4;
+  border-radius: 3px;
+}
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #B0BCCC;
+}
+
+/* ══════ v3 UI — Seed Vision反馈修复 ══════ */
+
+/* 聊天气泡加尖角 */
+.message.ai .bubble::before {
+  content: ''; position: absolute;
+  left: -8px; top: 12px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 8px solid #FFFFFF;
+}
+.message.user .bubble::after {
+  content: ''; position: absolute;
+  right: -8px; top: 12px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 8px solid #257AFF;
+}
+.message .bubble { position: relative; }
+
+/* 升级合规标签——金融监管级别 */
+.compliance-tag {
+  background: #FFFDF5;
+  border: 1px solid #FDE68A;
+  border-left: 3px solid #F59E0B;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #92400E;
+  font-weight: 500;
+}
+
+/* 输入栏按钮统一样式 */
+.plus-btn, .dashboard-btn {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #64748B;
+  transition: all 0.2s ease;
+}
+.plus-btn:hover, .dashboard-btn:hover {
+  background: #EEF4FF;
+  border-color: #257AFF;
+  color: #257AFF;
+}
+
+/* 隐私弹窗层级 */
+.privacy-guide {
+  background: #FFFFFF;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 16px;
+}
+
+/* Handoff 卡片 */
+.handoff-card {
+  background: #FFFFFF;
+  box-shadow: 0 8px 32px rgba(37,122,255,0.08);
+  border: 1.5px solid rgba(37,122,255,0.15);
+}
