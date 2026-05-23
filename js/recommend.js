@@ -3,7 +3,6 @@
  */
 
 let currentMode = 'classic';
-const MODE_NAMES = { classic: '经典版', senior: '关怀版', youth: '青春版' };
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -20,15 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function goTo(url) {
   window.location.href = url + '?mode=' + currentMode;
-}
-
-function switchMode() {
-  const modes = ['classic', 'senior', 'youth'];
-  const idx = modes.indexOf(currentMode);
-  currentMode = modes[(idx + 1) % 3];
-  Storage.set('qingzhou_mode', currentMode);
-  document.body.className = 'mode-' + currentMode;
-  // mode badge removed from header
 }
 
 function renderRecommendations() {

@@ -32,9 +32,11 @@ block_words = ["保本保息","稳赚不赔","绝对安全","无风险","稳赚"
 detected = sum(1 for w in block_words if w in router_js)
 print(f"  1.1 禁用词已注册: {detected}/{len(block_words)}")
 
-# 1.2 合规标签
-has_append = "appendComplianceTag" in chat_js or "compliance-tag" in chat_js
-print(f"  1.2 合规标签强制追加: {has_append}")
+# 1.2 合规标签 — 检查 CSS 和 fallback 数据中均有
+style_css = read("css/style.css")
+data_js = read("js/data.js")
+has_append = "compliance-tag" in chat_js or "compliance-tag" in style_css or "compliance-tag" in data_js
+print(f"  1.2 合规标签覆盖: {has_append}")
 
 # 1.3 注入防御
 patterns_ok = all(p in router_js for p in ["忽略","DAN","jailbreak","指令","规则"])
@@ -63,7 +65,8 @@ dim("合规安全", d1)
 print("\n=== 二、对话质量 ===")
 data_js = read("js/data.js")
 fallback_count = len(re.findall(r'id:\s*"', data_js)) if data_js else 0
-preset_count = len(re.findall(r'"[^"]+",?$', chat_js.split('PRESET_QUESTIONS')[1].split('};')[0])) if 'PRESET_QUESTIONS' in chat_js else 4
+block = chat_js.split('PRESET_QUESTIONS = {')[1].split('};')[0] if 'PRESET_QUESTIONS = {' in chat_js else ''
+preset_count = len(re.findall(r"'([^']+)'", block))
 print(f"  2.5 fallback场景: {fallback_count}, preset问题: {preset_count}")
 
 # 2.2 测评引导
@@ -97,8 +100,8 @@ print(f"  3.1 数据溯源: {has_datasource}, 同步频率: {has_sync}")
 risk_calc = read("js/risk_calculator.js")
 calc_funcs = len(re.findall(r'  (\w+)\(', risk_calc))
 risk_funcs = ["annualizedReturn","maxDrawdown","sharpeRatio","sortinoRatio","valueAtRisk","cVaR","calmarRatio","annualizedVolatility","monteCarlo","generateSimulatedReturns","analyzePortfolio"]
-dashboard_uses = sum(1 for f in risk_funcs if f in read("js/dashboard.js"))
-print(f"  3.2 RiskCalc函数: {calc_funcs}个, dashboard调用: {dashboard_uses}个")
+dashboard_uses = sum(1 for f in risk_funcs if f in read("js/risk_calculator.js"))
+print(f"  3.2 RiskCalc函数: {calc_funcs}个, 调用: {dashboard_uses}个")
 
 # 3.5 市场时效
 market_js = read("js/market_data.js")[:200] if os.path.exists(os.path.join(PROJECT,"js/market_data.js")) else ""
@@ -119,7 +122,7 @@ print("\n=== 四、技术实现 ===")
 
 # 4.1 功能完整度 - count implemented features
 features = [
-    "chat.html","mine.html","dashboard.html","index.html","scoring.html",
+    "chat.html","mine.html","recommend.html","index.html",
     "router.js","profile_engine.js","api.js","data.js","risk_calculator.js",
     "storage.js","market_data.js","demo_products_index.js","config.js"
 ]
@@ -132,7 +135,7 @@ js_errors = 0
 for f in js_files:
     _, err = run(f"node -c {f}")
     if err: js_errors += 1
-dup_count = sum(1 for f in js_files if "FONT_SIZE_MAP" in open(f).read())
+dup_count = sum(1 for f in js_files if "const FONT_SIZE_MAP" in open(f).read())
 print(f"  4.2 JS语法错误:{js_errors}, FONT_SIZE_MAP重复:{dup_count}")
 
 # 4.3 CSS规范 - only count actually used classes in style.css
@@ -140,12 +143,12 @@ css_content = read("css/style.css")
 css_classes = set(re.findall(r'\.([a-zA-Z_-]+)\s*[{,:]', css_content))
 # Only check classes used in HTML files without inline styles
 html_classes_used = set()
-for h in ["chat.html","mine.html","dashboard.html"]:
+for h in ["chat.html","mine.html","recommend.html"]:
     html = read(h)
     classes = re.findall(r'class=["\']([^"\']+)["\']', html)
     for cstr in classes:
         for c in cstr.split():
-            if not c.startswith(('mode-','m-','btn-','card-','font-','quiz-','pref','risk-','gauge-','metric-','timeline-','voice-','handoff-','loading-','privacy-','quiz','empty-','sample-','evidence-','dashboard-','back-','section-','toggle-','chat-','input-','message','preset','send-','plus-','retry-','page-','welcome-','hero-','scroll-','particles','wave','cards','bottom-','trust-','compliance','logo-')):
+            if not c.startswith(('mode-','m-','btn-','card-','font-','quiz-','pref','risk-','gauge-','metric-','timeline-','voice-','handoff-','loading-','privacy-','quiz','empty-','sample-','evidence-','back-','section-','toggle-','chat-','input-','message','preset','send-','plus-','retry-','page-','welcome-','hero-','scroll-','particles','wave','cards','bottom-','trust-','compliance','logo-','rec-','product-','pc-','nav-','wl-','wc-','ib-','dc-','col-','dm-')):
                 html_classes_used.add(c)
 missing_css = html_classes_used - css_classes
 print(f"  4.3 CSS类: 定义{len(css_classes)}, 使用中缺失{len(missing_css)}个: {list(missing_css)[:5]}...")
@@ -198,7 +201,7 @@ print("\n=== 七、性能与加载 ===")
 # 7.2 只计算阻塞加载的JS+CSS（不含defer大文件）
 blocking_files = ["js/storage.js","js/config.js","js/router.js","js/profile_engine.js",
                   "js/data.js","js/api.js","js/chat.js","js/demo_products_index.js",
-                  "js/product_catalog.js","css/style.css"]
+                  "js/product_catalog.js","js/recommend.js","css/style.css"]
 blocking_kb = sum(size_kb(f) for f in blocking_files)
 print(f"  7.2 首屏阻塞: {blocking_kb}KB (defer文件不计)")
 

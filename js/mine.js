@@ -3,7 +3,6 @@
  */
 
 let currentMode = 'classic';
-const MODE_NAMES = { classic: '经典版', senior: '关怀版', youth: '青春版' };
 // FONT_SIZE_MAP, MODE_DEFAULT_FONT, applyFontSize 定义在 storage.js（共享模块）
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,18 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function goTo(url) {
   window.location.href = url + '?mode=' + currentMode;
-}
-
-function switchMode() {
-  const modes = ['classic', 'senior', 'youth'];
-  const idx = modes.indexOf(currentMode);
-  currentMode = modes[(idx + 1) % 3];
-  Storage.set('qingzhou_mode', currentMode);
-  document.body.className = 'mode-' + currentMode;
-  // mode badge removed from header
-  applyFontSize(Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium');
-  renderModeSelector();
-  showToast('已切换到 ' + (MODE_NAMES[currentMode] || '经典版'));
 }
 
 function goBack() {

@@ -8,7 +8,6 @@ const PRESET_QUESTIONS = {
   youth: ['20万，3年不用，怎么配？', '帮我对比两只基金', '每月定投 1000 元怎么选？', '有没有行业 ETF 推荐？']
 };
 
-const MODE_NAMES = { classic: '经典版', senior: '关怀版', youth: '青春版' };
 let currentMode = 'classic';
 let isListening = false;
 let pendingImage = null;
@@ -433,24 +432,7 @@ function speakText(text, onEnd) {
 
 // ── Navigation ──
 function goTo(url) {
-  // 推荐中心和我的页面不需要 mode 参数跳转
-  if (url === 'recommend.html' || url === 'mine.html') {
-    window.location.href = url + '?mode=' + currentMode;
-  } else {
-    window.location.href = url + '?mode=' + currentMode;
-  }
-}
-
-function switchMode() {
-  const modes = ['classic', 'senior', 'youth'];
-  const idx = modes.indexOf(currentMode);
-  currentMode = modes[(idx + 1) % 3];
-  Storage.set('qingzhou_mode', currentMode);
-  document.body.className = 'mode-' + currentMode;
-  // mode badge removed from chat header
-  renderPresets();
-  setupVoice();
-  showToast('已切换到 ' + MODE_NAMES[currentMode]);
+  window.location.href = url + '?mode=' + currentMode;
 }
 
 // ── Utils ──
