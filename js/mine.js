@@ -148,16 +148,20 @@ function renderRiskProfile() {
     return;
   }
   const gaugePercent = (risk.score / 54) * 100;
+  const levels = ['保守', '稳健', '平衡', '进取', '激进'];
+  const levelIdx = ['R1','R2','R3','R4','R5'].indexOf(risk.level);
   detail.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:var(--fs-lg);font-weight:700;">${risk.label}（${risk.level}）</span>
-      <span style="font-size:var(--fs-sm);color:#6B7A8C;">评分 ${risk.score}/54</span>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px">
+      <span style="font-family:var(--display);font-size:22px;font-weight:600">${risk.label} ${risk.level}</span>
+      <span style="font-size:var(--fs-sm);color:var(--ink-40)">评分 ${risk.score}/54</span>
     </div>
-    <div class="risk-gauge"><div class="risk-dot" style="left:${gaugePercent}%;"></div></div>
-    <div class="risk-labels"><span>保守</span><span>稳健</span><span>平衡</span><span>进取</span><span>激进</span></div>
-    <div style="margin-top:12px;font-size:var(--fs-sm);color:#3A4A5C;">
-      <div>可承受最大回撤：${risk.maxDrawdown}</div>
-      <div>最大建议权益仓位：${parseInt(risk.maxEquityRatio * 100)}%</div>
+    <div class="risk-bar-wrap">
+      <div class="risk-bar"><div class="risk-dot" style="left:${gaugePercent}%;"></div></div>
+      <div class="risk-labels">${levels.map((l, i) => `<span style="${i === levelIdx ? 'color:var(--ink);font-weight:700' : ''}">${l}</span>`).join('')}</div>
+    </div>
+    <div style="display:flex;gap:24px;margin-top:16px;font-size:var(--fs-sm);color:var(--ink-70);">
+      <div>最大回撤 <strong style="color:var(--ink)">${risk.maxDrawdown}</strong></div>
+      <div>权益仓位 ≤<strong style="color:var(--ink)">${parseInt(risk.maxEquityRatio * 100)}%</strong></div>
     </div>
   `;
   document.getElementById('profileRisk').textContent = risk.label;

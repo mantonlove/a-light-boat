@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
   currentMode = params.get('mode') || Storage.get('qingzhou_mode') || 'classic';
   document.body.className = 'mode-' + currentMode;
-  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode] || '经典版';
+  // mode badge removed from header
 
   // 应用字体
   const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
@@ -28,7 +28,7 @@ function switchMode() {
   currentMode = modes[(idx + 1) % 3];
   Storage.set('qingzhou_mode', currentMode);
   document.body.className = 'mode-' + currentMode;
-  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode] || '经典版';
+  // mode badge removed from header
 }
 
 function renderRecommendations() {
