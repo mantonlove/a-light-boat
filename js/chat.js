@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Storage.set('qingzhou_mode', currentMode);
 
   document.body.className = 'mode-' + currentMode;
-  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode];
+  // mode badge removed from chat header
 
   // 应用字体：优先用户保存的，否则按模式默认
   const MODE_FONT_DEFAULTS = { classic: 'medium', senior: 'large', youth: 'small' };
@@ -464,7 +464,7 @@ function switchMode() {
   currentMode = modes[(idx + 1) % 3];
   Storage.set('qingzhou_mode', currentMode);
   document.body.className = 'mode-' + currentMode;
-  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode];
+  // mode badge removed from chat header
   renderPresets();
   setupVoice();
   showToast('已切换到 ' + MODE_NAMES[currentMode]);
