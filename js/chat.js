@@ -43,7 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const msgContainer = document.getElementById('chatMessages');
     msgContainer.innerHTML = ''; // 清空初始欢迎消息
     savedHistory.forEach(msg => {
-      addMessage(msg.role, msg.content, msg.isFallback || false);
+      // 兼容旧数据：'assistant' → 'ai'
+      const role = msg.role === 'assistant' ? 'ai' : msg.role;
+      // user 消息存储的是原始文本，恢复时需 escape
+      const content = role === 'user' ? escapeHtml(msg.content) : msg.content;
+      addMessage(role, content, msg.isFallback || false);
     });
     scrollToBottom();
   }
@@ -235,19 +239,23 @@ async function sendMessage() {
   document.getElementById('sendBtn').disabled = true;
   removeImage();
 
+  // 保存用户消息到历史（在所有 early return 之前）
+  const history = Storage.get('qingzhou_chatHistory') || [];
+  history.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
+  Storage.set('qingzhou_chatHistory', history);
+
   // 重新测评 —— 先显示用户消息+清空输入框，再弹问卷
   if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
     startQuestionnaire();
     return;
   }
 
-  const history = Storage.get('qingzhou_chatHistory') || [];
-  history.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
-  Storage.set('qingzhou_chatHistory', history);
-
   const route = Router.route(text);
   if (route.action === 'compliance_block') {
-    addMessage('ai', '⚠️ 理财非存款，产品有风险，投资须谨慎。我不能对产品收益做出任何保证或承诺。您可以通过我行 APP 查看产品的完整风险说明书和过往业绩后再做判断。如有疑问，欢迎随时咨询。');
+    const replyText = '⚠️ 理财非存款，产品有风险，投资须谨慎。我不能对产品收益做出任何保证或承诺。您可以通过我行 APP 查看产品的完整风险说明书和过往业绩后再做判断。如有疑问，欢迎随时咨询。';
+    addMessage('ai', replyText);
+    history.push({ role: 'ai', content: replyText, timestamp: new Date().toISOString(), isFallback: true });
+    Storage.set('qingzhou_chatHistory', history);
     return;
   }
 
@@ -287,7 +295,7 @@ async function sendMessage() {
     showToast(result.toast);
   }
 
-  history.push({ role: 'assistant', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
+  history.push({ role: 'ai', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
   Storage.set('qingzhou_chatHistory', history);
 
   scrollToBottom();
