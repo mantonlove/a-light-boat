@@ -87,7 +87,7 @@ function renderHoldings() {
           <span class="risk-badge risk-r${h.risk.replace('R','')}">${h.risk}</span>
         </div>
         <div style="font-size:11px;color:var(--ink-40)">
-          持有 ${formatMoney(h.amount)} · 年化 ${h.return_rate}%${h.lock_days > 0 ? ' · ' + h.lock_days + '天后到期' : ''}
+          持有 <strong style="color:var(--ink);font-size:14px;font-family:var(--display)">${formatMoney(h.amount)}</strong> · 年化 <strong style="color:var(--ink)">${h.return_rate}%</strong>${h.lock_days > 0 ? ' · <strong style="color:var(--ink)">' + h.lock_days + '天</strong>后到期' : ''}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
