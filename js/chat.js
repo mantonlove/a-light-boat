@@ -395,7 +395,15 @@ function addTtsButton(msgEl, text) {
   bubble.appendChild(btn);
 }
 
+let _ttsAudio = null;
+
 function speakText(text, onEnd) {
+  // 停止正在播放的音频
+  if (_ttsAudio) {
+    _ttsAudio.pause();
+    _ttsAudio = null;
+  }
+
   const cleanText = text.replace(/⚠️[^]*/g, '').replace(/\n\n/g, '。').replace(/\n/g, '').trim();
   if (!cleanText) { if (onEnd) onEnd(); return; }
 
@@ -403,8 +411,7 @@ function speakText(text, onEnd) {
   const voiceId = preset.id || 'gentle-female';
 
   // 优先使用 server.py TTS（macOS say 命令，音质好）
-  const ttsUrl = '/api/tts';
-  fetch(ttsUrl, {
+  fetch('/api/tts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text: cleanText, voice: voiceId, rate: preset.rate })
@@ -414,9 +421,9 @@ function speakText(text, onEnd) {
     return res.blob();
   })
   .then(blob => {
-    const audio = new Audio(URL.createObjectURL(blob));
-    if (onEnd) audio.onended = onEnd;
-    audio.play().catch(() => { if (onEnd) onEnd(); });
+    _ttsAudio = new Audio(URL.createObjectURL(blob));
+    if (onEnd) _ttsAudio.onended = () => { _ttsAudio = null; onEnd(); };
+    _ttsAudio.play().catch(() => { _ttsAudio = null; if (onEnd) onEnd(); });
   })
   .catch(() => {
     // Fallback: 浏览器 Web Speech API

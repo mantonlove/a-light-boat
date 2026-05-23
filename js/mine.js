@@ -437,7 +437,16 @@ function selectVoice(id) {
   showToast('语音音色已切换');
 }
 
+// 全局音频引用，预览时停止上一个
+let _previewAudio = null;
+
 function previewVoice(id) {
+  // 停止正在播放的预览
+  if (_previewAudio) {
+    _previewAudio.pause();
+    _previewAudio = null;
+  }
+
   const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
     { id: 'gentle-female', name: '温润女声', rate: 0.95 },
     { id: 'deep-male', name: '沉稳男声', rate: 0.90 },
@@ -459,7 +468,8 @@ function previewVoice(id) {
     return res.blob();
   })
   .then(blob => {
-    new Audio(URL.createObjectURL(blob)).play();
+    _previewAudio = new Audio(URL.createObjectURL(blob));
+    _previewAudio.play();
     showToast('试听中...');
   })
   .catch(() => {
