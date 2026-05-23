@@ -251,12 +251,18 @@ async function sendMessage() {
     return;
   }
 
+  // 情绪检测：焦虑/恐慌 → 先安抚，调整推荐策略偏保守
+  const sentiment = route.intent === 'sentiment_anxiety' ? 'anxiety' : null;
+  if (sentiment) {
+    Storage.addKeyMoment('检测到用户焦虑情绪');
+  }
+
   const loadingMsg = addLoadingDots();
   scrollToBottom();
 
   let result;
   try {
-    result = await Api.sendMessage(text, currentMode, pendingImage);
+    result = await Api.sendMessage(text, currentMode, pendingImage, sentiment);
   } catch (e) {
     console.error('sendMessage error:', e);
     result = { reply: '抱歉，系统遇到了一个小问题，请稍后再试。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。', isFallback: true };
@@ -266,6 +272,22 @@ async function sendMessage() {
 
   const replyHtml = escapeHtml(result.reply).replace(/\n/g, '<br>');
   const msgEl = addMessage('ai', replyHtml, result.isFallback);
+
+  // 白盒解释：检测到推荐内容时，追加推荐逻辑说明
+  if (/推荐|配置|建议|适合|方案/.test(result.reply) && typeof buildExplanation === 'function') {
+    const explanation = buildExplanation();
+    if (explanation.summary) {
+      const explainDiv = document.createElement('div');
+      explainDiv.style.cssText = 'margin-top:10px;padding:10px 14px;background:var(--gold-light);border-radius:var(--r-sm);font-size:11px;color:var(--ink-70);line-height:1.7';
+      explainDiv.innerHTML = '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold-dark);margin-bottom:6px">📋 推荐依据</div>' + explanation.summary;
+      msgEl.querySelector('.bubble').appendChild(explainDiv);
+      Storage.addProfileHistory({
+        field: 'recommendation', oldValue: null, newValue: explanation.summary,
+        source: 'system_generated', timestamp: explanation.timestamp,
+        confidence: 1, context: 'AI推荐白盒解释', confirmed: true
+      });
+    }
+  }
 
   // 始终显示播放按钮；语音开启时自动朗读
   addTtsButton(msgEl, result.reply);

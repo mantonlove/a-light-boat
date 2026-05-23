@@ -65,12 +65,17 @@ function assembleProfile() {
   };
 }
 
-function buildSystemPrompt(mode) {
+function buildSystemPrompt(mode, sentiment = null) {
   const profile = assembleProfile();
   const summary = getConversationSummary();
   const modeInstructions = getModeInstructions(mode);
 
   let prompt = BASE_SYSTEM_PROMPT;
+
+  // 情绪感知：检测到焦虑时，注入安抚指令
+  if (sentiment === 'anxiety') {
+    prompt += '\n\n【最高优先级】用户当前表现出焦虑或恐慌情绪。你的首要任务不是推荐产品，而是：1) 先共情安抚——承认市场波动带来的不安是正常的 2) 用数据说明长期视角——过往 N 次超过 20% 的回调最终都修复了 3) 确认用户的风险承受力是否真的匹配当前持仓 4) 只有在用户情绪稳定后，才谨慎提供保守型建议。禁止推销权益类产品。';
+  }
 
   // 画像钉在最前面——DeepSeek 优先读这里，不被对话历史旧数据误导
   if (profile.risk || profile.finance.amount) {
@@ -87,6 +92,15 @@ function buildSystemPrompt(mode) {
     if (profile.finance.interests?.length) prompt += `关注：${profile.finance.interests.join('、')}\n`;
     if (profile.allocation) prompt += `上次方案：${profile.allocation.summary}\n`;
     prompt += '══════════════════════════════════════\n';
+  }
+
+  // 长期记忆：用户偏好
+  const prefs = Storage.get('qingzhou_preferences') || {};
+  if (prefs.exclusions?.length > 0) {
+    prompt += `\n⚠️ 用户明确排除的行业/领域：${prefs.exclusions.join('、')}。不要推荐含有这些底层资产的产品。\n`;
+  }
+  if (prefs.style === 'concise') {
+    prompt += '\n用户偏好简短直接的回复风格，给出结论+1-2条核心依据即可，不要展开。\n';
   }
 
   prompt += `\n## 当前模式\n${modeInstructions}`;
@@ -147,6 +161,42 @@ function getModeInstructions(mode) {
   return instructions[mode] || instructions.classic;
 }
 
+/** 推荐白盒解释：生成「为什么推荐这个」的可审计说明 */
+function buildExplanation(products = []) {
+  const profile = assembleProfile();
+  const risk = profile.risk;
+  const finance = profile.finance;
+  const reasons = [];
+
+  if (risk?.level) {
+    reasons.push(`您的风险等级为 <strong>${risk.level} ${risk.label}</strong>（评分 ${risk.score}/54），可承受最大回撤 ${risk.maxDrawdown}`);
+  }
+  if (finance?.horizon) {
+    reasons.push(`投资期限 <strong>${finance.horizon}</strong>`);
+  }
+  if (finance?.amount) {
+    reasons.push(`可投金额约 <strong>${finance.amount >= 10000 ? (finance.amount / 10000).toFixed(0) + ' 万' : finance.amount + ' 元'}</strong>`);
+  }
+  if (finance?.goal) {
+    reasons.push(`投资目标为 <strong>${finance.goal}</strong>`);
+  }
+
+  const productNotes = [];
+  products.forEach(p => {
+    const riskOk = risk?.level && p.risk_level ?
+      parseInt(p.risk_level.replace('R','')) <= parseInt(risk.level.replace('R','')) + 1 : true;
+    const lockOk = finance?.horizon ?
+      (p.lock_period || '').includes('天') || (p.lock_period || '') === '—' : true;
+    productNotes.push(`${p.name}（${p.risk_level}${riskOk ? ' ✅风险匹配' : ''}${lockOk ? ' ✅期限合适' : ''}）`);
+  });
+
+  return {
+    summary: reasons.join(' · '),
+    products: productNotes,
+    timestamp: new Date().toISOString()
+  };
+}
+
 function getConversationSummary() {
   return localStorage.getItem('qingzhou_conversationSummary') || null;
 }
@@ -175,6 +225,20 @@ const BASE_SYSTEM_PROMPT = `# 角色
 
 ## 合规标签（必须原样输出，不可简化、缩写、替换）
 ⚠️ 理财非存款，产品有风险，投资须谨慎。以上建议仅供参考，不构成投资承诺。
+
+# 术语解释规则（"人话翻译机"）
+遇到以下金融术语时，必须用通俗类比解释，让完全不懂理财的人也能听懂：
+- "夏普比率" → "可以理解为'每冒 1 块钱的风险，能赚多少钱'，越高越好"
+- "最大回撤" → "历史上最糟糕的时候，您的账户最多亏过多少，越小越稳"
+- "年化收益率" → "如果一直保持这个水平，一年大概能赚多少"
+- "封闭期" → "这笔钱放进去之后多久不能取出来"
+- "底层资产" → "这个产品最终把钱投到了什么地方，比如借给大公司、买国债、或者买股票"
+- "净值化" → "产品的价格会随着市场每天变化，不再是固定数字"
+- "固收+" → "大部分钱投在稳妥的债券上，拿稳定的利息；小部分钱去股市博取更高收益"
+- "指数增强" → "跟着大盘走，但基金经理会想办法比大盘多赚一点"
+- "业绩比较基准" → "产品给自己定的一个目标，但不是承诺，实际可能高也可能低"
+- "R1-R5 风险等级" → "就像辣椒的辣度——R1 是微辣，R5 是变态辣"
+遇到其他术语也请主动用类比解释，不要假设用户懂金融。
 
 # 知识使用规则
 1. 产品事实数据（名称、风险等级、费率、封闭期、起购金额、业绩比较基准、底层资产）：必须仅使用知识库信息，不得编造。查不到就说"该产品信息暂未收录"

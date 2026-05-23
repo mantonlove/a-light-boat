@@ -22,8 +22,16 @@ const L1_ROUTES = [
     action: 'compliance_block'
   },
   {
-    intent: 'chitchat',
+    intent: 'sentiment_anxiety',
     priority: 3,
+    keywords: ['好慌', '担心', '害怕', '跌了', '亏了', '睡不着', '焦虑', '紧张', '后悔', '难受', '不敢'],
+    regex: /(跌|亏|赔).{0,5}(慌|怕|担心|怎么办|睡不着|受不了)|(最近|这几天).{0,3}(一直|老).{0,3}(跌|亏)/,
+    weight: 4,
+    action: 'sentiment_care'
+  },
+  {
+    intent: 'chitchat',
+    priority: 4,
     keywords: [],
     regex: /(天气|吃饭|电影|游戏|追剧|明星|八卦|体育|足球|篮球|恋爱|分手)/,
     weight: 4,

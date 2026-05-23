@@ -19,7 +19,7 @@ async function rateLimiter() {
 }
 
 const Api = {
-  async sendMessage(text, mode, imageBase64 = null) {
+  async sendMessage(text, mode, imageBase64 = null, sentiment = null) {
     try {
     if (API_CONFIG.useFallback) {
       return this._fallbackResponse(text, mode);
@@ -28,7 +28,7 @@ const Api = {
     let profile, systemPrompt;
     try {
       profile = assembleProfile();
-      systemPrompt = buildSystemPrompt(mode);
+      systemPrompt = buildSystemPrompt(mode, sentiment);
     } catch (e) {
       console.warn('Profile engine error, using defaults:', e.message);
       profile = { risk: null, finance: {}, account: null, preferences: {}, allocation: null, isComplete: () => false, missingFields: () => [], getTemplate: () => null };
