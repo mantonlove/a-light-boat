@@ -122,9 +122,9 @@ print("\n=== 四、技术实现 ===")
 
 # 4.1 功能完整度 - count implemented features
 features = [
-    "chat.html","mine.html","recommend.html","index.html",
+    "chat.html","mine.html","recommend.html","account.html","index.html",
     "router.js","profile_engine.js","api.js","data.js","risk_calculator.js",
-    "storage.js","market_data.js","demo_products_index.js","config.js"
+    "storage.js","market_data.js","demo_products_index.js","config.js","account.js"
 ]
 implemented = sum(1 for f in features if os.path.exists(os.path.join(PROJECT,"js",f)) or os.path.exists(os.path.join(PROJECT,f)))
 print(f"  4.1 核心文件: {implemented}/{len(features)}")
