@@ -130,11 +130,11 @@ function applyFontSize(size) {
 
 // ══════ 语音预设（5种可选声音，映射到系统真实语音）══════
 const VOICE_PRESETS = [
-  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '温和亲切，语速适中', rate: 0.95, pitch: 1.05, voiceName: 'Tingting' },
-  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '低沉稳重，专业可信', rate: 0.90, pitch: 0.90, voiceName: 'Eddy' },
-  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '轻快明亮，有节奏感', rate: 1.05, pitch: 1.15, voiceName: 'Flo' },
-  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '端庄知性，娓娓道来', rate: 0.92, pitch: 1.00, voiceName: 'Shelley' },
-  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '温暖磁性，娓娓道来', rate: 0.88, pitch: 0.95, voiceName: 'Reed' }
+  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '甜美女生 · 温和亲切', rate: 0.95, pitch: 1.05, voiceName: 'female_sweet' },
+  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '温暖男生 · 低沉稳重', rate: 0.90, pitch: 0.90, voiceName: 'male_warm' },
+  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '甜美女生 · 轻快明亮', rate: 1.05, pitch: 1.15, voiceName: 'female_sweet' },
+  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '甜美女生 · 端庄知性', rate: 0.92, pitch: 1.00, voiceName: 'female_sweet' },
+  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '播客男生 · 温暖磁性', rate: 0.88, pitch: 0.95, voiceName: 'male_podcast' }
 ];
 
 function getVoicePreset() {

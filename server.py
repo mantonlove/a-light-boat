@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
-"""轻舟 Qingzhou — 本地开发服务器 + GLM-5 API 代理（带 QPM 限流重试）+ TTS 语音合成"""
-import http.server, json, urllib.request, urllib.error, sys, os, time, subprocess, tempfile, base64
+"""轻舟 Qingzhou — 本地开发服务器 + GLM-5 API 代理 + 元景语音交互3.0 TTS"""
+import http.server, json, urllib.request, urllib.error, sys, os, time, subprocess, tempfile, base64, struct
+from websocket import create_connection
 
 PORT = 8765
 API_URL = 'https://maas-api.ai-yuanjing.com/openapi/compatible-mode/v1/chat/completions'
 API_KEY = 'sk-9b0e1c7fea0d40db830541bd4ff3b11c'
+TTS_WS_URL = 'wss://maas-api.ai-yuanjing.com/openapi/v1/voice/voice_interaction'
 RETRY_DELAY = 15
 MAX_RETRIES = 3
+TTS_INTERVAL = 3  # TTS API 调用最小间隔（秒），防 QPS 限流
+_last_tts_call = 0
 
-VOICE_MAP = {
-    'gentle-female': 'Tingting',
-    'deep-male': 'Eddy (中文（中国大陆）)',
-    'lively-female': 'Flo (中文（中国大陆）)',
-    'soft-female': 'Shelley (中文（中国大陆）)',
-    'warm-male': 'Reed (中文（中国大陆）)'
+# 元景语音交互3.0 音色映射（高自然度）
+VOICE_SPEAKER = {
+    'gentle-female':  ('female_sweet',  0.95, 1.0),   # 甜美女生
+    'deep-male':      ('male_warm',     0.90, 1.0),   # 温暖男生
+    'lively-female':  ('female_sweet',  1.08, 1.05),  # 甜美女生(快)
+    'soft-female':    ('female_sweet',  0.90, 0.95),  # 甜美女生(柔)
+    'warm-male':      ('male_podcast',  0.88, 1.0),   # 播客男生
 }
 
 class ProxyHandler(http.server.SimpleHTTPRequestHandler):
@@ -100,46 +105,110 @@ class ProxyHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps({'error': 'text is required'}).encode())
                 return
 
-            # Clean text for TTS
-            text = text.replace('\n', ' ').replace('"', '\\"')[:500]
-            voice = VOICE_MAP.get(voice_id, 'Tingting')
+            text = text.replace('\n', ' ')[:500]
+            speaker_id, speed, energy = VOICE_SPEAKER.get(voice_id, ('female_sweet', 0.95, 1.0))
+            final_rate = rate * speed / 0.95
 
-            # rate 0.8-1.05 → say WPM 140-210 (default ~180)
-            wpm = int(rate * 190)
+            # QPS 限流控制
+            global _last_tts_call
+            elapsed = time.time() - _last_tts_call
+            if elapsed < TTS_INTERVAL:
+                time.sleep(TTS_INTERVAL - elapsed)
+            _last_tts_call = time.time()
 
+            # Step 1: 用 say 生成 prompt 音频（"请朗读：{text}"）
+            prompt = f'请朗读以下文字，只朗读不回复：{text}'
             with tempfile.NamedTemporaryFile(suffix='.aiff', delete=False) as tmp:
                 aiff_path = tmp.name
-            wav_path = aiff_path + '.wav'
+            in_wav = aiff_path + '.wav'
 
             try:
                 subprocess.run(
-                    ['say', '-v', voice, '-r', str(wpm), text, '-o', aiff_path],
+                    ['say', '-v', 'Tingting', '-r', '200', prompt, '-o', aiff_path],
                     capture_output=True, timeout=10
                 )
-
-                if not os.path.exists(aiff_path) or os.path.getsize(aiff_path) == 0:
-                    raise RuntimeError('TTS generation failed')
-
-                # AIFF → WAV (AIFF 不被浏览器支持)
                 subprocess.run(
-                    ['afconvert', '-f', 'WAVE', '-d', 'LEI16@22050', aiff_path, wav_path],
+                    ['afconvert', '-f', 'WAVE', '-d', 'LEI16@16000', aiff_path, in_wav],
                     capture_output=True, timeout=5
                 )
 
-                if not os.path.exists(wav_path) or os.path.getsize(wav_path) == 0:
-                    raise RuntimeError('Audio conversion failed')
+                # Step 2: 通过 WebSocket 发送给元景语音 API
+                ws = None
+                for tts_attempt in range(3):
+                    try:
+                        ws = create_connection(TTS_WS_URL,
+                            header={'Authorization': f'Bearer {API_KEY}'}, timeout=15)
+                        break
+                    except Exception as e:
+                        if '429' in str(e) or '5001' in str(e):
+                            if tts_attempt < 2:
+                                time.sleep(5)
+                                continue
+                        raise
+                if ws is None:
+                    raise RuntimeError('TTS API connection failed after retries')
 
-                with open(wav_path, 'rb') as f:
-                    audio_data = f.read()
+                ws.send(json.dumps({
+                    'session_id': f'tts-{int(time.time()*1000)}',
+                    'sample_rate': 16000, 'audio_format': 'pcm',
+                    'kbps': 128, 'speed': final_rate, 'energy': energy,
+                    'speaker_id': speaker_id, 'output_sample_rate': 24000
+                }))
+
+                with open(in_wav, 'rb') as f:
+                    f.read(44)  # skip WAV header
+                    while True:
+                        chunk = f.read(4096)
+                        if not chunk: break
+                        ws.send_binary(chunk)
+                        time.sleep(0.03)
+
+                for _ in range(30):
+                    ws.send_binary(bytes(4096))
+                    time.sleep(0.03)
+                ws.send(json.dumps({'eof': 1}))
+
+                # Step 3: 接收音频输出
+                audio_chunks = []
+                deadline = time.time() + 25
+                while time.time() < deadline:
+                    try:
+                        ws.settimeout(3)
+                        msg = ws.recv()
+                        if msg:
+                            data = json.loads(msg)
+                            b64 = data.get('audio', '')
+                            if b64:
+                                audio_chunks.append(base64.b64decode(b64))
+                            if data.get('status') in (2, 3):
+                                break
+                    except Exception:
+                        break
+                ws.close()
+
+                if not audio_chunks:
+                    raise RuntimeError('TTS API returned no audio')
+
+                # Step 4: PCM → WAV
+                pcm_data = b''.join(audio_chunks)
+                wav_buf = bytearray()
+                wav_buf += b'RIFF'
+                wav_buf += struct.pack('<I', 36 + len(pcm_data))
+                wav_buf += b'WAVEfmt '
+                wav_buf += struct.pack('<IHHIIHH', 16, 1, 1, 24000, 24000 * 2, 2, 16)
+                wav_buf += b'data'
+                wav_buf += struct.pack('<I', len(pcm_data))
+                wav_buf += pcm_data
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'audio/wav')
                 self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Content-Length', str(len(audio_data)))
+                self.send_header('Content-Length', str(len(wav_buf)))
                 self.end_headers()
-                self.wfile.write(audio_data)
+                self.wfile.write(bytes(wav_buf))
+
             finally:
-                for p in [aiff_path, wav_path]:
+                for p in [aiff_path, in_wav]:
                     if os.path.exists(p):
                         os.unlink(p)
 
