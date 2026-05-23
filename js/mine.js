@@ -145,31 +145,60 @@ function renderRiskProfile() {
 // ── Archive with Timeline ──
 function renderArchive() {
   const profile = Storage.get('qingzhou_userProfile') || {};
-  const fields = [
-    { key: 'goal', label: '投资目标' },
-    { key: 'horizon', label: '投资期限' },
-    { key: 'amount', label: '可投金额', format: v => v ? (v >= 10000 ? (v/10000).toFixed(0) + ' 万元' : v.toLocaleString() + ' 元') : '—' },
-    { key: 'income', label: '收入来源' },
-    { key: 'interests', label: '关注领域', format: v => Array.isArray(v) ? v.join('、') : (v || '—') }
+  const profile = Storage.get('qingzhou_userProfile') || {};
+  const risk = Storage.get('qingzhou_riskProfile');
+  const history = Storage.getProfileHistory();
+
+  // 分组展示，用卡片网格
+  const groups = [
+    { name:'基础画像', icon:'👤', fields:[
+      { key:'age', label:'年龄段', fmt:v=>v||'—', hint:'AI对话中提及' },
+      { key:'occupation', label:'职业', fmt:v=>v||'—', hint:'自由职业/上班族/退休等' },
+      { key:'income', label:'年收入', fmt:v=>v||'—', hint:'影响投资能力评估' },
+      { key:'family', label:'家庭状况', fmt:v=>v||'—', hint:'已婚/有子女/赡养老人' },
+    ]},
+    { name:'财务画像', icon:'💰', fields:[
+      { key:'amount', label:'可投金额', fmt:v=>v?(v>=10000?(v/10000).toFixed(0)+'万元':v.toLocaleString()+'元'):'—', hint:'可用于理财的总资金' },
+      { key:'horizon', label:'投资期限', fmt:v=>v||'—', hint:'短期<1年/中期1-3年/长期>3年' },
+      { key:'liquidity', label:'流动性需求', fmt:v=>v||'—', hint:'是否需要随时可取用' },
+      { key:'existingAssets', label:'现有资产', fmt:v=>v||'—', hint:'房产/股票/基金/存款等' },
+      { key:'liabilities', label:'负债情况', fmt:v=>v||'—', hint:'房贷/车贷/信用贷等' },
+    ]},
+    { name:'投资偏好', icon:'🎯', fields:[
+      { key:'goal', label:'投资目标', fmt:v=>v||'—', hint:'教育/养老/购房/财富增值' },
+      { key:'experience', label:'投资经验', fmt:v=>v||'—', hint:'几乎没有/1-3年/3年以上' },
+      { key:'interests', label:'关注领域', fmt:v=>Array.isArray(v)?v.join('、'):(v||'—'), hint:'固收/指数/ESG/科技等' },
+      { key:'riskComfort', label:'风险态度', fmt:v=>v||(risk?risk.label:'—'), hint:'来自风险评估+对话' },
+    ]},
   ];
 
-  const history = Storage.getProfileHistory();
   let html = '';
-
-  fields.forEach(f => {
-    const val = profile[f.key];
-    const display = f.format ? f.format(val) : (val || '—');
-    html += `<div class="archive-field">
-      <div>
-        <div class="f-label">${f.label}</div>
-        <div class="f-value" id="archiveVal-${f.key}">${display}</div>
-      </div>
-      <div class="f-actions">
-        <button class="edit-btn" onclick="editArchiveField('${f.key}','${f.label}','${(val||'').toString().replace(/'/g,"\\'")}')">✎</button>
-        <button class="edit-btn" onclick="toggleTimeline(this,'${f.key}')">🕐</button>
-      </div>
-      <div style="display:none;width:100%;padding:8px 0 0 0;font-size:12px;color:#6B7A8C;" id="timeline-${f.key}"></div>
+  groups.forEach(g => {
+    const filled = g.fields.filter(f => profile[f.key]).length;
+    html += `<div style="margin-bottom:24px;">`;
+    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span style="font-size:16px;">${g.icon}</span>
+      <span style="font-size:13px;font-weight:700;color:#0F1A2A;">${g.name}</span>
+      <span style="font-size:11px;color:#6B7A8C;">${filled}/${g.fields.length} 项已填写</span>
     </div>`;
+    html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">`;
+
+    g.fields.forEach(f => {
+      const val = profile[f.key];
+      const display = f.fmt(val);
+      const isSet = val && val !== '';
+      html += `<div style="background:#fff;border:1px solid ${isSet?'#C8A45C':'#E4E8EC'};border-radius:12px;padding:14px 16px;transition:all .2s;cursor:pointer;"
+        onclick="editArchiveField('${f.key}','${f.label}','${(val||'').toString().replace(/'/g,"\\'")}')"
+        onmouseover="this.style.borderColor='#0A1628';this.style.boxShadow='0 2px 8px rgba(10,22,40,.06)'"
+        onmouseout="this.style.borderColor='${isSet?'#C8A45C':'#E4E8EC'}';this.style.boxShadow='none'"
+        title="点击编辑">`;
+      html += `<div style="font-size:11px;color:#6B7A8C;margin-bottom:4px;">${f.label}</div>`;
+      html += `<div style="font-size:15px;font-weight:600;color:${isSet?'#0F1A2A':'#A0ACB8'};" id="archiveVal-${f.key}">${display}</div>`;
+      html += `<div style="font-size:10px;color:#A0ACB8;margin-top:4px;">${isSet?'':f.hint}</div>`;
+      html += `</div>`;
+    });
+
+    html += `</div></div>`;
   });
 
   document.getElementById('archiveContent').innerHTML = html;
