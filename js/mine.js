@@ -124,18 +124,18 @@ function renderRiskProfile() {
   const risk = Storage.get('qingzhou_riskProfile');
   const detail = document.getElementById('riskDetail');
   if (!risk) {
-    detail.innerHTML = '<p style="color:#6B7A8C;font-size:13px;">尚未完成风险评估。轻舟会根据对话逐步了解您的风险偏好，您也可以主动开始评估。</p>';
+    detail.innerHTML = '<p style="color:#6B7A8C;font-size:var(--fs-sm);">尚未完成风险评估。轻舟会根据对话逐步了解您的风险偏好，您也可以主动开始评估。</p>';
     return;
   }
   const gaugePercent = (risk.score / 54) * 100;
   detail.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:20px;font-weight:700;">${risk.label}（${risk.level}）</span>
-      <span style="font-size:13px;color:#6B7A8C;">评分 ${risk.score}/54</span>
+      <span style="font-size:var(--fs-lg);font-weight:700;">${risk.label}（${risk.level}）</span>
+      <span style="font-size:var(--fs-sm);color:#6B7A8C;">评分 ${risk.score}/54</span>
     </div>
     <div class="risk-gauge"><div class="risk-dot" style="left:${gaugePercent}%;"></div></div>
     <div class="risk-labels"><span>保守</span><span>稳健</span><span>平衡</span><span>进取</span><span>激进</span></div>
-    <div style="margin-top:12px;font-size:13px;color:#3A4A5C;">
+    <div style="margin-top:12px;font-size:var(--fs-sm);color:#3A4A5C;">
       <div>可承受最大回撤：${risk.maxDrawdown}</div>
       <div>最大建议权益仓位：${parseInt(risk.maxEquityRatio * 100)}%</div>
     </div>
@@ -177,9 +177,9 @@ function renderArchive() {
     const filled = g.fields.filter(f => profile[f.key]).length;
     html += `<div style="margin-bottom:24px;">`;
     html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-      <span style="font-size:16px;">${g.icon}</span>
-      <span style="font-size:13px;font-weight:700;color:#0F1A2A;">${g.name}</span>
-      <span style="font-size:11px;color:#6B7A8C;">${filled}/${g.fields.length} 项已填写</span>
+      <span style="font-size:var(--fs-base);">${g.icon}</span>
+      <span style="font-size:var(--fs-sm);font-weight:700;color:#0F1A2A;">${g.name}</span>
+      <span style="font-size:var(--fs-sm);color:#6B7A8C;">${filled}/${g.fields.length} 项已填写</span>
     </div>`;
     html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">`;
 
@@ -192,9 +192,9 @@ function renderArchive() {
         onmouseover="this.style.borderColor='#0A1628';this.style.boxShadow='0 2px 8px rgba(10,22,40,.06)'"
         onmouseout="this.style.borderColor='${isSet?'#C8A45C':'#E4E8EC'}';this.style.boxShadow='none'"
         title="点击编辑">`;
-      html += `<div style="font-size:11px;color:#6B7A8C;margin-bottom:4px;">${f.label}</div>`;
-      html += `<div style="font-size:15px;font-weight:600;color:${isSet?'#0F1A2A':'#A0ACB8'};" id="archiveVal-${f.key}">${display}</div>`;
-      html += `<div style="font-size:10px;color:#A0ACB8;margin-top:4px;">${isSet?'':f.hint}</div>`;
+      html += `<div style="font-size:var(--fs-sm);color:#6B7A8C;margin-bottom:4px;">${f.label}</div>`;
+      html += `<div style="font-size:var(--fs-base);font-weight:600;color:${isSet?'#0F1A2A':'#A0ACB8'};" id="archiveVal-${f.key}">${display}</div>`;
+      html += `<div style="font-size:var(--fs-sm);color:#A0ACB8;margin-top:4px;">${isSet?'':f.hint}</div>`;
       html += `</div>`;
     });
 
@@ -212,7 +212,7 @@ function renderArchive() {
     list.innerHTML = items.length === 0
       ? '<div>暂无变更记录</div>'
       : items.map(h => `
-        <div style="padding:2px 0;font-size:11px;">
+        <div style="padding:2px 0;font-size:var(--fs-sm);">
           ${new Date(h.timestamp).toLocaleString('zh-CN')}
           [${({chat_extraction:'对话提取',manual_edit:'手动修改',risk_assessment:'风险评估',chat_confirmed:'对话确认',system_default:'系统默认'})[h.source]||h.source}]
           ${h.oldValue||'无'} → ${h.newValue}
