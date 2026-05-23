@@ -130,15 +130,13 @@ function applyFontSize(size) {
 
 // ══════ 语音预设（5种可选声音，映射到系统真实语音）══════
 const VOICE_PRESETS = [
-  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '甜美女生 · 温和亲切', rate: 0.95, pitch: 1.05, voiceName: 'female_sweet' },
-  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '温暖男生 · 低沉稳重', rate: 0.90, pitch: 0.90, voiceName: 'male_warm' },
-  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '甜美女生 · 轻快明亮', rate: 1.05, pitch: 1.15, voiceName: 'female_sweet' },
-  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '甜美女生 · 端庄知性', rate: 0.92, pitch: 1.00, voiceName: 'female_sweet' },
-  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '播客男生 · 温暖磁性', rate: 0.88, pitch: 0.95, voiceName: 'male_podcast' }
+  { id: 'female_sweet',   name: '甜美女生', icon: '🎙️', desc: '亲切温暖，自然流畅', rate: 1.3, pitch: 1.05, voiceName: 'female_sweet' },
+  { id: 'male_warm',      name: '温暖男生', icon: '🎧', desc: '低沉稳重，专业可信', rate: 1.3, pitch: 0.90, voiceName: 'male_warm' },
+  { id: 'male_podcast',   name: '播客男生', icon: '🎵', desc: '磁性醇厚，娓娓道来', rate: 1.3, pitch: 0.95, voiceName: 'male_podcast' }
 ];
 
 function getVoicePreset() {
-  const id = Storage.get(STORAGE_KEYS.VOICE_PRESET) || 'gentle-female';
+  const id = Storage.get(STORAGE_KEYS.VOICE_PRESET) || 'female_sweet';
   return VOICE_PRESETS.find(v => v.id === id) || VOICE_PRESETS[0];
 }
 

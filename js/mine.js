@@ -411,13 +411,11 @@ function startReassessment() {
 function renderVoicePresets() {
   const container = document.getElementById('voicePresetRow');
   if (!container) return;
-  const currentId = Storage.get('qingzhou_voicePreset') || 'gentle-female';
+  const currentId = Storage.get('qingzhou_voicePreset') || 'female_sweet';
   const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
-    { id: 'gentle-female', name: '温润女声', desc: '温和亲切，语速适中', icon: '🎙️' },
-    { id: 'deep-male', name: '沉稳男声', desc: '低沉稳重，专业可信', icon: '🎧' },
-    { id: 'lively-female', name: '活泼女声', desc: '轻快明亮，有节奏感', icon: '🎵' },
-    { id: 'soft-female', name: '知性女声', desc: '端庄知性，娓娓道来', icon: '🎶' },
-    { id: 'warm-male', name: '磁性男声', desc: '温暖磁性，娓娓道来', icon: '📻' }
+    { id: 'female_sweet', name: '甜美女生', desc: '亲切温暖，自然流畅', icon: '🎙️' },
+    { id: 'male_warm', name: '温暖男生', desc: '低沉稳重，专业可信', icon: '🎧' },
+    { id: 'male_podcast', name: '播客男生', desc: '磁性醇厚，娓娓道来', icon: '🎵' }
   ];
   container.innerHTML = presets.map(v => `
     <div class="voice-row${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
@@ -448,11 +446,9 @@ function previewVoice(id) {
   }
 
   const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
-    { id: 'gentle-female', name: '温润女声', rate: 0.95 },
-    { id: 'deep-male', name: '沉稳男声', rate: 0.90 },
-    { id: 'lively-female', name: '活泼女声', rate: 1.05 },
-    { id: 'soft-female', name: '知性女声', rate: 0.92 },
-    { id: 'warm-male', name: '磁性男声', rate: 0.88 }
+    { id: 'female_sweet', name: '甜美女生', rate: 1.3 },
+    { id: 'male_warm', name: '温暖男生', rate: 1.3 },
+    { id: 'male_podcast', name: '播客男生', rate: 1.3 }
   ];
   const preset = presets.find(v => v.id === id) || presets[0];
   const text = '您好，我是轻舟，您的智慧银行理财顾问。很高兴为您服务。';

@@ -407,7 +407,7 @@ function speakText(text, onEnd) {
   const cleanText = text.replace(/⚠️[^]*/g, '').replace(/\n\n/g, '。').replace(/\n/g, '').trim();
   if (!cleanText) { if (onEnd) onEnd(); return; }
 
-  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { id: 'gentle-female', rate: 0.95 };
+  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { id: 'female_sweet', rate: 1.3 };
   const voiceId = preset.id || 'gentle-female';
 
   // 优先使用 server.py TTS（macOS say 命令，音质好）

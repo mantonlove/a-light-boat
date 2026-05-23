@@ -14,11 +14,9 @@ _last_tts_call = 0
 
 # 元景语音交互3.0 音色映射（高自然度）
 VOICE_SPEAKER = {
-    'gentle-female':  ('female_sweet',  0.95, 1.0),   # 甜美女生
-    'deep-male':      ('male_warm',     0.90, 1.0),   # 温暖男生
-    'lively-female':  ('female_sweet',  1.08, 1.05),  # 甜美女生(快)
-    'soft-female':    ('female_sweet',  0.90, 0.95),  # 甜美女生(柔)
-    'warm-male':      ('male_podcast',  0.88, 1.0),   # 播客男生
+    'female_sweet':  ('female_sweet',  0.95, 1.0),   # 甜美女生
+    'male_warm':     ('male_warm',     0.90, 1.0),   # 温暖男生
+    'male_podcast':  ('male_podcast',  0.92, 1.0),   # 播客男生
 }
 
 class ProxyHandler(http.server.SimpleHTTPRequestHandler):
