@@ -240,9 +240,10 @@ async function sendMessage() {
   removeImage();
 
   // 保存用户消息到历史（在所有 early return 之前）
-  const history = Storage.get('qingzhou_chatHistory') || [];
-  history.push({ role: 'user', content: text, timestamp: new Date().toISOString() });
-  Storage.set('qingzhou_chatHistory', history);
+  Storage.set('qingzhou_chatHistory', [
+    ...(Storage.get('qingzhou_chatHistory') || []),
+    { role: 'user', content: text, timestamp: new Date().toISOString() }
+  ]);
 
   // 重新测评 —— 先显示用户消息+清空输入框，再弹问卷
   if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
@@ -254,8 +255,10 @@ async function sendMessage() {
   if (route.action === 'compliance_block') {
     const replyText = '⚠️ 理财非存款，产品有风险，投资须谨慎。我不能对产品收益做出任何保证或承诺。您可以通过我行 APP 查看产品的完整风险说明书和过往业绩后再做判断。如有疑问，欢迎随时咨询。';
     addMessage('ai', replyText);
-    history.push({ role: 'ai', content: replyText, timestamp: new Date().toISOString(), isFallback: true });
-    Storage.set('qingzhou_chatHistory', history);
+    Storage.set('qingzhou_chatHistory', [
+      ...(Storage.get('qingzhou_chatHistory') || []),
+      { role: 'ai', content: replyText, timestamp: new Date().toISOString(), isFallback: true }
+    ]);
     return;
   }
 
@@ -295,8 +298,10 @@ async function sendMessage() {
     showToast(result.toast);
   }
 
-  history.push({ role: 'ai', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
-  Storage.set('qingzhou_chatHistory', history);
+  // 重新读取 history（并发调用时避免覆盖其他 sendMessage 写入的数据）
+  const latestHistory = Storage.get('qingzhou_chatHistory') || [];
+  latestHistory.push({ role: 'ai', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
+  Storage.set('qingzhou_chatHistory', latestHistory);
 
   scrollToBottom();
 }
