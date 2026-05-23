@@ -159,32 +159,33 @@ function renderArchive() {
   fields.forEach(f => {
     const val = profile[f.key];
     const display = f.format ? f.format(val) : (val || '—');
-    html += `<div class="toggle-row" style="flex-wrap:wrap;">
-      <div style="flex:1;">
-        <div class="toggle-label">${f.label}</div>
-        <span style="font-size:var(--font-size-msg);font-weight:600;" id="archiveVal-${f.key}">${display}</span>
-        <button class="retry-btn" style="padding:2px 8px;font-size:11px;margin-left:8px;" onclick="editArchiveField('${f.key}','${f.label}','${escapeHtml(String(val||''))}')">✎ 编辑</button>
-        <button class="timeline-toggle" onclick="toggleTimeline(this, '${f.key}')">🕐</button>
-        <div class="timeline-list" id="timeline-${f.key}"></div>
+    html += `<div class="archive-field">
+      <div>
+        <div class="f-label">${f.label}</div>
+        <div class="f-value" id="archiveVal-${f.key}">${display}</div>
       </div>
+      <div class="f-actions">
+        <button class="edit-btn" onclick="editArchiveField('${f.key}','${f.label}','${(val||'').toString().replace(/'/g,"\\'")}')">✎</button>
+        <button class="edit-btn" onclick="toggleTimeline(this,'${f.key}')">🕐</button>
+      </div>
+      <div style="display:none;width:100%;padding:8px 0 0 0;font-size:12px;color:#6B7A8C;" id="timeline-${f.key}"></div>
     </div>`;
   });
 
-  html += '<div style="text-align:center;margin-top:12px;"><button class="retry-btn" onclick="showToast(\'档案已导出（模拟）\')">导出档案</button></div>';
   document.getElementById('archiveContent').innerHTML = html;
 
+  // Timeline population
   fields.forEach(f => {
     const list = document.getElementById('timeline-' + f.key);
     if (!list) return;
     const items = history.filter(h => h.field === f.key);
     list.innerHTML = items.length === 0
-      ? '<div class="timeline-item" style="color:var(--text-muted);">暂无变更记录</div>'
+      ? '<div>暂无变更记录</div>'
       : items.map(h => `
-        <div class="timeline-item">
-          <span class="time">${new Date(h.timestamp).toLocaleString('zh-CN')}</span>
-          <span class="source">[${({chat_extraction:'对话提取',manual_edit:'手动修改',risk_assessment:'风险评估',chat_confirmed:'对话确认',system_default:'系统默认'})[h.source]||h.source}]</span>
-          ${h.oldValue || '无'} → ${h.newValue}
-          ${h.context ? '<br><span style="color:var(--text-muted);">"' + h.context + '"</span>' : ''}
+        <div style="padding:2px 0;font-size:11px;">
+          ${new Date(h.timestamp).toLocaleString('zh-CN')}
+          [${({chat_extraction:'对话提取',manual_edit:'手动修改',risk_assessment:'风险评估',chat_confirmed:'对话确认',system_default:'系统默认'})[h.source]||h.source}]
+          ${h.oldValue||'无'} → ${h.newValue}
         </div>
       `).join('');
   });
@@ -193,7 +194,7 @@ function renderArchive() {
 window.toggleTimeline = function(btn, key) {
   const list = document.getElementById('timeline-' + key);
   if (!list) return;
-  list.classList.toggle('open');
+  list.style.display = list.style.display === 'none' ? 'block' : 'none';
 };
 
 // ── Preferences ──
