@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function goBack() {
-  window.location.href = 'chat.html?mode=' + currentMode;
+  window.location.href = 'chat.html?mode=' + (Storage.get('qingzhou_mode') || currentMode);
 }
 
 // ── Mode Selector ──
@@ -61,8 +61,8 @@ function renderModeSelector() {
   container.innerHTML = '';
   modes.forEach(m => {
     const div = document.createElement('div');
-    div.className = 'mode-option' + (currentMode === m.id ? ' active' : '');
-    div.innerHTML = `<div style="font-size:24px;">${m.icon}</div><div>${m.name}</div>`;
+    div.className = 'mode-opt' + (currentMode === m.id ? ' active' : '');
+    div.innerHTML = `<div class="icon">${m.icon}</div><div class="label">${m.name}</div>`;
     div.onclick = () => {
       currentMode = m.id;
       Storage.set('qingzhou_mode', m.id);
@@ -95,7 +95,7 @@ function renderFontSize() {
   row.innerHTML = '';
   sizes.forEach(s => {
     const btn = document.createElement('span');
-    btn.className = 'font-option' + (current === s.id ? ' active' : '');
+    btn.className = 'font-opt' + (current === s.id ? ' active' : '');
     btn.textContent = s.label;
     btn.onclick = () => {
       Storage.set('qingzhou_fontSize', s.id);
