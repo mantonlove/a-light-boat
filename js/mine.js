@@ -58,7 +58,7 @@ function switchMode() {
   currentMode = modes[(idx + 1) % 3];
   Storage.set('qingzhou_mode', currentMode);
   document.body.className = 'mode-' + currentMode;
-  document.getElementById('modeBadge').textContent = MODE_NAMES[currentMode] || '经典版';
+  // mode badge removed from header
   applyFontSize(Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium');
   renderModeSelector();
   showToast('已切换到 ' + (MODE_NAMES[currentMode] || '经典版'));
