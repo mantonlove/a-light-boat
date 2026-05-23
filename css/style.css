@@ -242,3 +242,58 @@ body.mode-youth .send-btn { background: #5C3AE8; }
 
 .hidden { display: none !important; }
 .text-center { text-align: center; }
+
+/* ══ 风险偏好问卷 ══ */
+.quiz-inline {
+  background: var(--surface-0);
+  border: 1.5px solid var(--gold-500);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+}
+.quiz-inline .quiz-progress {
+  font-size: var(--font-size-xs);
+  color: var(--gold-500);
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.quiz-inline .quiz-question {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-900);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+.quiz-inline .quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quiz-inline .quiz-option {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--surface-200);
+  cursor: pointer;
+  font-size: 15px;
+  transition: all 0.15s ease;
+  text-align: left;
+  background: var(--surface-50);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-900);
+}
+.quiz-inline .quiz-option:hover {
+  border-color: var(--navy-700);
+  background: var(--navy-100);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-sm);
+}
+.quiz-inline .quiz-option:active {
+  background: var(--navy-800);
+  color: #fff;
+  transform: scale(0.98);
+}
