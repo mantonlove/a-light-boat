@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   MODE: 'qingzhou_mode',
   FONT_SIZE: 'qingzhou_fontSize',
   VOICE_ENABLED: 'qingzhou_voiceEnabled',
+  VOICE_PRESET: 'qingzhou_voicePreset',
   RISK_PROFILE: 'qingzhou_riskProfile',
   USER_INFO: 'qingzhou_userInfo',
   USER_PROFILE: 'qingzhou_userProfile',
@@ -125,4 +126,18 @@ function applyFontSize(size) {
   document.documentElement.style.setProperty('--fs-sm', (pxi-3)+'px');
   document.documentElement.style.setProperty('--fs-lg', (pxi+6)+'px');
   document.documentElement.style.setProperty('--fs-xl', (pxi+14)+'px');
+}
+
+// ══════ 语音预设（5种可选声音）══════
+const VOICE_PRESETS = [
+  { id: 'gentle-female',  name: '温润女声', icon: '🎙️', desc: '温和亲切，语速适中', rate: 0.90, pitch: 1.10 },
+  { id: 'deep-male',      name: '沉稳男声', icon: '🎧', desc: '低沉稳重，专业可信', rate: 0.85, pitch: 0.75 },
+  { id: 'lively-female',  name: '活泼女声', icon: '🎵', desc: '轻快明亮，有节奏感', rate: 1.05, pitch: 1.30 },
+  { id: 'soft-female',    name: '知性女声', icon: '🎶', desc: '端庄知性，娓娓道来', rate: 0.92, pitch: 1.05 },
+  { id: 'warm-male',      name: '磁性男声', icon: '📻', desc: '温暖磁性，娓娓道来', rate: 0.82, pitch: 0.85 }
+];
+
+function getVoicePreset() {
+  const id = Storage.get(STORAGE_KEYS.VOICE_PRESET) || 'gentle-female';
+  return VOICE_PRESETS.find(v => v.id === id) || VOICE_PRESETS[0];
 }

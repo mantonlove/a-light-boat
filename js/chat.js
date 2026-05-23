@@ -278,10 +278,10 @@ async function sendMessage() {
   const replyHtml = escapeHtml(result.reply).replace(/\n/g, '<br>');
   const msgEl = addMessage('ai', replyHtml, result.isFallback);
 
-  // TTS for any mode with voice enabled
+  // 始终显示播放按钮；语音开启时自动朗读
+  addTtsButton(msgEl, result.reply);
   const voiceEnabled = Storage.get('qingzhou_voiceEnabled');
   if (voiceEnabled) {
-    addTtsButton(msgEl, result.reply);
     speakText(result.reply, () => {
       setTimeout(() => {
         if (Storage.get('qingzhou_voiceEnabled') && !isListening) {
@@ -289,9 +289,6 @@ async function sendMessage() {
         }
       }, 1500);
     });
-  } else if (currentMode === 'senior') {
-    // 关怀版即使未开自动朗读也显示播放按钮
-    addTtsButton(msgEl, result.reply);
   }
 
   if (result.toast && !result.isFallback) {
@@ -377,17 +374,23 @@ function addTtsButton(msgEl, text) {
   const bubble = msgEl.querySelector('.bubble');
   const btn = document.createElement('button');
   btn.className = 'tts-btn';
-  btn.textContent = '🔊';
-  btn.onclick = () => {
+  btn.title = '播放语音';
+  // SVG 扬声器图标（无 emoji）
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+  btn.onclick = (e) => {
+    e.stopPropagation();
     if (btn.classList.contains('playing')) {
       speechSynthesis.cancel();
       btn.classList.remove('playing');
-      btn.textContent = '🔊';
+      btn.title = '播放语音';
       return;
     }
     btn.classList.add('playing');
-    btn.textContent = '⏸';
-    speakText(text, () => { btn.classList.remove('playing'); btn.textContent = '🔊'; });
+    btn.title = '停止播放';
+    speakText(text, () => {
+      btn.classList.remove('playing');
+      btn.title = '播放语音';
+    });
   };
   bubble.appendChild(btn);
 }
@@ -395,10 +398,32 @@ function addTtsButton(msgEl, text) {
 function speakText(text, onEnd) {
   if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
   speechSynthesis.cancel();
-  const cleanText = text.replace(/⚠️.*/s, '').replace(/\n\n/g, '。').trim();
+
+  // Remove compliance tag and clean text
+  const cleanText = text.replace(/⚠️[^]*/g, '').replace(/\n\n/g, '。').replace(/\n/g, '').trim();
+  if (!cleanText) { if (onEnd) onEnd(); return; }
+
   const utterance = new SpeechSynthesisUtterance(cleanText);
   utterance.lang = 'zh-CN';
-  utterance.rate = 0.85;
+
+  // Apply voice preset
+  const preset = typeof getVoicePreset === 'function' ? getVoicePreset() : { rate: 0.9, pitch: 1.0 };
+  utterance.rate = preset.rate;
+  utterance.pitch = preset.pitch;
+
+  // Try to find a matching system voice
+  if ('speechSynthesis' in window) {
+    const voices = speechSynthesis.getVoices();
+    const zhVoices = voices.filter(v => v.lang.startsWith('zh'));
+    if (zhVoices.length > 0) {
+      // Prefer female voice for female presets, male for male presets
+      const wantFemale = preset.id.includes('female');
+      const match = zhVoices.find(v => wantFemale ? v.name.includes('Female') || v.name.includes('Tingting') || v.name.includes('Xiaoxiao') : v.name.includes('Male') || v.name.includes('Yunxi'));
+      if (match) utterance.voice = match;
+      else if (zhVoices.length > 0) utterance.voice = zhVoices[0];
+    }
+  }
+
   if (onEnd) utterance.onend = onEnd;
   speechSynthesis.speak(utterance);
 }

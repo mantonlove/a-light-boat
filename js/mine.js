@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderModeSelector();
   renderFontSize();
   renderVoiceToggle();
+  renderVoicePresets();
   renderRiskProfile();
   renderArchive();
   renderPrefs();
@@ -404,6 +405,65 @@ function escapeHtml(str) {
 
 function startReassessment() {
   window.location.href = 'chat.html?mode=' + currentMode + '&action=reassess';
+}
+
+// ── Voice Preset Selection ──
+function renderVoicePresets() {
+  const row = document.getElementById('voicePresetRow');
+  if (!row) return;
+  const currentId = Storage.get('qingzhou_voicePreset') || 'gentle-female';
+  const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
+    { id: 'gentle-female', name: '温润女声', icon: '🎙️', desc: '温和亲切，语速适中' },
+    { id: 'deep-male', name: '沉稳男声', icon: '🎧', desc: '低沉稳重，专业可信' },
+    { id: 'lively-female', name: '活泼女声', icon: '🎵', desc: '轻快明亮，有节奏感' },
+    { id: 'soft-female', name: '知性女声', icon: '🎶', desc: '端庄知性，娓娓道来' },
+    { id: 'warm-male', name: '磁性男声', icon: '📻', desc: '温暖磁性，娓娓道来' }
+  ];
+  row.innerHTML = presets.map(v => `
+    <div class="voice-opt${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
+      <div class="voice-icon">${v.icon}</div>
+      <div class="voice-name">${v.name}</div>
+      <div class="voice-desc">${v.desc}</div>
+      <button class="voice-preview" onclick="event.stopPropagation();previewVoice('${v.id}')">试听</button>
+    </div>
+  `).join('');
+}
+
+function selectVoice(id) {
+  Storage.set('qingzhou_voicePreset', id);
+  renderVoicePresets();
+  showToast('语音音色已切换');
+}
+
+function previewVoice(id) {
+  if (!('speechSynthesis' in window)) { showToast('您的浏览器不支持语音合成'); return; }
+  speechSynthesis.cancel();
+
+  const presets = typeof VOICE_PRESETS !== 'undefined' ? VOICE_PRESETS : [
+    { id: 'gentle-female', rate: 0.90, pitch: 1.10 },
+    { id: 'deep-male', rate: 0.85, pitch: 0.75 },
+    { id: 'lively-female', rate: 1.05, pitch: 1.30 },
+    { id: 'soft-female', rate: 0.92, pitch: 1.05 },
+    { id: 'warm-male', rate: 0.82, pitch: 0.85 }
+  ];
+  const preset = presets.find(v => v.id === id) || presets[0];
+
+  const utterance = new SpeechSynthesisUtterance('您好，我是轻舟，您的智慧银行理财顾问。很高兴为您服务。');
+  utterance.lang = 'zh-CN';
+  utterance.rate = preset.rate;
+  utterance.pitch = preset.pitch;
+
+  const voices = speechSynthesis.getVoices();
+  const zhVoices = voices.filter(v => v.lang.startsWith('zh'));
+  if (zhVoices.length > 0) {
+    const wantFemale = id.includes('female');
+    const match = zhVoices.find(v => wantFemale ? v.name.includes('Female') || v.name.includes('Tingting') || v.name.includes('Xiaoxiao') : v.name.includes('Male') || v.name.includes('Yunxi'));
+    if (match) utterance.voice = match;
+    else utterance.voice = zhVoices[0];
+  }
+
+  speechSynthesis.speak(utterance);
+  showToast('试听中...');
 }
 
 function showToast(msg) {
