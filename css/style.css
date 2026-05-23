@@ -253,7 +253,7 @@ body.mode-youth .send-btn { background: #5C3AE8; }
   max-width: 480px;
 }
 .quiz-inline .quiz-progress {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--gold-500);
   font-weight: 700;
   margin-bottom: 16px;
@@ -261,7 +261,7 @@ body.mode-youth .send-btn { background: #5C3AE8; }
   text-transform: uppercase;
 }
 .quiz-inline .quiz-question {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 700;
   color: var(--text-900);
   margin-bottom: 20px;
