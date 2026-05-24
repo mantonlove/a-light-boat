@@ -396,16 +396,43 @@ function addBookmarkButton(msgEl, text) {
   const bubble = msgEl.querySelector('.bubble');
   const btn = document.createElement('button');
   btn.className = 'tts-btn';
-  btn.title = '收藏此回复';
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-  btn.onclick = (e) => {
-    e.stopPropagation();
-    const bookmarks = Storage.get('qingzhou_bookmarks') || [];
-    bookmarks.push({ text: text.slice(0, 200), timestamp: new Date().toISOString() });
-    Storage.set('qingzhou_bookmarks', bookmarks.slice(-20)); // 最多20条
+  const bookmarks = Storage.get('qingzhou_bookmarks') || [];
+  const alreadyBookmarked = bookmarks.some(b => b.text === text.slice(0, 200));
+
+  function updateIcon(bookmarked) {
+    btn.innerHTML = bookmarked
+      ? '<svg viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  }
+
+  updateIcon(alreadyBookmarked);
+  if (alreadyBookmarked) {
     btn.style.color = 'var(--gold)';
     btn.style.borderColor = 'var(--gold)';
-    showToast('已收藏');
+  }
+  btn.title = alreadyBookmarked ? '取消收藏' : '收藏此回复';
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const currentBookmarks = Storage.get('qingzhou_bookmarks') || [];
+    const idx = currentBookmarks.findIndex(b => b.text === text.slice(0, 200));
+    if (idx >= 0) {
+      currentBookmarks.splice(idx, 1);
+      Storage.set('qingzhou_bookmarks', currentBookmarks);
+      updateIcon(false);
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.title = '收藏此回复';
+      showToast('已取消收藏');
+    } else {
+      currentBookmarks.push({ text: text.slice(0, 200), timestamp: new Date().toISOString() });
+      Storage.set('qingzhou_bookmarks', currentBookmarks.slice(-20));
+      updateIcon(true);
+      btn.style.color = 'var(--gold)';
+      btn.style.borderColor = 'var(--gold)';
+      btn.title = '取消收藏';
+      showToast('已收藏');
+    }
   };
   bubble.appendChild(btn);
 }
