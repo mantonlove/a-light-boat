@@ -282,8 +282,9 @@ async function sendMessage() {
   const replyHtml = escapeHtml(result.reply).replace(/\n/g, '<br>');
   const msgEl = addMessage('ai', replyHtml, result.isFallback);
 
-  // 白盒解释：检测到推荐内容时，追加推荐逻辑说明
-  if (/推荐|配置|建议|适合|方案/.test(result.reply) && typeof buildExplanation === 'function') {
+  // 白盒解释：仅在真正推荐了具体产品时显示
+  const hasProductRecommendation = /(?:推荐|配置).{0,20}(?:R\d|产品|组合|方案).{0,30}(?:%\s*(?:·|，|。|$))/.test(result.reply) || /您推荐.{0,30}(?:配置|组合)/.test(result.reply);
+  if (hasProductRecommendation && typeof buildExplanation === 'function') {
     const explanation = buildExplanation();
     if (explanation.summary) {
       const explainDiv = document.createElement('div');
@@ -298,11 +299,13 @@ async function sendMessage() {
     }
   }
 
-  // 收藏按钮
-  addBookmarkButton(msgEl, result.reply);
+  // 收藏按钮：仅在有价值的回复上显示（非引导/非追问）
+  const isWorthBookmarking = !/需要先|请先|点击|完成.*评估|完成.*问卷|告诉我|方便告诉/.test(result.reply);
+  if (isWorthBookmarking) {
+    addBookmarkButton(msgEl, result.reply);
+  }
 
-  // 始终显示播放按钮；语音开启时自动朗读
-  addTtsButton(msgEl, result.reply);
+  // 语音播报（仅在mine页开启时自动朗读，不显示播放按钮）
   const voiceEnabled = Storage.get('qingzhou_voiceEnabled');
   if (voiceEnabled) {
     speakText(result.reply, () => {
@@ -353,13 +356,6 @@ function addMessage(role, content, isFallback = false) {
 
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-
-  if (isFallback) {
-    const badge = document.createElement('span');
-    badge.className = 'fallback-badge';
-    badge.textContent = '离线模式 · 基于本地知识库';
-    bubble.appendChild(badge);
-  }
 
   const contentDiv = document.createElement('div');
   contentDiv.innerHTML = content;

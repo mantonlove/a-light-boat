@@ -147,7 +147,7 @@ function findFallback(userInput, mode) {
     if (risk) {
       comfortText += `\n\n您的风险等级是 ${risk.level} ${risk.label}，可承受最大回撤 ${risk.maxDrawdown}。当前波动在您的承受范围内。`;
     }
-    comfortText += '\n\n如果您愿意，我可以帮您：① 看看您持有的产品受影响大不大 ② 重新评估是否需调整配置 ③ 聊聊更保守的选项。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。';
+    comfortText += '\n\n如果您愿意，我可以帮您：① 看看您持有的产品受影响大不大 ② 重新评估是否需调整配置 ③ 聊聊更保守的选项。';
     return { id: 'sentiment_comfort', text: comfortText, isFallback: true };
   }
 
@@ -177,9 +177,9 @@ function findFallback(userInput, mode) {
     // 没有风险评估 → 引导先评估
     if (!risk) {
       const guideTexts = {
-        classic: '在为您推荐产品之前，我需要先了解您的风险偏好。点击下方消息中的"重新测试风险评估"按钮，完成 8 道简单题目（约 2 分钟），我就能为您精准匹配产品。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
-        senior: '叔叔/阿姨，推荐产品之前，我先帮您做个小测评——就 8 道题，看看您的钱适合哪种风险等级。测完了，我帮您找最合适的产品，这样心里有底。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
-        youth: '推荐之前先跑个风险画像——8 题，2 分钟。有了 R 等级才能精准匹配，不然都是盲推。试试说"重新测试我的风险评估结果"。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
+        classic: '在为您推荐产品之前，我需要先了解您的风险偏好。您可以跟我说"重新测试我的风险评估结果"，完成 8 道简单题目（约 2 分钟），我就能为您精准匹配产品。',
+        senior: '叔叔/阿姨，推荐产品之前，我先帮您做个小测评——就 8 道题，看看您的钱适合哪种风险等级。测完了，我帮您找最合适的产品，这样心里有底。',
+        youth: '推荐之前先跑个风险画像——8 题，2 分钟。有了 R 等级才能精准匹配，不然都是盲推。试试说"重新测试我的风险评估结果"。'
       };
       return { id: 'profile_guide', text: guideTexts[mode] || guideTexts.classic, isFallback: true };
     }
@@ -190,9 +190,9 @@ function findFallback(userInput, mode) {
       if (!finance?.amount) missing.push('可投金额');
       if (!finance?.horizon) missing.push('投资期限');
       const askTexts = {
-        classic: `您的风险评估结果是 ${risk.level} ${risk.label}。为了给您更精准的建议，还需要了解：${missing.join(' 和 ')}。您方便告诉我吗？\n\n例如："我有 20 万，3 年不用"\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`,
-        senior: `叔叔/阿姨，风险测评出来了——您是 ${risk.label}。接下来我想知道：您大概有多少钱可以拿来理财？这笔钱多久不会用到？您告诉我，我帮您算得准准的。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`,
-        youth: `风险画像：${risk.level} ${risk.label}。还差两个关键参数：① 可投金额 ② 投资期限。报一下，我直接跑配置。格式："20 万，3 年不用"\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`
+        classic: `您的风险评估结果是 ${risk.level} ${risk.label}。为了给您更精准的建议，还需要了解：${missing.join(' 和 ')}。您方便告诉我吗？\n\n例如："我有 20 万，3 年不用"`,
+        senior: `叔叔/阿姨，风险测评出来了——您是 ${risk.label}。接下来我想知道：您大概有多少钱可以拿来理财？这笔钱多久不会用到？您告诉我，我帮您算得准准的。`,
+        youth: `风险画像：${risk.level} ${risk.label}。还差两个关键参数：① 可投金额 ② 投资期限。报一下，我直接跑配置。格式："20 万，3 年不用"`
       };
       return { id: 'profile_incomplete', text: askTexts[mode] || askTexts.classic, isFallback: true };
     }
@@ -250,8 +250,8 @@ function findFallback(userInput, mode) {
     return {
       id: 'contextual_fallback',
       text: mode === 'senior'
-        ? '叔叔/阿姨，我听着呢。您想了解什么？比如看看产品、问问市场，或者跟我说说您有多少钱想理财？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
-        : '我在这里。您可以问我产品推荐、市场解读、风险评估，或者告诉我您的资金情况，我帮您规划。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
+        ? '叔叔/阿姨，我听着呢。您想了解什么？比如看看产品、问问市场，或者跟我说说您有多少钱想理财？'
+        : '我在这里。您可以问我产品推荐、市场解读、风险评估，或者告诉我您的资金情况，我帮您规划。',
       isFallback: true
     };
   }
@@ -259,8 +259,8 @@ function findFallback(userInput, mode) {
   return {
     id: 'generic_fallback',
     text: mode === 'senior'
-      ? '网络好像有点慢，您别急。要不您再试一次，或者换个方式问我？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
-      : '网络似乎不太稳定，请稍后重试。您也可以换个方式提问。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
+      ? '网络好像有点慢，您别急。要不您再试一次，或者换个方式问我？'
+      : '网络似乎不太稳定，请稍后重试。您也可以换个方式提问。',
     isFallback: true
   };
 }
