@@ -295,6 +295,9 @@ async function sendMessage() {
     }
   }
 
+  // 收藏按钮
+  addBookmarkButton(msgEl, result.reply);
+
   // 始终显示播放按钮；语音开启时自动朗读
   addTtsButton(msgEl, result.reply);
   const voiceEnabled = Storage.get('qingzhou_voiceEnabled');
@@ -383,6 +386,25 @@ function addLoadingDots() {
   div.appendChild(bubble);
   container.appendChild(div);
   return { remove: () => div.remove() };
+}
+
+// ── Bookmark ──
+function addBookmarkButton(msgEl, text) {
+  const bubble = msgEl.querySelector('.bubble');
+  const btn = document.createElement('button');
+  btn.className = 'tts-btn';
+  btn.title = '收藏此回复';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const bookmarks = Storage.get('qingzhou_bookmarks') || [];
+    bookmarks.push({ text: text.slice(0, 200), timestamp: new Date().toISOString() });
+    Storage.set('qingzhou_bookmarks', bookmarks.slice(-20)); // 最多20条
+    btn.style.color = 'var(--gold)';
+    btn.style.borderColor = 'var(--gold)';
+    showToast('已收藏');
+  };
+  bubble.appendChild(btn);
 }
 
 // ── TTS ──

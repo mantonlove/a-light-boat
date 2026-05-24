@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRiskProfile();
   renderArchive();
   renderPrefs();
+  renderBookmarks();
 
   // 画像完善度
   renderProfileCompletion();
@@ -470,6 +471,34 @@ function escapeHtml(str) {
 function startReassessment() {
   window.location.href = 'chat.html?mode=' + currentMode + '&action=reassess';
 }
+
+// ── Bookmarks ──
+function renderBookmarks() {
+  const el = document.getElementById('bookmarksList');
+  if (!el) return;
+  const bookmarks = Storage.get('qingzhou_bookmarks') || [];
+  if (bookmarks.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--ink-40);padding:8px">暂无收藏。在聊天中点击 ⭐ 按钮收藏有价值的 AI 回复。</div>';
+    return;
+  }
+  el.innerHTML = bookmarks.slice().reverse().map((b, i) => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--ink-70);line-height:1.6;white-space:pre-wrap">${escapeHtml(b.text)}</div>
+        <div style="font-size:10px;color:var(--ink-40);margin-top:4px">${new Date(b.timestamp).toLocaleString('zh-CN')}</div>
+      </div>
+      <span style="font-size:10px;color:#EF4444;cursor:pointer;flex-shrink:0" onclick="deleteBookmark(${bookmarks.length-1-i})">删除</span>
+    </div>
+  `).join('');
+}
+
+window.deleteBookmark = function(idx) {
+  const bookmarks = Storage.get('qingzhou_bookmarks') || [];
+  bookmarks.splice(idx, 1);
+  Storage.set('qingzhou_bookmarks', bookmarks);
+  renderBookmarks();
+  showToast('已删除');
+};
 
 // ── Voice Preset Selection ──
 function renderVoicePresets() {

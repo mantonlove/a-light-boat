@@ -61,14 +61,14 @@ function renderRecommendations() {
     </div>
     <div class="product-grid">
       ${allocation.allocation.map((a,i) => `
-        <div class="product-card" onclick="sendToChat('${(a.name||'').replace(/'/g,"\\'")}')">
+        <div class="product-card">
           <div class="pc-header">
             <span class="pc-name">${a.name || '产品'}</span>
             <span class="risk-badge risk-r${(a.risk||'R3').replace('R','')}">${a.risk || 'R3'}</span>
           </div>
           <div class="pc-meta">点击查看详情</div>
           <div class="pc-actions">
-            <span class="pc-detail">查看详情 →</span>
+            <span class="pc-detail" onclick="showProductDetail('${(a.name||'').replace(/'/g,"\\'")}')">查看详情 →</span>
             <span class="pc-send" onclick="event.stopPropagation();sendToChat('${(a.name||'').replace(/'/g,"\\'")}')">发送至聊天 ↗</span>
           </div>
         </div>
@@ -311,6 +311,60 @@ window.generateReport = function() {
 function sendToChat(productName) {
   window.location.href = 'chat.html?mode=' + currentMode + '&q=' + encodeURIComponent('帮我看看' + productName);
 }
+
+// ── 产品详情弹窗 ──
+window.showProductDetail = function(productName) {
+  const modal = document.getElementById('productModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  // 从产品数据中查找完整信息
+  let product = null;
+  if (typeof getProductData === 'function') {
+    const all = getProductData();
+    product = all?.find(p => p.name === productName || p.product_id === productName);
+  }
+
+  // 底层资产
+  const underlying = typeof getUnderlyingAssets === 'function' ? getUnderlyingAssets(productName) : null;
+
+  document.getElementById('productModalTitle').textContent = productName;
+  document.getElementById('productModalBody').innerHTML = product ? `
+    <div style="line-height:2.2;font-size:13px">
+      <div style="display:flex;gap:16px;margin-bottom:12px">
+        <div><span style="color:var(--ink-40)">风险等级</span><br><span class="risk-badge risk-r${(product.risk_level||'R3').replace('R','')}" style="margin-top:4px">${product.risk_level || 'R3'}</span></div>
+        <div><span style="color:var(--ink-40)">业绩基准</span><br><strong>${product.benchmark || '—'}</strong></div>
+        <div><span style="color:var(--ink-40)">封闭期</span><br><strong>${product.lock_period || '—'}</strong></div>
+      </div>
+      <div style="margin-bottom:12px"><span style="color:var(--ink-40)">起购金额</span><br><strong>${product.min_amount ? product.min_amount.toLocaleString() : '—'} 元</strong></div>
+      ${underlying ? `
+        <div style="margin-bottom:12px"><span style="color:var(--ink-40)">底层资产</span><br><strong>${underlying.assets.join('、')}</strong></div>
+        ${underlying.risk_note ? `<div style="margin-bottom:12px;padding:8px 12px;background:#FFF5F5;border-radius:6px;font-size:11px;color:#C53030">⚠️ ${underlying.risk_note}</div>` : ''}
+        ${underlying.risk_tags.length > 0 ? `<div style="margin-bottom:12px"><span style="color:var(--ink-40)">风险标签</span><br>${underlying.risk_tags.map(t=>'<span style="display:inline-block;margin:2px;padding:2px 8px;border-radius:4px;background:var(--ink-15);font-size:11px">'+t+'</span>').join('')}</div>` : ''}
+      ` : ''}
+      ${product.fee ? `<div style="margin-bottom:12px"><span style="color:var(--ink-40)">费率</span><br><strong>${product.fee}</strong></div>` : ''}
+      ${product.suitable_for?.length ? `<div><span style="color:var(--ink-40)">适合客群</span><br><strong>${product.suitable_for.join('、')}</strong></div>` : ''}
+    </div>
+  ` : `
+    <div style="line-height:2.2;font-size:13px">
+      <div style="margin-bottom:12px"><span style="color:var(--ink-40)">风险等级</span><br><span class="risk-badge risk-r3">R3</span></div>
+      ${underlying ? `
+        <div style="margin-bottom:12px"><span style="color:var(--ink-40)">底层资产</span><br><strong>${underlying.assets.join('、')}</strong></div>
+        ${underlying.risk_note ? `<div style="margin-bottom:12px;padding:8px 12px;background:#FFF5F5;border-radius:6px;font-size:11px;color:#C53030">⚠️ ${underlying.risk_note}</div>` : ''}
+      ` : '<div style="color:var(--ink-40)">详细产品信息请通过手机银行查看完整说明书</div>'}
+    </div>
+  `;
+
+  document.getElementById('productModalSend').onclick = () => {
+    closeProductModal();
+    sendToChat(productName);
+  };
+};
+
+window.closeProductModal = function() {
+  const modal = document.getElementById('productModal');
+  if (modal) modal.classList.add('hidden');
+};
 
 function showToast(msg) {
   const existing = document.querySelector('.toast');

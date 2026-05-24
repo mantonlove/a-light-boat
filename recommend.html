@@ -97,6 +97,15 @@
   </div>
 </div>
 
+<!-- Product Detail Modal -->
+<div class="modal-overlay hidden" id="productModal">
+  <div class="modal-box">
+    <div class="modal-head"><span id="productModalTitle">产品详情</span><button onclick="closeProductModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-40)">✕</button></div>
+    <div class="modal-body" id="productModalBody"></div>
+    <div class="modal-foot"><button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:14px" onclick="closeProductModal()">关闭</button><button class="btn-primary" style="padding:8px 18px;border-radius:8px;font-size:14px" id="productModalSend">发送至聊天 ↗</button></div>
+  </div>
+</div>
+
 <script src="js/storage.js?v=5"></script>
 <script src="js/profile_engine.js?v=5"></script>
 <script src="js/recommend.js?v=5"></script>
