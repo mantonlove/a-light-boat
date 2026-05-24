@@ -286,7 +286,8 @@ async function sendMessage() {
   const msgEl = addMessage('ai', replyHtml, result.isFallback);
 
   // 白盒解释：仅在真正推荐了具体产品时显示
-  const hasProductRecommendation = /(?:推荐|配置).{0,20}(?:R\d|产品|组合|方案).{0,30}(?:%\s*(?:·|，|。|$))/.test(result.reply) || /您推荐.{0,30}(?:配置|组合)/.test(result.reply);
+  const replyFlat = result.reply.replace(/\n/g, ' ');
+  const hasProductRecommendation = (/推荐|配置/.test(replyFlat) && /R\d/.test(replyFlat) && /%/.test(replyFlat));
   if (hasProductRecommendation && typeof buildExplanation === 'function') {
     const explanation = buildExplanation();
     if (explanation.summary) {
@@ -303,8 +304,8 @@ async function sendMessage() {
   }
 
   // 收藏按钮：仅在真正推荐了具体产品/方案时显示
-  const isWorthBookmarking = /(?:推荐|配置|方案|组合).{0,30}(?:R\d|%\s*(?:·|，|。)|产品|组合)/.test(result.reply)
-    && !/需要先|请先|点击|完成.*评估|完成.*问卷|告诉我|方便告诉|了解|需要|知道/.test(result.reply);
+  const isWorthBookmarking = /推荐|配置|方案|组合/.test(result.reply) && /R\d|%\s*(?:·|，|。)|产品|组合/.test(result.reply)
+    && !/需要先|请先|点击|完成.*评估|完成.*问卷|告诉我|方便告诉|了解.*情况|需要.*了解/.test(result.reply);
   if (isWorthBookmarking) {
     addBookmarkButton(msgEl, result.reply);
   }
