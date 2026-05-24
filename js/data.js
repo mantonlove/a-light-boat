@@ -132,8 +132,10 @@ function findFallback(userInput, mode) {
   const sentimentKeywords = ['好慌', '担心', '害怕', '跌了', '亏了', '睡不着', '焦虑', '紧张', '后悔', '难受', '不敢', '太坑', '坑人'];
   const hasSentiment = sentimentKeywords.some(k => input.includes(k));
   if (hasSentiment) {
-    const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
-    const risk = profile?.risk;
+    let profile, risk;
+    try { profile = typeof assembleProfile === 'function' ? assembleProfile() : null; risk = profile?.risk; }
+    catch(e) { risk = null; }
+    if (!risk) { const r = Storage.get('qingzhou_riskProfile'); if (r?.level) risk = r; }
     let comfortText = '';
     if (mode === 'senior') {
       comfortText = '叔叔/阿姨，看到市场波动心里不踏实，我完全理解。钱是辛苦攒的，谁都会担心。咱们先别急——市场有涨有跌是正常的，慌的时候做决定最容易出错。';
@@ -152,9 +154,25 @@ function findFallback(userInput, mode) {
   // ══ 第二优先级：推荐/配置请求 → 先检查画像完整度 ══
   const isRecommendation = /推荐|配置|怎么配|建议|方案|投什么|买什么/.test(input);
   if (isRecommendation) {
-    const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
-    const risk = profile?.risk;
-    const finance = profile?.finance;
+    let profile, risk, finance;
+    try {
+      profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+      risk = profile?.risk;
+      finance = profile?.finance;
+    } catch(e) { profile = null; risk = null; finance = {}; }
+    // 兜底：直接从 localStorage 再读一次
+    if (!risk) {
+      const rawRisk = Storage.get('qingzhou_riskProfile');
+      if (rawRisk?.level) {
+        risk = { level: rawRisk.level, score: rawRisk.score, label: rawRisk.label, maxDrawdown: rawRisk.maxDrawdown, maxEquityRatio: rawRisk.maxEquityRatio };
+        if (!profile) profile = {};
+        profile.risk = risk;
+      }
+    }
+    if (!finance) {
+      const rawProfile = Storage.get('qingzhou_userProfile') || {};
+      finance = { amount: rawProfile.amount || null, horizon: rawProfile.horizon || null, goal: rawProfile.goal || null };
+    }
 
     // 没有风险评估 → 引导先评估
     if (!risk) {
@@ -225,7 +243,9 @@ function findFallback(userInput, mode) {
   }
 
   // ══ 无匹配 → 上下文感知的通用回复 ══
-  const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+  let profile;
+  try { profile = typeof assembleProfile === 'function' ? assembleProfile() : null; }
+  catch(e) { profile = null; }
   if (profile?.risk && !profile?.finance?.amount) {
     return {
       id: 'contextual_fallback',
