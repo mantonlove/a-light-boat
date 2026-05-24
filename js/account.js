@@ -50,9 +50,9 @@ function renderQuickActions() {
 
   const actions = [
     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M22 11v4a2 2 0 0 1-2 2h-4l-3 3V10l3 3h4a2 2 0 0 1 2 2z"/><line x1="8" y1="12" x2="12" y2="12"/></svg>', label: '转账汇款', desc: '向银行卡或账户转账' },
-    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>', label: '生活缴费', desc: '水电气一卡缴' },
-    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="22"/></svg>', label: '理财购买', desc: '浏览在售产品' },
-    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', label: '人工客服', desc: '连线理财顾问' }
+    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>', label: '生活缴费', desc: '水费·电费·燃气·通讯' },
+    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="22"/></svg>', label: '理财购买', desc: '浏览在售理财产品' },
+    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', label: '人工客服', desc: '连线专业理财顾问' }
   ];
 
   el.innerHTML = actions.map((a, i) => `
@@ -171,8 +171,9 @@ function renderHoldings() {
           ${h.desc ? '<div style="margin-top:2px;font-size:10px">' + h.desc + '</div>' : ''}
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-shrink:0">
-        <span onclick="sendToChat('${h.name}')" style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;white-space:nowrap;padding:4px 10px;border:1px solid var(--ink-15);border-radius:6px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'">发送至聊天 ↗</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;align-items:center">
+        <span onclick="showProductDetail('${h.name}')" style="font-size:11px;color:var(--ink-70);cursor:pointer;white-space:nowrap">详情 →</span>
+        <span onclick="sendToChat('${h.name}')" style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;white-space:nowrap;padding:4px 10px;border:1px solid var(--border);border-radius:6px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'">发送至聊天 ↗</span>
       </div>
     </div>
   `).join('');
