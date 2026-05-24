@@ -243,6 +243,9 @@ async function sendMessage() {
     { role: 'user', content: text, timestamp: new Date().toISOString() }
   ]);
 
+  // 核心机制：从用户消息中自动提取画像字段（金额/期限/目标）
+  extractProfileFromMessage(text);
+
   // 重新测评 —— 先显示用户消息+清空输入框，再弹问卷
   if (/重新.*(测|评估)|再.*(测|评估|做题)|风险.*(评估|测评|问卷)|做.*(题|测评|评估)|测.*(风险|评估|问卷)/.test(text)) {
     startQuestionnaire();
@@ -592,6 +595,56 @@ function personalizeWelcome() {
 
   welcomeEl.textContent = greeting;
   Storage.set('qingzhou_lastVisit', new Date().toISOString().slice(0, 10));
+}
+
+// ── 从用户消息中自动提取画像字段 ──
+function extractProfileFromMessage(text) {
+  const profile = Storage.get('qingzhou_userProfile') || {};
+  let changed = false;
+
+  // 提取金额：支持 "20万" "20w" "200000" "20万元"
+  const amountMatch = text.match(/(\d+\.?\d*)\s*(?:万|w|万元|W)/);
+  if (amountMatch && !profile.amount) {
+    const amount = parseFloat(amountMatch[1]) * 10000;
+    profile.amount = amount;
+    changed = true;
+    Storage.addKeyMoment(`聊天提取：可投金额 ${(amount/10000).toFixed(0)} 万`);
+  }
+  // 提取纯数字金额 >1000
+  const numMatch = text.match(/(?:有|投|放|买)\s*(\d{4,6})\s*(?:元|块|钱|的)?/);
+  if (numMatch && !profile.amount) {
+    const amount = parseInt(numMatch[1]);
+    if (amount >= 1000) {
+      profile.amount = amount;
+      changed = true;
+      Storage.addKeyMoment(`聊天提取：可投金额 ${amount} 元`);
+    }
+  }
+
+  // 提取期限：支持 "半年" "6个月" "3年" "1年" "30天"
+  const horizonMatch = text.match(/(\d+\.?\d*)\s*(?:个?月|年|天)/);
+  if (horizonMatch && !profile.horizon) {
+    const num = horizonMatch[1];
+    const unit = horizonMatch[0].includes('年') ? '年' : horizonMatch[0].includes('天') ? '天' : '个月';
+    profile.horizon = num + unit;
+    changed = true;
+    Storage.addKeyMoment(`聊天提取：投资期限 ${profile.horizon}`);
+  }
+  // "半年" "一年"
+  if (/半年/.test(text) && !profile.horizon) { profile.horizon = '6个月'; changed = true; }
+  if (/一年/.test(text) && !profile.horizon) { profile.horizon = '1年'; changed = true; }
+
+  // 提取投资目标
+  if (/教育|孩子|上学|学费/.test(text) && !profile.goal) { profile.goal = '子女教育金'; changed = true; }
+  if (/养老|退休/.test(text) && !profile.goal) { profile.goal = '退休养老'; changed = true; }
+  if (/买房|购房|首付/.test(text) && !profile.goal) { profile.goal = '购房置业'; changed = true; }
+  if (/增值|赚钱|收益|投资/.test(text) && !profile.goal) { profile.goal = '财富增值'; changed = true; }
+
+  if (changed) {
+    Storage.set('qingzhou_userProfile', profile);
+    // 触发人生阶段检测
+    if (typeof detectLifeEvent === 'function') detectLifeEvent();
+  }
 }
 
 // ── Utils ──
