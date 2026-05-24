@@ -30,6 +30,7 @@ function renderRecommendations() {
   renderMarketHot();
   renderWeeklyReport();
   renderMotEducation();
+  renderKypAlignment();
 
   if (!allocation || !allocation.allocation || allocation.allocation.length === 0) {
     emptyState.classList.remove('hidden');
@@ -217,6 +218,95 @@ function renderMotEducation() {
     Storage.set('qingzhou_lastMotDate', today);
   }
 }
+
+/** KYP 投研对齐：市场事件 x 用户持仓 = 精准影响分析 */
+function renderKypAlignment() {
+  const holdings = Storage.get('qingzhou_holdings') || [];
+  if (holdings.length === 0) return;
+
+  const marketData = typeof MARKET_DATA !== 'undefined' ? MARKET_DATA : null;
+  if (!marketData || !marketData.key_indicators) return;
+
+  const alerts = [];
+  const ki = marketData.key_indicators;
+
+  // 债券收益率下行 → 利好固收
+  if (ki.bond_10y && parseFloat(ki.bond_10y) < 2.8) {
+    const affected = holdings.filter(h => h.risk === 'R2' || (h.name && /债|固收|短债/.test(h.name)));
+    if (affected.length > 0) {
+      alerts.push({
+        type: 'positive',
+        title: '国债收益率下行，利好固收类持仓',
+        detail: `10年期国债收益率 ${ki.bond_10y}，处于低位。您持有的 ${affected.map(h=>h.name).join('、')} 可能受益于利率下行，净值有望小幅上升。`,
+        products: affected
+      });
+    }
+  }
+
+  // 权益反弹 → 利好指数/权益
+  if (ki.pe_csi300 && parseFloat(ki.pe_csi300) < 13) {
+    const affected = holdings.filter(h => h.risk === 'R3' || h.risk === 'R4');
+    if (affected.length > 0) {
+      alerts.push({
+        type: 'info',
+        title: '沪深300估值处于历史中低位',
+        detail: `当前PE约${ki.pe_csi300}倍，低于近5年中位数。您持有的 ${affected.map(h=>h.name).join('、')} 当前估值合理，定投窗口打开。`,
+        products: affected
+      });
+    }
+  }
+
+  // 汇率波动 → 影响跨境产品
+  if (ki.usdcny && parseFloat(ki.usdcny) > 7.2) {
+    const affected = holdings.filter(h => typeof getUnderlyingAssets === 'function' && getUnderlyingAssets(h.name)?.risk_tags?.includes('跨境'));
+    if (affected.length > 0) {
+      alerts.push({
+        type: 'warning',
+        title: '人民币汇率波动，影响跨境产品',
+        detail: `美元兑人民币 ${ki.usdcny}，汇率偏高。您持有的 ${affected.map(h=>h.name).join('、')} 含有跨境资产，需关注汇率风险。`,
+        products: affected
+      });
+    }
+  }
+
+  // 无事件时静默
+  if (alerts.length === 0) return;
+
+  // 渲染
+  const container = document.getElementById('weeklyReport');
+  if (!container) return;
+
+  const div = document.createElement('div');
+  div.style.cssText = 'margin-top:12px';
+  div.innerHTML = `
+    <div class="sec-label">🔍 投研对齐 · 持仓影响分析</div>
+    <div class="rec-current">
+      ${alerts.map(a => `
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:11px">${a.type === 'positive' ? '🟢' : a.type === 'warning' ? '🟡' : '🔵'}</span>
+            <span style="font-weight:700;font-size:12px">${a.title}</span>
+          </div>
+          <div style="font-size:11px;color:var(--ink-70);line-height:1.7">${a.detail}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.parentNode.insertBefore(div, container.nextSibling);
+}
+
+window.generateReport = function() {
+  if (typeof generateAllocationReport === 'function') {
+    const report = generateAllocationReport();
+    if (report) {
+      Storage.set('qingzhou_allocationReport', { content: report, generatedAt: new Date().toISOString() });
+      showToast('报告已生成！可在聊天中查看');
+      window.location.href = 'chat.html?mode=' + currentMode + '&q=' + encodeURIComponent('请根据我的资产配置报告，帮我分析一下');
+    } else {
+      showToast('请先完成风险评估和档案填写');
+    }
+  }
+};
 
 function sendToChat(productName) {
   window.location.href = 'chat.html?mode=' + currentMode + '&q=' + encodeURIComponent('帮我看看' + productName);

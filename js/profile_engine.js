@@ -173,6 +173,71 @@ function getModeInstructions(mode) {
   return instructions[mode] || instructions.classic;
 }
 
+/** 一键生成结构化资产配置建议书 */
+function generateAllocationReport() {
+  const profile = assembleProfile();
+  const allocation = Storage.get('qingzhou_allocation');
+  const risk = profile.risk;
+  const finance = profile.finance;
+
+  if (!risk || !finance.amount) return null;
+
+  const template = profile.getTemplate();
+  const holdings = Storage.get('qingzhou_holdings') || [];
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+
+  let report = '';
+
+  // 一、客户画像
+  report += '一、客户画像\n';
+  report += `风险等级：${risk.level} ${risk.label}（评分 ${risk.score}/54）\n`;
+  report += `可投金额：${finance.amount >= 10000 ? (finance.amount/10000).toFixed(0)+'万' : finance.amount+'元'}\n`;
+  if (finance.horizon) report += `投资期限：${finance.horizon}\n`;
+  if (finance.goal) report += `投资目标：${finance.goal}\n`;
+  if (stages.length) report += `人生阶段：${stages.map(s=>s.label).join('、')}\n`;
+
+  // 二、配置方案
+  report += '\n二、推荐配置方案\n';
+  if (allocation?.allocation) {
+    allocation.allocation.forEach(a => {
+      const underlying = typeof getUnderlyingAssets === 'function' ? getUnderlyingAssets(a.name) : null;
+      report += `【${a.name}】配置 ${a.ratio}%\n`;
+      report += `  风险等级：${a.risk || 'R3'}\n`;
+      if (underlying) {
+        report += `  底层资产：${underlying.assets.join('、')}\n`;
+        if (underlying.risk_note) report += `  风险提示：${underlying.risk_note}\n`;
+      }
+    });
+  }
+
+  // 三、预期表现
+  report += '\n三、预期表现（基于历史回测模拟）\n';
+  report += `预期年化区间：${template.expectedReturn}\n`;
+  report += `最大回撤：${template.maxDrawdown}\n`;
+  report += `建议权益仓位：≤${parseInt(risk.maxEquityRatio*100)}%\n`;
+
+  // 四、当前持仓诊断
+  if (holdings.length > 0) {
+    report += '\n四、当前持仓诊断\n';
+    holdings.forEach(h => {
+      const match = allocation?.allocation?.find(a => a.name === h.name);
+      if (match) {
+        report += `✅ ${h.name}：已在推荐方案中，配置 ${match.ratio}%，当前持有 ${h.amount} 元${h.amount > match.ratio / 100 * finance.amount ? '（偏高，建议调整）' : '（匹配）'}\n`;
+      } else {
+        report += `⚠️ ${h.name}：不在本次推荐方案中，建议评估是否保留\n`;
+      }
+    });
+  }
+
+  // 五、合规声明
+  report += '\n五、合规声明\n';
+  report += '⚠️ 理财非存款，产品有风险，投资须谨慎。\n';
+  report += '以上为参考建议，历史回测不代表未来收益。\n';
+  report += `生成时间：${new Date().toLocaleString('zh-CN')}\n`;
+
+  return report;
+}
+
 /** 推荐白盒解释：生成「为什么推荐这个」的可审计说明 */
 function buildExplanation(products = []) {
   const profile = assembleProfile();
