@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderClientProfile();
   renderTalkingPoints();
   renderProductHighlights();
+  renderHandoffContext();
   renderComplianceNotes();
 });
 
@@ -121,6 +122,34 @@ function renderProductHighlights() {
       </div>
     </div>
   `).join('');
+}
+
+// ── Handoff 上下文 ──
+function renderHandoffContext() {
+  const pkg = Storage.get('qingzhou_handoffPackage');
+  if (!pkg) return;
+
+  // 在 talkingPoints 下方追加
+  const tp = document.getElementById('productHighlights');
+  if (!tp) return;
+  const section = tp.closest('.mine-section');
+  if (!section) return;
+
+  const div = document.createElement('div');
+  div.className = 'mine-section';
+  div.innerHTML = `
+    <div class="sec-label">最近 Handoff 记录</div>
+    <div class="rec-current">
+      <div style="font-size:11px;color:var(--ink-40);margin-bottom:8px">${pkg.timestamp?.slice(0,16) || ''} · 原因：${pkg.reason || '未指定'}</div>
+      <div style="font-size:12px;color:var(--ink-70);line-height:2">
+        ${(pkg.syncedItems || []).map(i => '<div>' + i + '</div>').join('')}
+        <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border)">💬 ${pkg.recentChat?.replace(/<br>/g, ' | ') || '无'}</div>
+        <div>📊 ${pkg.productCtx || '无'}</div>
+        <div>🏷️ ${pkg.stageLabel || '无'}</div>
+      </div>
+    </div>
+  `;
+  section.parentNode.insertBefore(div, section.nextSibling);
 }
 
 // ── 合规提示 ──

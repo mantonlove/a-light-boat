@@ -148,9 +148,12 @@ function buildSystemPrompt(mode, sentiment = null) {
     prompt += `数据版本：${PRODUCT_META?.version||'1.0'} | 更新于：${PRODUCT_META?.updated||'2026-05-22'} | 知识库共${PRODUCT_META?.count||1260}只\n`;
     prompt += '同步频率：银行理财/基金/债券每日，保险/信托每周。数据源：中国理财网/中基协/金融监管总局/中债登/中信登\n';
     prompt += '以下是你唯一可以引用的产品信息，严禁编造。如需更多产品，请建议用户访问对应官方平台。\n\n';
-    prompt += '| 产品名 | 风险 | 类型 | 起购 | 期限 | 基准 | 客群 | 类别 |\n';
+    prompt += '| 产品名 | 风险 | 起购 | 期限 | 基准 | 底层资产 | 风险提示 |\n';
     top15.forEach(p => {
-      prompt += `| ${p.name} | ${p.risk_level} | ${p.type} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${p.suitable_for?.join('/')} | ${p.category||''} |\n`;
+      const underlying = getUnderlyingAssets(p.name);
+      const assets = underlying ? underlying.assets.join('、') : '—';
+      const riskNote = underlying?.risk_note || '';
+      prompt += `| ${p.name} | ${p.risk_level} | ${p.min_amount}元 | ${p.lock_period} | ${p.benchmark} | ${assets} | ${riskNote} |\n`;
     });
   }
 
@@ -400,6 +403,27 @@ function checkTruncation(chatHistory) {
     roundsToSummarize: chatHistory.slice(0, -FULL_MSG_COUNT),
     keepRounds: chatHistory.slice(-FULL_MSG_COUNT)
   };
+}
+
+/** 产品底层资产穿透数据（模拟银行投研系统） */
+const UNDERLYING_ASSETS = {
+  '安鑫短债': { assets: ['国债', 'AAA级同业存单', '高等级信用债'], risk_tags: [], risk_note: '' },
+  '稳享固收增强': { assets: ['国债', 'AAA级信用债', '可转债(≤10%)'], risk_tags: [], risk_note: '' },
+  '沪深300指数增强': { assets: ['沪深300成分股', '股指期货(对冲用)'], risk_tags: ['权益类'], risk_note: '含权益敞口，市场下跌时可能产生较大回撤' },
+  '活期盈': { assets: ['国债逆回购', '银行同业存款'], risk_tags: [], risk_note: '' },
+  '新能源行业精选': { assets: ['新能源产业链股票', '光伏/锂电/储能'], risk_tags: ['行业集中', '权益类'], risk_note: '行业集中度高，受新能源政策影响大' },
+  '科技主题混合': { assets: ['半导体', 'AI/大模型', '消费电子'], risk_tags: ['行业集中', '权益类'], risk_note: '科技板块波动较大，建议控制仓位' },
+  '全球配置': { assets: ['美股ETF', '港股通', '发达市场债券'], risk_tags: ['汇率风险', '跨境'], risk_note: '含跨境投资，受汇率波动影响' },
+  '大额存单': { assets: ['银行存款'], risk_tags: [], risk_note: '受存款保险条例保护，50万以内本息有保障' },
+  '天利同业存单': { assets: ['AAA级同业存单'], risk_tags: [], risk_note: '' }
+};
+
+/** 查询产品底层资产 */
+function getUnderlyingAssets(productName) {
+  for (const [key, val] of Object.entries(UNDERLYING_ASSETS)) {
+    if (productName.includes(key)) return val;
+  }
+  return null;
 }
 
 function getProductData() {

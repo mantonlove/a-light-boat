@@ -490,8 +490,6 @@ function showToast(msg) {
 // ── Handoff ──
 function triggerHandoff(reason) {
   handoffActive = true;
-  const badge = document.getElementById('handoffBadge');
-  if (badge) badge.classList.add('active');
   Storage.addKeyMoment('触发 Handoff：' + reason);
 
   const profile = assembleProfile();
@@ -499,16 +497,40 @@ function triggerHandoff(reason) {
   if (profile.risk?.level) syncedItems.push('风险偏好：' + profile.risk.label + '（' + profile.risk.level + '）');
   if (profile.finance.amount) syncedItems.push('可投金额：约 ' + profile.finance.amount + ' 元');
   if (profile.finance.horizon) syncedItems.push('投资期限：' + profile.finance.horizon);
+  if (profile.finance.goal) syncedItems.push('投资目标：' + profile.finance.goal);
+
+  // 打包最近对话摘要
+  const chatHistory = Storage.get('qingzhou_chatHistory') || [];
+  const recentChat = chatHistory.slice(-4).map(m => (m.role==='user'?'客户':'轻舟')+'：'+m.content.slice(0,60)).join('<br>');
+
+  // 打包产品推荐上下文
+  const allocation = Storage.get('qingzhou_allocation');
+  const productCtx = allocation?.allocation?.map(a => a.name+'（'+a.ratio+'%）').join('、') || '无';
+
+  // 打包情绪标签
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+  const stageLabel = stages.length > 0 ? stages.map(s=>s.label).join('、') : '无特殊标记';
+
+  // 存入 handoff 记录供 Copilot 读取
+  Storage.set('qingzhou_handoffPackage', {
+    reason, syncedItems, recentChat, productCtx, stageLabel,
+    timestamp: new Date().toISOString()
+  });
 
   addMessage('ai', `
     <div style="text-align:center;">
       <div style="font-size:40px;margin-bottom:12px;">📞</div>
-      <strong>正在为您转接……</strong>
-      <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:8px;">已同步以下信息给人工顾问：</p>
-      <ul class="evidence-list" style="text-align:left;display:inline-block;">${syncedItems.map(i => '<li>' + i + '</li>').join('')}</ul>
+      <strong>正在为您转接人工顾问……</strong>
+      <p style="font-size:12px;color:var(--ink-40);margin-top:8px;">已同步以下信息，顾问接听后可直接查看：</p>
+      <div style="text-align:left;margin-top:12px;background:var(--surface);padding:14px;border-radius:var(--r-sm);font-size:11px;line-height:2;color:var(--ink-70)">
+        ${syncedItems.map(i => '<div>✅ ' + i + '</div>').join('')}
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">💬 最近对话：<br>${recentChat || '无'}</div>
+        <div>📊 推荐产品：${productCtx}</div>
+        <div>🏷️ 客户阶段：${stageLabel}</div>
+      </div>
       <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
         <button class="retry-btn" onclick="showToast('预约已提交，顾问将在工作时间回电')">预约回电</button>
-        <button class="retry-btn" onclick="goTo('chat.html')" style="background:var(--bg-card);">返回</button>
+        <button class="retry-btn" onclick="goTo('chat.html')">返回</button>
       </div>
     </div>
   `);
