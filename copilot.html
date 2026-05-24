@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>轻舟 · 理财经理工作台</title>
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+
+<div class="app">
+  <div class="main">
+    <div class="header">
+      <div class="brand">轻<span>舟</span> <span style="font-family:var(--body);font-size:13px;color:var(--ink-40);font-weight:500">· 理财经理 Copilot</span></div>
+    </div>
+
+    <div style="flex:1;overflow-y:auto">
+    <div class="rec-page">
+
+      <!-- 客户画像摘要 -->
+      <div class="mine-section">
+        <div class="sec-label">客户画像</div>
+        <div class="card" id="clientProfile"></div>
+      </div>
+
+      <!-- 最近关注 + 推荐话术 -->
+      <div class="mine-section">
+        <div class="sec-label">对话洞察与推荐话术</div>
+        <div class="card" id="talkingPoints"></div>
+      </div>
+
+      <!-- 产品推荐亮点 -->
+      <div class="mine-section">
+        <div class="sec-label">推荐产品 · 核心亮点</div>
+        <div class="rec-current" id="productHighlights"></div>
+      </div>
+
+      <!-- 合规提示 -->
+      <div class="mine-section">
+        <div class="sec-label">合规避险提示</div>
+        <div id="complianceNotes" style="padding:14px;border-radius:var(--r-sm);font-size:12px;line-height:1.8"></div>
+      </div>
+
+    </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/storage.js?v=5"></script>
+<script src="js/profile_engine.js?v=5"></script>
+<script src="js/copilot.js?v=5"></script>
+</body>
+</html>

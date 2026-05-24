@@ -29,6 +29,7 @@ function renderRecommendations() {
   // 市场热点和周报始终显示
   renderMarketHot();
   renderWeeklyReport();
+  renderMotEducation();
 
   if (!allocation || !allocation.allocation || allocation.allocation.length === 0) {
     emptyState.classList.remove('hidden');
@@ -174,6 +175,47 @@ function renderWeeklyReport() {
       📅 周报 · ${marketData ? (marketData.update_time || '').slice(0,10) : '2026-05-24'} · 数据来源：央行/中债登/沪深交易所
     </div>
   `;
+}
+
+/** MoT 投资者教育：市场波动时主动解释原因 */
+function renderMotEducation() {
+  const marketData = typeof MARKET_DATA !== 'undefined' ? MARKET_DATA : null;
+  if (!marketData || !marketData.key_indicators) return;
+
+  const container = document.getElementById('weeklyReport');
+  if (!container) return;
+  const section = container.closest('.mine-section');
+  if (!section) return;
+
+  // 检测是否已有波动解读（存在 storage 中，同一天不重复）
+  const lastMot = Storage.get('qingzhou_lastMotDate');
+  const today = new Date().toISOString().slice(0, 10);
+  if (lastMot === today) return;
+
+  // 判断是否需要推送：市场有显著变化时
+  const ki = marketData.key_indicators;
+  let motHtml = '';
+  const holdings = Storage.get('qingzhou_holdings') || [];
+
+  if (ki.bond_10y && parseFloat(ki.bond_10y) < 2.8) {
+    motHtml += '<div style="margin-bottom:8px">📉 <strong>国债收益率下行</strong>：10年期国债收益率降至 ' + ki.bond_10y + '，利好固收类产品。如果您持有债券基金或固收+，净值可能小幅上升。</div>';
+  }
+
+  if (holdings.length > 0) {
+    const hasEquity = holdings.some(h => h.risk === 'R3' || h.risk === 'R4');
+    if (hasEquity) {
+      motHtml += '<div style="margin-bottom:8px">📊 <strong>权益市场关注</strong>：您持有权益类产品，建议关注本周沪深 300 走势。短期波动是正常现象，不建议恐慌赎回。</div>';
+    }
+  }
+
+  if (motHtml) {
+    // 在周报下方追加波动解读
+    const motDiv = document.createElement('div');
+    motDiv.style.cssText = 'margin-top:12px;padding:14px;background:var(--gold-light);border-radius:var(--r-sm);font-size:12px;color:var(--ink-70);line-height:1.8';
+    motDiv.innerHTML = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gold-dark);margin-bottom:8px">📡 市场波动解读</div>' + motHtml;
+    container.appendChild(motDiv);
+    Storage.set('qingzhou_lastMotDate', today);
+  }
 }
 
 function sendToChat(productName) {

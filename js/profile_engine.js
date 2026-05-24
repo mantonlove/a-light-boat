@@ -103,6 +103,15 @@ function buildSystemPrompt(mode, sentiment = null) {
     prompt += '\n用户偏好简短直接的回复风格，给出结论+1-2条核心依据即可，不要展开。\n';
   }
 
+  // 全生命周期画像
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+  if (stages.length > 0) {
+    prompt += '\n## 人生阶段洞察\n';
+    stages.forEach(s => {
+      prompt += `- ${s.label}：${s.advice}\n`;
+    });
+  }
+
   prompt += `\n## 当前模式\n${modeInstructions}`;
 
   const missing = profile.missingFields();
@@ -326,8 +335,56 @@ function handleProfileUpdate(updates) {
 
 // 画像变更时清空对话上下文，强制后续对话以新数据为准
 // 风险评估完成、mine.html 编辑档案时都调用此函数
+/** 全生命周期检测：自动识别用户人生节点 */
+function detectLifeEvent() {
+  const profile = Storage.get('qingzhou_userProfile') || {};
+  const history = Storage.getProfileHistory();
+  const events = [];
+
+  // 规则1: 新晋家庭 — 档案中出现子女教育/母婴相关
+  if (profile.goal && /教育|子女|孩子|上学|幼儿园/.test(profile.goal)) {
+    events.push({ stage: 'new_family', label: '新晋家庭', advice: '转向稳健医疗险+长期教育金规划', priority: 'high' });
+  }
+
+  // 规则2: 财富上升期 — 连续3条档案更新显示资金增长
+  const amountChanges = history.filter(h => h.field === 'amount' && h.newValue);
+  if (amountChanges.length >= 2) {
+    const latest = amountChanges[amountChanges.length - 1];
+    const previous = amountChanges[amountChanges.length - 2];
+    if (latest.newValue > previous.newValue * 1.3) {
+      events.push({ stage: 'wealth_growth', label: '财富上升期', advice: '建议增配权益类，适度增加风险敞口', priority: 'medium' });
+    }
+  }
+
+  // 规则3: 退休规划 — 档案中年龄>50或出现养老关键词
+  if (profile.age && /[5-9][0-9]/.test(profile.age)) {
+    events.push({ stage: 'retirement', label: '退休规划期', advice: '转向保守配置，注重现金流和本金安全', priority: 'high' });
+  }
+  if (profile.goal && /养老|退休|养老金/.test(profile.goal)) {
+    events.push({ stage: 'retirement', label: '退休规划期', advice: '转向保守配置，注重现金流和本金安全', priority: 'high' });
+  }
+
+  // 规则4: 购房计划 — 出现大额支出+期限缩短
+  if (profile.horizon && /1年|短期|随时/.test(profile.horizon) && profile.amount && profile.amount > 500000) {
+    events.push({ stage: 'home_purchase', label: '购房筹备期', advice: '推荐短期高流动性产品，避免锁定长期资金', priority: 'high' });
+  }
+
+  // 去重并保存
+  const existing = Storage.get('qingzhou_lifeStages') || [];
+  const newEvents = events.filter(e => !existing.find(x => x.stage === e.stage));
+  if (newEvents.length > 0) {
+    Storage.set('qingzhou_lifeStages', [...existing, ...newEvents]);
+    newEvents.forEach(e => {
+      Storage.addKeyMoment(`人生节点检测：${e.label} → ${e.advice}`);
+    });
+  }
+
+  return events;
+}
+
 function onProfileChanged() {
   Storage.set('qingzhou_chatHistory', []);
+  detectLifeEvent(); // 档案变更时自动检测人生节点
 }
 
 function checkTruncation(chatHistory) {
