@@ -452,7 +452,7 @@ body {
 }
 
 /* 档案网格 */
-.archive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
 .archive-cell {
   background: var(--surface); border-radius: var(--r-sm);
   padding: 12px 14px; border: 1px solid var(--border);

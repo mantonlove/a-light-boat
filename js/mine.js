@@ -225,13 +225,16 @@ function renderArchive() {
       { key:'goal', label:'投资目标', fmt:v=>v||'—', hint:'教育/养老/购房/财富增值' },
       { key:'experience', label:'投资经验', fmt:v=>v||'—', hint:'几乎没有/1-3年/3年以上' },
       { key:'interests', label:'关注领域', fmt:v=>Array.isArray(v)?v.join('、'):(v||'—'), hint:'固收/指数/ESG/科技等' },
-      { key:'riskComfort', label:'风险态度', fmt:v=>v||(risk?risk.label:'—'), hint:'来自风险评估+对话' },
+      { key:'riskComfort', label:'风险态度', fmt:v=>v||(risk?risk.level+' '+risk.label:'—'), hint:'来自风险评估' },
     ]},
   ];
 
   let html = '';
   groups.forEach(g => {
-    const filled = g.fields.filter(f => profile[f.key]).length;
+    const filled = g.fields.filter(f => {
+      if (f.key === 'riskComfort') return !!(profile[f.key] || risk);
+      return !!profile[f.key];
+    }).length;
     html += `<div style="margin-bottom:24px;">`;
     html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
       <span style="font-size:var(--fs-base);">${g.icon}</span>
@@ -243,7 +246,7 @@ function renderArchive() {
     g.fields.forEach(f => {
       const val = profile[f.key];
       const display = f.fmt(val);
-      const isSet = val && val !== '';
+      const isSet = f.key === 'riskComfort' ? !!(val && val !== '' && val !== '—') || !!risk : (val && val !== '');
       html += `<div style="background:#fff;border:1px solid ${isSet?'#C8A45C':'#E4E8EC'};border-radius:12px;padding:14px 16px;transition:all .2s;cursor:pointer;"
         onclick="editArchiveField('${f.key}','${f.label}','${(val||'').toString().replace(/'/g,"\\'")}')"
         onmouseover="this.style.borderColor='#0A1628';this.style.boxShadow='0 2px 8px rgba(10,22,40,.06)'"
