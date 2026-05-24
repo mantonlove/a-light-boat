@@ -520,16 +520,14 @@ function renderVoicePresets() {
     { id: 'male_warm', name: '温暖男生', desc: '低沉稳重，专业可信', icon: '🎧' },
     { id: 'male_podcast', name: '播客男生', desc: '磁性醇厚，娓娓道来', icon: '🎵' }
   ];
-  container.innerHTML = presets.map(v => `
-    <div class="voice-row${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
-      <div class="voice-radio"></div>
-      <div class="voice-label">
-        <div class="voice-name">${v.icon} ${v.name}</div>
-        <div class="voice-desc">${v.desc}</div>
-      </div>
-      <button class="voice-test-btn" onclick="event.stopPropagation();previewVoice('${v.id}')">试听</button>
+  container.innerHTML = '<div class="voice-grid">' + presets.map(v => `
+    <div class="voice-card${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
+      <div class="vc-icon">${v.icon}</div>
+      <div class="vc-name">${v.name}</div>
+      <div class="vc-desc">${v.desc}</div>
+      <span class="vc-test" onclick="event.stopPropagation();previewVoice('${v.id}')">试听</span>
     </div>
-  `).join('');
+  `).join('') + '</div>';
 }
 
 function selectVoice(id) {
