@@ -189,27 +189,63 @@ function findFallback(userInput, mode) {
       return { id: 'profile_incomplete', text: askTexts[mode] || askTexts.classic, isFallback: true };
     }
 
-    // 画像完整 → 生成个性化推荐
+    // 画像完整 → 基于风险等级生成个性化推荐
     const amount = finance.amount >= 10000 ? (finance.amount/10000).toFixed(0) + '万' : finance.amount + '元';
     const template = profile.getTemplate ? profile.getTemplate() : null;
+    const riskLevel = parseInt(risk.level?.replace('R','') || '3');
+    const maxProductRisk = Math.min(5, riskLevel + 1);
+
+    // 按风险等级生成不同的配置
+    let equityRatio, bondRatio, cashRatio;
+    let products, drawdown;
+    if (riskLevel <= 1) {
+      // R1保守型：几乎全部现金/存款
+      equityRatio=0; bondRatio=20; cashRatio=80;
+      products = ['安心存单（R1，存款保险保障，年利率 1.8%）','活期盈（R1，灵活存取，七日年化 1.5%）'];
+      drawdown = '<0.1%';
+    } else if (riskLevel <= 2) {
+      // R2稳健型：少量固收
+      equityRatio=0; bondRatio=70; cashRatio=30;
+      products = ['安鑫短债 30 天（R2，基准 2.0%-2.5%）','稳享固收增强 6 个月（R2，基准 2.8%-3.5%）','活期盈（R1，灵活备用）'];
+      drawdown = '<0.5%';
+    } else if (riskLevel <= 3) {
+      // R3平衡型：固收+少量权益
+      equityRatio=30; bondRatio=50; cashRatio=20;
+      products = ['稳享固收增强 6 个月（R2，基准 2.8%-3.5%）','沪深 300 指数增强（R3，基准 4.0%-6.5%）','安鑫短债 30 天（R2，基准 2.0%-2.5%）','活期盈（R1，灵活备用）'];
+      drawdown = '<3%';
+    } else if (riskLevel <= 4) {
+      // R4进取型：权益为主
+      equityRatio=60; bondRatio=30; cashRatio=10;
+      products = ['沪深 300 指数增强（R3，基准 4.0%-6.5%）','科技主题混合（R4，基准 6.0%-10.0%）','稳享固收增强 6 个月（R2，基准 2.8%-3.5%）'];
+      drawdown = '<15%';
+    } else {
+      // R5激进型
+      equityRatio=80; bondRatio=10; cashRatio=10;
+      products = ['科技主题混合（R4，基准 6.0%-10.0%）','新能源行业精选（R4，基准 8.0%-12.0%）','全球配置（R4，基准 5.0%-8.0%）'];
+      drawdown = '<30%';
+    }
 
     let recText = '';
     if (mode === 'classic') {
       recText = `基于您的画像——${risk.level} ${risk.label} · ${amount} · ${finance.horizon}，为您推荐以下配置：\n\n`;
-      recText += '📊 固收类（70%）：稳享固收增强 6 个月（R2，基准 2.8%-3.5%）+ 安鑫短债 30 天（R2，基准 2.0%-2.5%）\n';
-      recText += '📊 权益类（30%）：沪深 300 指数增强（R3，基准 4.0%-6.5%）\n\n';
-      if (template) recText += `预期年化：${template.expectedReturn} · 最大回撤：${template.maxDrawdown}\n\n`;
-      recText += '⚠️ 以上为参考建议，历史业绩不代表未来收益，投资需谨慎。';
+      products.forEach((p, i) => { recText += `📊 ${p}\n`; });
+      recText += `\n组合最大回撤控制在 ${drawdown}。`;
+      if (template) recText += ` 业绩比较基准参考区间：${template.expectedReturn}`;
+      recText += '\n\n⚠️ 以上为参考建议，历史业绩不代表未来收益，投资需谨慎。';
     } else if (mode === 'senior') {
       recText = `叔叔/阿姨，根据您是${risk.label}、有 ${amount}、打算放 ${finance.horizon}，我帮您盘算了一下：\n\n`;
-      recText += '大头（七成）放稳妥的——比如"稳享固收增强"和"安鑫短债"，波动很小，稳稳当当拿利息。\n';
-      recText += '小头（三成）买点指数基金，长期看是涨的，能多赚一点。\n\n';
-      recText += '这样搭配下来，整体波动不大，您心里踏实。您觉得这个思路行吗？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。';
+      if (riskLevel <= 1) {
+        recText += '您是非常稳妥的类型，我建议大部分放存款——有存款保险保障，50万以内本息无忧。小部分放活期理财，随时能用。\n\n';
+      } else {
+        recText += `大头放稳妥的产品，波动很小，稳稳当当拿利息。${equityRatio > 0 ? '小头买点指数基金，长期看是涨的，能多赚一点。' : ''}\n\n`;
+      }
+      recText += `这样搭配下来，整体波动不大（最多跌 ${drawdown}），您心里踏实。您觉得这个思路行吗？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`;
     } else {
       recText = `基于 ${risk.level} ${risk.label} · ${amount} · ${finance.horizon}，最优配置：\n\n`;
-      recText += '📊 稳享固收增强 6M — 40%（R2，3.2%）\n📊 沪深 300 指数增强 — 30%（R3，6.5%）\n📊 安鑫短债 30D — 20%（R2，2.3%）\n📊 活期盈 — 10%（R1，灵活备用）\n\n';
-      if (template) recText += `预期年化 ${template.expectedReturn} · 最大回撤 ${template.maxDrawdown}\n\n`;
-      recText += '⚠️ 历史不代表未来。DYOR.';
+      products.forEach(p => { recText += `📊 ${p}\n`; });
+      recText += `\n最大回撤 ${drawdown}`;
+      if (template) recText += ` · 基准参考 ${template.expectedReturn}`;
+      recText += '\n\n⚠️ 历史不代表未来。DYOR.';
     }
 
     return { id: 'personalized_recommendation', text: recText, isFallback: true };

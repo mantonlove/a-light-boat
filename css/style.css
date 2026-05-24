@@ -149,9 +149,10 @@ body {
 
 /* 合规标签 */
 .compliance-tag {
-  display: block; margin-top: 10px; padding-top: 10px;
-  border-top: 1px solid var(--border);
-  font-size: var(--font-size-xs); color: var(--ink-70); font-weight: 500; line-height: 1.5;
+  display: block; margin-top: 12px; padding: 10px 12px;
+  background: #FFF8F0; border-left: 3px solid var(--gold);
+  border-radius: 4px;
+  font-size: 12px; color: #8B6914; font-weight: 500; line-height: 1.6;
 }
 .message.user .compliance-tag {
   border-top-color: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5);
