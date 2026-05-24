@@ -357,12 +357,14 @@ body {
 .voice-card.active .vc-name { color: var(--ink); }
 .voice-card .vc-desc { font-size: 11px; color: var(--ink-40); margin-bottom: 12px; }
 .voice-card .vc-test {
-  display: inline-block; font-size: 10px; color: var(--ink);
-  border: 1px solid var(--border); border-radius: 4px; padding: 3px 14px;
-  cursor: pointer; transition: all var(--transition);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--border); cursor: pointer;
+  transition: all var(--transition); color: var(--ink-70);
+  background: var(--surface-card);
 }
-.voice-card .vc-test:hover { border-color: var(--ink); background: var(--surface-raised); }
-.voice-card.active .vc-test { border-color: var(--ink); }
+.voice-card .vc-test:hover { border-color: var(--ink); color: var(--ink); }
+.voice-card.active .vc-test { border-color: var(--ink); background: var(--surface); }
 @media (max-width: 600px) { .voice-grid { grid-template-columns: 1fr; } }
 
 }

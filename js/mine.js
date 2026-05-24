@@ -524,7 +524,7 @@ function renderVoicePresets() {
     <div class="voice-card${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
       <div class="vc-name">${v.name}</div>
       <div class="vc-desc">${v.desc}</div>
-      <span class="vc-test" onclick="event.stopPropagation();previewVoice('${v.id}')">试听</span>
+      <span class="vc-test" onclick="event.stopPropagation();previewVoice('${v.id}')" title="试听"><svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><polygon points="8,5 19,12 8,19"/></svg></span>
     </div>
   `).join('') + '</div>';
 }
