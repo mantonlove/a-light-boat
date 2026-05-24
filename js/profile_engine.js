@@ -246,7 +246,7 @@ function buildExplanation(products = []) {
   const reasons = [];
 
   if (risk?.level) {
-    reasons.push(`您的风险等级为 <strong>${risk.level} ${risk.label}</strong>（评分 ${risk.score}/54），可承受最大回撤 ${risk.maxDrawdown}`);
+    reasons.push(`您的风险等级为 <strong>${risk.level} ${risk.label}</strong>${risk.score ? '（评分 ' + risk.score + '/54）' : ''}，可承受最大回撤 ${risk.maxDrawdown}`);
   }
   if (finance?.horizon) {
     reasons.push(`投资期限 <strong>${finance.horizon}</strong>`);

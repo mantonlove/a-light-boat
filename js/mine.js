@@ -42,15 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 场景引导
   if (typeof showContextualTip === 'function') showContextualTip('mine');
 
-  // 恢复已保存的账户安全信息
-  const savedPhone = Storage.get('qingzhou_accountPhone');
-  if (savedPhone) {
-    document.getElementById('accountPhone').textContent = savedPhone.slice(0, 3) + '****' + savedPhone.slice(-4);
+  // 恢复已保存的账户安全信息(已移至account.html)
+  const phoneEl = document.getElementById('accountPhone');
+  if (phoneEl) {
+    const savedPhone = Storage.get('qingzhou_accountPhone');
+    if (savedPhone) phoneEl.textContent = savedPhone.slice(0, 3) + '****' + savedPhone.slice(-4);
   }
-  const savedEmail = Storage.get('qingzhou_accountEmail');
-  if (savedEmail) {
-    const parts = savedEmail.split('@');
-    document.getElementById('accountEmail').textContent = parts[0].slice(0, 3) + '***@' + (parts[1] || '');
+  const emailEl = document.getElementById('accountEmail');
+  if (emailEl) {
+    const savedEmail = Storage.get('qingzhou_accountEmail');
+    if (savedEmail) {
+      const parts = savedEmail.split('@');
+      emailEl.textContent = parts[0].slice(0, 3) + '***@' + (parts[1] || '');
+    }
   }
 });
 
@@ -397,7 +401,7 @@ function changePhone() {
     if (phone && phone.length >= 11) {
       const masked = phone.slice(0, 3) + '****' + phone.slice(-4);
       Storage.set('qingzhou_accountPhone', phone);
-      document.getElementById('accountPhone').textContent = masked;
+      const el = document.getElementById('accountPhone'); if (el) el.textContent = masked;
       showToast('手机号已更新');
     } else {
       showToast('手机号格式不正确');
@@ -414,7 +418,7 @@ function changeEmail() {
       const parts = email.split('@');
       const masked = parts[0].slice(0, 3) + '***@' + parts[1];
       Storage.set('qingzhou_accountEmail', email);
-      document.getElementById('accountEmail').textContent = masked;
+      const el = document.getElementById('accountEmail'); if (el) el.textContent = masked;
       showToast('邮箱已更新');
     } else {
       showToast('邮箱格式不正确');

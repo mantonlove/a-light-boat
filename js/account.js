@@ -167,7 +167,7 @@ function renderHoldings() {
           <span class="risk-badge risk-r${h.risk.replace('R','')}">${h.risk}</span>
         </div>
         <div style="font-size:11px;color:var(--ink-40)">
-          持有 <strong style="color:var(--ink);font-size:14px;font-family:var(--display)">${formatMoney(h.amount)}</strong> · 业绩基准 <strong style="color:var(--ink)">${h.return_rate}</strong>${h.lock_days > 0 ? ' · <strong style="color:var(--ink)">' + h.lock_days + '天</strong>后到期' : ''}
+          持有 <strong style="color:var(--ink);font-size:14px;font-family:var(--display)">${formatMoney(h.amount)}</strong> · 业绩基准 <strong style="color:var(--ink)">${h.return_rate}</strong>${h.lock_days > 0 ? ' · ' + h.lock_days + '天后到期（' + new Date(Date.now()+h.lock_days*86400000).toLocaleDateString('zh-CN',{month:'long',day:'numeric'}) + '）' : ''}
           ${h.desc ? '<div style="margin-top:2px;font-size:10px">' + h.desc + '</div>' : ''}
         </div>
       </div>
