@@ -626,24 +626,57 @@ function showToast(msg) {
 
 // ── 智能追问 ──
 function addFollowUpQuestions(msgEl, reply) {
+  const profile = typeof assembleProfile === 'function' ? (() => { try { return assembleProfile(); } catch(e) { return null; } })() : null;
+  const risk = profile?.risk;
+  const finance = profile?.finance;
   const questions = [];
-  if (/推荐|配置|建议|方案/.test(reply)) {
-    questions.push('收益预期是多少', '这个方案稳不稳', '有没有更保守的选项');
-  } else if (/风险|R1|R2|R3|R4|R5/.test(reply)) {
-    questions.push('我适合哪个等级', '怎么重新评估风险', 'R3能买R4的产品吗');
-  } else if (/市场|行情|走势|经济/.test(reply)) {
-    questions.push('对债市有什么影响', '现在适合加仓吗', '需要赎回吗');
-  } else if (/保本|保息|安全/.test(reply)) {
-    questions.push('大额存单利率多少', '存款保险保障多少', '有没有低风险产品');
-  } else {
-    questions.push('帮我看看持仓', '最近市场怎么样', '推荐一款稳健产品');
+
+  // 基于画像状态 + 回复内容动态生成追问
+  if (risk && finance?.amount && finance?.horizon) {
+    // 画像完整 → 追问配置细节
+    if (/固收|债券|债/.test(reply) && /权益|指数|股票/.test(reply)) {
+      questions.push('固收和权益的比例可以调整吗', '哪个部分风险更大', '预期收益分别多少');
+    } else if (/R\d/.test(reply)) {
+      const rLevel = reply.match(/R(\d)/);
+      if (rLevel) {
+        questions.push(`R${rLevel[1]}的产品我适合买多少`, '历史最大回撤是多少', '同风险等级还有哪些产品');
+      }
+    } else {
+      questions.push('这个方案的预期收益是多少', '最大可能会亏多少', '有没有替代产品');
+    }
+  } else if (risk && !finance?.amount) {
+    // 有风险缺金额 → 引导补金额
+    const riskLabel = risk.label || '稳健型';
+    questions.push(`我是${riskLabel}，有20万怎么配`, '先告诉我最少要多少钱起投', '能不能先推荐再补充信息');
+  } else if (risk && !finance?.horizon) {
+    questions.push('短期和长期推荐有什么区别', '我先按3年计划吧', '如果随时要用怎么配置');
+  } else if (!risk) {
+    // 无画像 → 引导评估
+    questions.push('帮我测一下风险偏好', '风险评估要多久', '不评估能推荐吗');
+  }
+
+  // 通用追问兜底
+  if (questions.length < 3) {
+    if (/市场|行情|走势|利率/.test(reply)) {
+      questions.push('对债市有什么影响', '现在适合入场吗');
+    } else if (/保本|安全|稳健/.test(reply)) {
+      questions.push('有没有存款类产品', '大额存单利率多少');
+    } else if (/期限|封闭|多久/.test(reply)) {
+      questions.push('有随时能取的产品吗', '封闭期内急用钱怎么办');
+    }
+    // 始终补足3个
+    while (questions.length < 3) {
+      const defaults = ['帮我看看现在适合买什么', '最近市场怎么样', '我的持仓要不要调整'];
+      const q = defaults[questions.length];
+      if (!questions.includes(q)) questions.push(q);
+    }
   }
 
   const bubble = msgEl.querySelector('.bubble');
   const div = document.createElement('div');
   div.style.cssText = 'margin-top:12px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px';
   div.innerHTML = questions.slice(0, 3).map(q =>
-    `<span style="padding:5px 10px;border-radius:6px;border:1px solid var(--ink-15);font-size:11px;cursor:pointer;color:var(--ink-70);transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'" onclick="document.getElementById('userInput').value='${q}';sendMessage()">${q}</span>`
+    `<span style="padding:5px 10px;border-radius:6px;border:1px solid var(--ink-15);font-size:11px;cursor:pointer;color:var(--ink-70);transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'" onclick="document.getElementById('userInput').value='${q.replace(/'/g,"\\'")}';sendMessage()">${q}</span>`
   ).join('');
   bubble.appendChild(div);
 }
