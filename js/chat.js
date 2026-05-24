@@ -680,6 +680,9 @@ function showToast(msg) {
 
 // ── 智能追问 ──
 function addFollowUpQuestions(msgEl, reply) {
+  // 问候/通用回复/错误提示不显示追问
+  if (/^(您好|你好|Hi|Hello|网络|抱歉|系统错误)/.test(reply.trim())) return;
+
   const profile = typeof assembleProfile === 'function' ? (() => { try { return assembleProfile(); } catch(e) { return null; } })() : null;
   const risk = profile?.risk;
   const finance = profile?.finance;

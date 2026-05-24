@@ -78,15 +78,6 @@ const FALLBACK_DATA = [
     }
   },
   {
-    id: "profile_extraction",
-    keywords: ["我有", "手头", "闲钱", "存款", "工资", "年终奖", "攒了", "奖金", "万"],
-    reply: {
-      classic: "好的，我记下了。有了这些信息，我就能为您提供更具针对性的建议。接下来我还想了解一下：① 这笔钱您估计多久不会用到？② 您能接受本金有一定波动吗（比如短期亏损 5% 左右）？③ 您对这笔钱有具体的规划吗（比如买房、孩子教育、养老）？",
-      senior: "好的，叔叔/阿姨，我记住啦。知道了您手头的钱，我就能帮您参谋得更准了。还想再问您两个问题：这笔钱一两年内会不会用到呀？还有您能接受它偶尔小涨小跌吗？",
-      youth: "收到了。有了金额数据我就能精准配。再确认一下：① 投资期限（短期<1年 / 中期1-3年 / 长期>3年）② 最大可接受回撤（5% / 10% / 20%）③ 投资目标（增值 / 攒首付 / 养老 / 自由现金流）。"
-    }
-  },
-  {
     id: "risk_assessment",
     keywords: ["怕亏", "害怕", "保守", "不敢", "胆小", "安全第一", "本金", "稳妥", "不敢冒险"],
     reply: {
@@ -151,9 +142,10 @@ function findFallback(userInput, mode) {
     return { id: 'sentiment_comfort', text: comfortText, isFallback: true };
   }
 
-  // ══ 第二优先级：推荐/配置请求 → 先检查画像完整度 ══
+  // ══ 第二优先级：推荐/配置请求 / 用户提供了金额期限信息 → 检查画像完整度 ══
   const isRecommendation = /推荐|配置|怎么配|建议|方案|投什么|买什么/.test(input);
-  if (isRecommendation) {
+  const hasAmountHorizon = /\d+\s*(?:万|w|万元|个?月|年|天)/.test(input);
+  if (isRecommendation || hasAmountHorizon) {
     let profile, risk, finance;
     try {
       profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
@@ -246,6 +238,17 @@ function findFallback(userInput, mode) {
   let profile;
   try { profile = typeof assembleProfile === 'function' ? assembleProfile() : null; }
   catch(e) { profile = null; }
+
+  // 简单问候 → 友好回复
+  if (/^(你好|hi|hello|嗨|在吗|您好|早上好|下午好|晚上好)[\s!！。.,，]*$/.test(input.trim())) {
+    const greetings = {
+      classic: '您好！我是轻舟，您的智慧银行理财顾问。请问有什么可以帮您？',
+      senior: '您好！我是轻舟，您慢慢说，想问什么都可以。',
+      youth: 'Hi！轻舟在线。有什么理财问题直接说。'
+    };
+    return { id: 'greeting', text: greetings[mode] || greetings.classic, isFallback: true };
+  }
+
   if (profile?.risk && !profile?.finance?.amount) {
     return {
       id: 'contextual_fallback',
