@@ -165,8 +165,8 @@ with sync_playwright() as p:
     # Archive is inside collapsible, expand it first
     archive_head = page.locator('#archiveContent').locator('..').locator('..')
     archive_collapse = archive_head.locator('..')
-    # The #archiveContent is inside a collapsible body - expand it
-    archive_toggle = page.locator('.collapsible .col-head').last
+    # The #archiveContent is inside a collapsible body - expand it by finding the archive header
+    archive_toggle = page.locator('.col-head:has-text("个人档案")')
     if archive_toggle.is_visible():
         archive_toggle.click()
         page.wait_for_timeout(300)
@@ -237,7 +237,7 @@ with sync_playwright() as p:
     # 4.4 Edit archive (expand the collapsed section first)
     print("\n--- 4.4 编辑档案 ---")
     # Expand the archive section
-    archive_toggle = page.locator('.collapsible .col-head').last
+    archive_toggle = page.locator('.col-head:has-text("个人档案")')
     if archive_toggle.is_visible():
         archive_toggle.click()
         page.wait_for_timeout(300)
