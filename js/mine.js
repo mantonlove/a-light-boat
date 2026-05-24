@@ -522,7 +522,6 @@ function renderVoicePresets() {
   ];
   container.innerHTML = '<div class="voice-grid">' + presets.map(v => `
     <div class="voice-card${v.id === currentId ? ' active' : ''}" onclick="selectVoice('${v.id}')">
-      <div class="vc-icon">${v.icon}</div>
       <div class="vc-name">${v.name}</div>
       <div class="vc-desc">${v.desc}</div>
       <span class="vc-test" onclick="event.stopPropagation();previewVoice('${v.id}')">试听</span>
