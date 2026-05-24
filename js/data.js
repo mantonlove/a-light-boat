@@ -128,6 +128,84 @@ function findFallback(userInput, mode) {
   let bestMatch = null;
   let bestScore = 0;
 
+  // ══ 第一优先级：检测情绪 → 无论如何先安抚 ══
+  const sentimentKeywords = ['好慌', '担心', '害怕', '跌了', '亏了', '睡不着', '焦虑', '紧张', '后悔', '难受', '不敢', '太坑', '坑人'];
+  const hasSentiment = sentimentKeywords.some(k => input.includes(k));
+  if (hasSentiment) {
+    const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+    const risk = profile?.risk;
+    let comfortText = '';
+    if (mode === 'senior') {
+      comfortText = '叔叔/阿姨，看到市场波动心里不踏实，我完全理解。钱是辛苦攒的，谁都会担心。咱们先别急——市场有涨有跌是正常的，慌的时候做决定最容易出错。';
+    } else if (mode === 'youth') {
+      comfortText = '完全理解。市场波动是常态——沪深300 历史上 6 次超 20% 回调都涨回来了。浮亏不是实际亏损，除非现在卖出。先冷静，我帮你分析一下。';
+    } else {
+      comfortText = '我理解您的心情，看到市场波动确实让人不安。市场短期起伏是正常的，建议不要因为短期波动做出冲动决策。';
+    }
+    if (risk) {
+      comfortText += `\n\n您的风险等级是 ${risk.level} ${risk.label}，可承受最大回撤 ${risk.maxDrawdown}。当前波动在您的承受范围内。`;
+    }
+    comfortText += '\n\n如果您愿意，我可以帮您：① 看看您持有的产品受影响大不大 ② 重新评估是否需调整配置 ③ 聊聊更保守的选项。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。';
+    return { id: 'sentiment_comfort', text: comfortText, isFallback: true };
+  }
+
+  // ══ 第二优先级：推荐/配置请求 → 先检查画像完整度 ══
+  const isRecommendation = /推荐|配置|怎么配|建议|方案|投什么|买什么/.test(input);
+  if (isRecommendation) {
+    const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+    const risk = profile?.risk;
+    const finance = profile?.finance;
+
+    // 没有风险评估 → 引导先评估
+    if (!risk) {
+      const guideTexts = {
+        classic: '在为您推荐产品之前，我需要先了解您的风险偏好。点击下方消息中的"重新测试风险评估"按钮，完成 8 道简单题目（约 2 分钟），我就能为您精准匹配产品。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
+        senior: '叔叔/阿姨，推荐产品之前，我先帮您做个小测评——就 8 道题，看看您的钱适合哪种风险等级。测完了，我帮您找最合适的产品，这样心里有底。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
+        youth: '推荐之前先跑个风险画像——8 题，2 分钟。有了 R 等级才能精准匹配，不然都是盲推。试试说"重新测试我的风险评估结果"。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
+      };
+      return { id: 'profile_guide', text: guideTexts[mode] || guideTexts.classic, isFallback: true };
+    }
+
+    // 有风险但缺金额/期限 → 追问
+    if (!finance?.amount || !finance?.horizon) {
+      const missing = [];
+      if (!finance?.amount) missing.push('可投金额');
+      if (!finance?.horizon) missing.push('投资期限');
+      const askTexts = {
+        classic: `您的风险评估结果是 ${risk.level} ${risk.label}。为了给您更精准的建议，还需要了解：${missing.join(' 和 ')}。您方便告诉我吗？\n\n例如："我有 20 万，3 年不用"\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`,
+        senior: `叔叔/阿姨，风险测评出来了——您是 ${risk.label}。接下来我想知道：您大概有多少钱可以拿来理财？这笔钱多久不会用到？您告诉我，我帮您算得准准的。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`,
+        youth: `风险画像：${risk.level} ${risk.label}。还差两个关键参数：① 可投金额 ② 投资期限。报一下，我直接跑配置。格式："20 万，3 年不用"\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。`
+      };
+      return { id: 'profile_incomplete', text: askTexts[mode] || askTexts.classic, isFallback: true };
+    }
+
+    // 画像完整 → 生成个性化推荐
+    const amount = finance.amount >= 10000 ? (finance.amount/10000).toFixed(0) + '万' : finance.amount + '元';
+    const template = profile.getTemplate ? profile.getTemplate() : null;
+
+    let recText = '';
+    if (mode === 'classic') {
+      recText = `基于您的画像——${risk.level} ${risk.label} · ${amount} · ${finance.horizon}，为您推荐以下配置：\n\n`;
+      recText += '📊 固收类（70%）：稳享固收增强 6 个月（R2，基准 2.8%-3.5%）+ 安鑫短债 30 天（R2，基准 2.0%-2.5%）\n';
+      recText += '📊 权益类（30%）：沪深 300 指数增强（R3，基准 4.0%-6.5%）\n\n';
+      if (template) recText += `预期年化：${template.expectedReturn} · 最大回撤：${template.maxDrawdown}\n\n`;
+      recText += '⚠️ 以上为参考建议，历史业绩不代表未来收益，投资需谨慎。';
+    } else if (mode === 'senior') {
+      recText = `叔叔/阿姨，根据您是${risk.label}、有 ${amount}、打算放 ${finance.horizon}，我帮您盘算了一下：\n\n`;
+      recText += '大头（七成）放稳妥的——比如"稳享固收增强"和"安鑫短债"，波动很小，稳稳当当拿利息。\n';
+      recText += '小头（三成）买点指数基金，长期看是涨的，能多赚一点。\n\n';
+      recText += '这样搭配下来，整体波动不大，您心里踏实。您觉得这个思路行吗？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。';
+    } else {
+      recText = `基于 ${risk.level} ${risk.label} · ${amount} · ${finance.horizon}，最优配置：\n\n`;
+      recText += '📊 稳享固收增强 6M — 40%（R2，3.2%）\n📊 沪深 300 指数增强 — 30%（R3，6.5%）\n📊 安鑫短债 30D — 20%（R2，2.3%）\n📊 活期盈 — 10%（R1，灵活备用）\n\n';
+      if (template) recText += `预期年化 ${template.expectedReturn} · 最大回撤 ${template.maxDrawdown}\n\n`;
+      recText += '⚠️ 历史不代表未来。DYOR.';
+    }
+
+    return { id: 'personalized_recommendation', text: recText, isFallback: true };
+  }
+
+  // ══ 第三优先级：常规关键词匹配 ══
   for (const entry of FALLBACK_DATA) {
     let score = 0;
     for (const keyword of entry.keywords) {
@@ -143,17 +221,26 @@ function findFallback(userInput, mode) {
 
   if (bestMatch && bestScore > 0) {
     const text = bestMatch.reply[mode] || bestMatch.reply.classic;
+    return { id: bestMatch.id, text: text, isFallback: true };
+  }
+
+  // ══ 无匹配 → 上下文感知的通用回复 ══
+  const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+  if (profile?.risk && !profile?.finance?.amount) {
     return {
-      id: bestMatch.id,
-      text: text,
+      id: 'contextual_fallback',
+      text: mode === 'senior'
+        ? '叔叔/阿姨，我听着呢。您想了解什么？比如看看产品、问问市场，或者跟我说说您有多少钱想理财？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
+        : '我在这里。您可以问我产品推荐、市场解读、风险评估，或者告诉我您的资金情况，我帮您规划。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
       isFallback: true
     };
   }
 
-  // 无匹配 → 返回通用提示
   return {
-    id: "generic_fallback",
-    text: "网络似乎不太稳定，我暂时无法为您查询最新数据。\n\n您可以稍后重试，或通过我行手机银行 APP 查看产品信息。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。",
+    id: 'generic_fallback',
+    text: mode === 'senior'
+      ? '网络好像有点慢，您别急。要不您再试一次，或者换个方式问我？\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。'
+      : '网络似乎不太稳定，请稍后重试。您也可以换个方式提问。\n\n⚠️ 理财非存款，产品有风险，投资须谨慎。',
     isFallback: true
   };
 }
