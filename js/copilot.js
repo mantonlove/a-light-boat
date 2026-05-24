@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTalkingPoints();
   renderProductHighlights();
   renderHandoffContext();
+  renderBriefing();
   renderComplianceNotes();
 });
 
@@ -151,6 +152,75 @@ function renderHandoffContext() {
   `;
   section.parentNode.insertBefore(div, section.nextSibling);
 }
+
+// ── 客户简报生成器 ──
+function renderBriefing() {
+  const profile = assembleProfile();
+  const risk = profile.risk;
+  const finance = profile.finance;
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+  const allocation = Storage.get('qingzhou_allocation');
+  const keyMoments = Storage.getKeyMoments();
+  const handoff = Storage.get('qingzhou_handoffPackage');
+
+
+  const lines = [];
+  lines.push('【客户简报】' + (Storage.get('qingzhou_userInfo')?.nickname || '客户'));
+  lines.push('');
+
+  // 画像
+  if (risk) lines.push(`风险等级：${risk.level} ${risk.label}（${risk.score}/54）`);
+  if (finance.amount) lines.push(`可投金额：${finance.amount >= 10000 ? (finance.amount/10000).toFixed(0)+'万' : finance.amount+'元'}`);
+  if (finance.horizon) lines.push(`投资期限：${finance.horizon}`);
+  if (finance.goal) lines.push(`投资目标：${finance.goal}`);
+  if (stages.length) lines.push(`人生阶段：${stages.map(s=>s.label).join('、')}`);
+
+  // 推荐方案
+  if (allocation?.allocation) {
+    lines.push('');
+    lines.push('【推荐方案】');
+    allocation.allocation.forEach(a => lines.push(`  ${a.name} · ${a.ratio}% · ${a.risk || 'R3'}`));
+  }
+
+  // 合规提醒
+  lines.push('');
+  lines.push('【合规须知】');
+  lines.push('  禁止使用"保本""稳赚"等承诺用语');
+  lines.push('  必须声明"理财非存款，产品有风险，投资须谨慎"');
+  if (risk) lines.push(`  推荐产品风险等级不得超过 ${risk.level}+1`);
+  lines.push('');
+  lines.push(`生成时间：${new Date().toLocaleString('zh-CN')}`);
+
+  const briefing = lines.join('\n');
+
+  const el = document.getElementById('productHighlights');
+  if (!el) return;
+  const section = el.closest('.mine-section');
+  if (!section) return;
+
+  const div = document.createElement('div');
+  div.className = 'mine-section';
+  div.innerHTML = `
+    <div class="sec-label">一键生成客户简报</div>
+    <div class="card">
+      <pre style="font-size:12px;color:var(--ink-70);line-height:1.8;white-space:pre-wrap;font-family:var(--body);max-height:300px;overflow-y:auto;margin-bottom:12px">${briefing}</pre>
+      <button class="btn-outline" style="padding:6px 16px;font-size:11px" onclick="copyBriefing()">📋 复制简报</button>
+    </div>
+  `;
+  section.parentNode.insertBefore(div, section.nextSibling);
+
+  window._briefingText = briefing;
+}
+
+window.copyBriefing = function() {
+  if (window._briefingText) {
+    navigator.clipboard.writeText(window._briefingText).then(() => {
+      alert('简报已复制到剪贴板');
+    }).catch(() => {
+      alert('复制失败，请手动选择文本');
+    });
+  }
+};
 
 // ── 合规提示 ──
 function renderComplianceNotes() {

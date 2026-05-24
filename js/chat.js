@@ -306,6 +306,12 @@ async function sendMessage() {
     showToast(result.toast);
   }
 
+  // 智能追问：根据 AI 回复生成 2-3 个追问按钮
+  addFollowUpQuestions(msgEl, result.reply);
+
+  // 风险重评提醒：超6个月或人生阶段变化
+  checkRiskReassessmentNudge(msgEl);
+
   // 重新读取 history（并发调用时避免覆盖其他 sendMessage 写入的数据）
   const latestHistory = Storage.get('qingzhou_chatHistory') || [];
   latestHistory.push({ role: 'ai', content: result.reply, timestamp: new Date().toISOString(), isFallback: result.isFallback });
@@ -485,6 +491,51 @@ function showToast(msg) {
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
   return toast;
+}
+
+// ── 智能追问 ──
+function addFollowUpQuestions(msgEl, reply) {
+  const questions = [];
+  if (/推荐|配置|建议|方案/.test(reply)) {
+    questions.push('收益预期是多少', '这个方案稳不稳', '有没有更保守的选项');
+  } else if (/风险|R1|R2|R3|R4|R5/.test(reply)) {
+    questions.push('我适合哪个等级', '怎么重新评估风险', 'R3能买R4的产品吗');
+  } else if (/市场|行情|走势|经济/.test(reply)) {
+    questions.push('对债市有什么影响', '现在适合加仓吗', '需要赎回吗');
+  } else if (/保本|保息|安全/.test(reply)) {
+    questions.push('大额存单利率多少', '存款保险保障多少', '有没有低风险产品');
+  } else {
+    questions.push('帮我看看持仓', '最近市场怎么样', '推荐一款稳健产品');
+  }
+
+  const bubble = msgEl.querySelector('.bubble');
+  const div = document.createElement('div');
+  div.style.cssText = 'margin-top:12px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px';
+  div.innerHTML = questions.slice(0, 3).map(q =>
+    `<span style="padding:5px 10px;border-radius:6px;border:1px solid var(--ink-15);font-size:11px;cursor:pointer;color:var(--ink-70);transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'" onclick="document.getElementById('userInput').value='${q}';sendMessage()">${q}</span>`
+  ).join('');
+  bubble.appendChild(div);
+}
+
+// ── 风险重评提醒 ──
+function checkRiskReassessmentNudge(msgEl) {
+  const risk = Storage.get('qingzhou_riskProfile');
+  if (!risk) return;
+
+  const assessedAt = new Date(risk.assessedAt);
+  const monthsSince = (Date.now() - assessedAt.getTime()) / (1000*60*60*24*30);
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+  const hasStageChange = stages.length > 0;
+
+  if (monthsSince > 6 || hasStageChange) {
+    const bubble = msgEl.querySelector('.bubble');
+    const nudge = document.createElement('div');
+    nudge.style.cssText = 'margin-top:10px;padding:8px 12px;background:var(--gold-light);border-radius:var(--r-sm);font-size:11px;color:var(--gold-dark);line-height:1.6';
+    nudge.innerHTML = monthsSince > 6
+      ? `💡 您的风险评估已超过 ${Math.floor(monthsSince)} 个月，建议<a style="color:var(--ink);cursor:pointer;text-decoration:underline" onclick="startQuestionnaire()">重新评估</a>以获得更精准的建议。`
+      : '💡 您的人生阶段发生了变化，建议<a style="color:var(--ink);cursor:pointer;text-decoration:underline" onclick="startQuestionnaire()">重新评估风险</a>以确保推荐方案匹配当前状况。';
+    bubble.appendChild(nudge);
+  }
 }
 
 // ── Handoff ──
