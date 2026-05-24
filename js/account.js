@@ -29,10 +29,10 @@ function renderAssetOverview() {
 
   const account = Storage.get('qingzhou_account') || {};
   const items = [
-    { label: '总资产', value: formatMoney(account.totalAssets || 356800), color: 'var(--ink)' },
-    { label: '活期余额', value: formatMoney(account.balance || 48600), color: '#10B981' },
-    { label: '理财持仓', value: formatMoney(account.holdingsValue || 285000), color: 'var(--gold-dark)' },
-    { label: '昨日收益', value: (account.yesterdayReturn || 128.5) > 0 ? '+' + formatMoney(account.yesterdayReturn || 128.5) : formatMoney(account.yesterdayReturn || 0), color: '#EF4444' }
+    { label: '总资产', value: formatMoney(account.totalAssets || 334000), color: 'var(--ink)' },
+    { label: '活期余额', value: formatMoney(account.balance || 48600), color: 'var(--ink)' },
+    { label: '理财持仓', value: formatMoney(account.holdingsValue || 285000), color: 'var(--ink)' },
+    { label: '昨日收益', value: (account.yesterdayReturn || 128.5) > 0 ? '+' + formatMoney(account.yesterdayReturn || 128.5) + ' 元' : formatMoney(account.yesterdayReturn || 0), color: '#C04A1A' }
   ];
 
   el.innerHTML = items.map(i => `
@@ -49,7 +49,7 @@ function renderQuickActions() {
   if (!el) return;
 
   const actions = [
-    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>', label: '转账汇款', desc: '向银行卡转账' },
+    { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M17 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M22 11v4a2 2 0 0 1-2 2h-4l-3 3V10l3 3h4a2 2 0 0 1 2 2z"/><line x1="8" y1="12" x2="12" y2="12"/></svg>', label: '转账汇款', desc: '向银行卡或账户转账' },
     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>', label: '生活缴费', desc: '水电气一卡缴' },
     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="18" x2="12" y2="22"/></svg>', label: '理财购买', desc: '浏览在售产品' },
     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', label: '人工客服', desc: '连线理财顾问' }
@@ -142,9 +142,9 @@ function renderHoldings() {
   if (!el) return;
 
   const holdings = Storage.get('qingzhou_holdings') || [
-    { name: '安鑫短债 30 天', risk: 'R2', amount: 100000, return_rate: 2.3, lock_days: 30 },
-    { name: '稳享固收增强 6 个月', risk: 'R3', amount: 120000, return_rate: 3.2, lock_days: 180 },
-    { name: '沪深 300 指数增强', risk: 'R3', amount: 65000, return_rate: 5.8, lock_days: 0 }
+    { name: '安鑫短债 30 天', risk: 'R2', amount: 100000, return_rate: '2.0–2.5%', lock_days: 30, desc: '中低风险 · 主要投向高等级债券' },
+    { name: '稳享固收增强 6 个月', risk: 'R3', amount: 120000, return_rate: '2.8–3.5%', lock_days: 180, desc: '中等风险 · 固收打底+少量权益增厚' },
+    { name: '沪深 300 指数增强', risk: 'R3', amount: 65000, return_rate: '4.0–6.5%', lock_days: 0, desc: '中等风险 · 跟踪沪深300，追求超额收益' }
   ];
 
   if (holdings.length === 0) {
@@ -167,7 +167,8 @@ function renderHoldings() {
           <span class="risk-badge risk-r${h.risk.replace('R','')}">${h.risk}</span>
         </div>
         <div style="font-size:11px;color:var(--ink-40)">
-          持有 <strong style="color:var(--ink);font-size:14px;font-family:var(--display)">${formatMoney(h.amount)}</strong> · 年化 <strong style="color:var(--ink)">${h.return_rate}%</strong>${h.lock_days > 0 ? ' · <strong style="color:var(--ink)">' + h.lock_days + '天</strong>后到期' : ''}
+          持有 <strong style="color:var(--ink);font-size:14px;font-family:var(--display)">${formatMoney(h.amount)}</strong> · 业绩基准 <strong style="color:var(--ink)">${h.return_rate}</strong>${h.lock_days > 0 ? ' · <strong style="color:var(--ink)">' + h.lock_days + '天</strong>后到期' : ''}
+          ${h.desc ? '<div style="margin-top:2px;font-size:10px">' + h.desc + '</div>' : ''}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
