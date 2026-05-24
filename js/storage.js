@@ -182,6 +182,14 @@ function matchVoice(preset, voices) {
   return zhVoices[0];
 }
 
+// ── 全局键盘快捷键 ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // 关闭所有打开的弹窗
+    document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+  }
+});
+
 /** 场景引导提示：首次访问页面时显示 */
 function showContextualTip(page) {
   const key = 'qingzhou_tipSeen_' + page;

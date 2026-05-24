@@ -36,6 +36,23 @@ function renderRecommendations() {
   if (!allocation || !allocation.allocation || allocation.allocation.length === 0) {
     emptyState.classList.remove('hidden');
     recContent.classList.add('hidden');
+    // Enhance empty state with guidance
+    const emptyDiv = document.getElementById('emptyState');
+    if (emptyDiv) {
+      emptyDiv.innerHTML = `
+        <div style="padding:var(--s6) var(--s4);text-align:center">
+          <div style="font-size:48px;margin-bottom:var(--s2)">📊</div>
+          <h3 style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px">暂无推荐方案</h3>
+          <p style="font-size:13px;color:var(--ink-40);line-height:1.8;max-width:400px;margin:0 auto var(--s3)">
+            让轻舟为您生成专属配置方案。<br>返回聊天页完成风险评估和档案填写后，AI 会自动生成个性化投资组合建议。
+          </p>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <span style="padding:8px 16px;border-radius:8px;border:1px solid var(--ink-15);font-size:13px;cursor:pointer;font-weight:500;background:var(--surface-card)" onclick="window.location.href='chat.html?mode=${currentMode}'">💬 开始对话</span>
+            <span style="padding:8px 16px;border-radius:8px;border:1px solid var(--ink-15);font-size:13px;cursor:pointer;font-weight:500;background:var(--surface-card)" onclick="window.location.href='mine.html?mode=${currentMode}'">📋 完善画像</span>
+          </div>
+        </div>
+      `;
+    }
     return;
   }
 
@@ -61,19 +78,25 @@ function renderRecommendations() {
       </div>
     </div>
     <div class="product-grid">
-      ${allocation.allocation.map((a,i) => `
+      ${allocation.allocation.map((a,i) => {
+        const pRisk = parseInt((a.risk||'R3').replace('R',''));
+        const uRisk = parseInt((allocation.based_on?.risk_level||'R3').replace('R',''));
+        const diff = pRisk - uRisk;
+        const matchLabel = diff <= 0 ? '✅ 匹配' : diff === 1 ? '⚠️ 略高' : '❌ 偏高';
+        const matchColor = diff <= 0 ? '#10B981' : diff === 1 ? 'var(--gold-dark)' : '#EF4444';
+        return `
         <div class="product-card">
           <div class="pc-header">
             <span class="pc-name">${a.name || '产品'}</span>
             <span class="risk-badge risk-r${(a.risk||'R3').replace('R','')}">${a.risk || 'R3'}</span>
           </div>
-          <div class="pc-meta">点击查看详情</div>
+          <div class="pc-meta" style="color:${matchColor};font-weight:600">${matchLabel} · 点击查看详情</div>
           <div class="pc-actions">
             <span class="pc-detail" onclick="showProductDetail('${(a.name||'').replace(/'/g,"\\'")}')">查看详情 →</span>
             <span class="pc-send" onclick="event.stopPropagation();sendToChat('${(a.name||'').replace(/'/g,"\\'")}')">发送至聊天 ↗</span>
           </div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
     <div style="text-align:center;font-size:10px;color:var(--ink-40);margin-top:var(--s2);padding-top:var(--s2);border-top:1px solid var(--border)">
       ⚠️ 以上为参考建议，历史回测不代表未来收益。投资需谨慎。

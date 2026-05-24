@@ -148,7 +148,14 @@ function renderHoldings() {
   ];
 
   if (holdings.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:var(--s4);color:var(--ink-40);font-size:13px">暂无持仓产品</div>';
+    el.innerHTML = `
+      <div style="text-align:center;padding:var(--s5) var(--s4)">
+        <div style="font-size:36px;margin-bottom:12px">📦</div>
+        <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px">暂无持仓产品</div>
+        <div style="font-size:12px;color:var(--ink-40);line-height:1.8;margin-bottom:16px">轻舟对话中生成的推荐方案会自动同步到这里。<br>也可以手动添加您已持有的产品。</div>
+        <span style="padding:8px 16px;border-radius:8px;border:1px solid var(--ink-15);font-size:13px;cursor:pointer;font-weight:500;background:var(--surface-card)" onclick="goTo('chat.html')">💬 去聊天获取推荐</span>
+      </div>
+    `;
     return;
   }
 
