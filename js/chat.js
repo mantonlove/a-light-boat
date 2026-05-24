@@ -302,8 +302,9 @@ async function sendMessage() {
     }
   }
 
-  // 收藏按钮：仅在有价值的回复上显示（非引导/非追问）
-  const isWorthBookmarking = !/需要先|请先|点击|完成.*评估|完成.*问卷|告诉我|方便告诉/.test(result.reply);
+  // 收藏按钮：仅在真正推荐了具体产品/方案时显示
+  const isWorthBookmarking = /(?:推荐|配置|方案|组合).{0,30}(?:R\d|%\s*(?:·|，|。)|产品|组合)/.test(result.reply)
+    && !/需要先|请先|点击|完成.*评估|完成.*问卷|告诉我|方便告诉|了解|需要|知道/.test(result.reply);
   if (isWorthBookmarking) {
     addBookmarkButton(msgEl, result.reply);
   }
