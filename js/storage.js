@@ -181,3 +181,27 @@ function matchVoice(preset, voices) {
   // 回退：第一个zh-CN语音
   return zhVoices[0];
 }
+
+/** 场景引导提示：首次访问页面时显示 */
+function showContextualTip(page) {
+  const key = 'qingzhou_tipSeen_' + page;
+  if (Storage.get(key)) return;
+
+  const tips = {
+    chat: '💡 试试点击预设问题快速开始，或直接说出您的理财需求。左侧图标可切换推荐/账户/我的。',
+    recommend: '💡 这里展示配置方案和市场动态。在「我的」中可开关市场热点和周报。',
+    account: '💡 查看资产总览和持仓。点击快捷操作办理转账缴费，点击产品可发送到聊天讨论。',
+    mine: '💡 完善画像获得更精准推荐。点击折叠区标题展开详情，右下角调整字体大小。'
+  };
+
+  const msg = tips[page];
+  if (!msg) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.style.cssText = 'bottom:100px;max-width:360px;text-align:center;line-height:1.6;font-size:12px';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 6000);
+  Storage.set(key, true);
+}

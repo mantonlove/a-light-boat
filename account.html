@@ -63,6 +63,15 @@
   </div>
 </div>
 
+<!-- Action Modal -->
+<div class="modal-overlay hidden" id="actionModal">
+  <div class="modal-box">
+    <div class="modal-head"><span id="actionModalTitle">操作</span><button onclick="closeActionModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-40)">✕</button></div>
+    <div class="modal-body" id="actionModalBody"></div>
+    <div class="modal-foot"><button class="btn-outline" style="padding:8px 18px;border-radius:8px;font-size:14px" onclick="closeActionModal()">取消</button><button class="btn-primary" style="padding:8px 18px;border-radius:8px;font-size:14px" id="actionModalConfirm">确认</button></div>
+  </div>
+</div>
+
 <script src="js/storage.js?v=5"></script>
 <script src="js/profile_engine.js?v=5"></script>
 <script src="js/account.js?v=5"></script>

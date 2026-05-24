@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 回访变化摘要
   showReengagementSummary();
+
+  // 场景引导提示
+  showContextualTip('chat');
 });
 
 // ── Presets ──

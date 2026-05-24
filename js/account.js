@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
   applyFontSize(savedFontSize);
 
+  if (typeof showContextualTip === 'function') showContextualTip('account');
   renderAssetOverview();
   renderQuickActions();
   renderHoldings();
@@ -54,14 +55,86 @@ function renderQuickActions() {
     { icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>', label: '人工客服', desc: '连线理财顾问' }
   ];
 
-  el.innerHTML = actions.map(a => `
-    <div style="cursor:pointer;padding:var(--s2);border-radius:var(--r-sm);transition:all var(--transition)" onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background='none'" onclick="showToast('${a.label}功能即将上线')">
+  el.innerHTML = actions.map((a, i) => `
+    <div style="cursor:pointer;padding:var(--s2);border-radius:var(--r-sm);transition:all var(--transition)" onmouseover="this.style.background='var(--surface-raised)'" onmouseout="this.style.background='none'" onclick="handleQuickAction(${i})">
       <div style="color:var(--ink-70);margin-bottom:8px">${a.icon}</div>
       <div style="font-size:13px;font-weight:600">${a.label}</div>
       <div style="font-size:10px;color:var(--ink-40);margin-top:2px">${a.desc}</div>
     </div>
   `).join('');
+
+  window._quickActions = actions;
 }
+
+window.handleQuickAction = function(idx) {
+  const actions = window._quickActions || [];
+  const action = actions[idx];
+  if (!action) return;
+
+  switch(idx) {
+    case 0: // 转账汇款
+      showTransferForm();
+      break;
+    case 1: // 生活缴费
+      showPayForm();
+      break;
+    case 2: // 理财购买
+      window.location.href = 'recommend.html?mode=' + currentMode;
+      break;
+    case 3: // 人工客服
+      window.location.href = 'chat.html?mode=' + currentMode + '&action=handoff';
+      break;
+  }
+};
+
+function showTransferForm() {
+  const modal = document.getElementById('actionModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  document.getElementById('actionModalTitle').textContent = '转账汇款';
+  document.getElementById('actionModalBody').innerHTML = `
+    <label>收款人</label><input type="text" placeholder="姓名或卡号" id="transferName">
+    <label style="margin-top:12px">金额</label><input type="number" placeholder="0.00" id="transferAmount">
+    <label style="margin-top:12px">备注</label><input type="text" placeholder="转账备注（选填）" id="transferNote">
+  `;
+  document.getElementById('actionModalConfirm').onclick = () => {
+    const name = document.getElementById('transferName')?.value || '';
+    const amount = document.getElementById('transferAmount')?.value || '';
+    if (!name || !amount) { showToast('请填写收款人和金额'); return; }
+    closeActionModal();
+    showToast('转账指令已提交，请通过手机银行确认');
+  };
+}
+
+function showPayForm() {
+  const modal = document.getElementById('actionModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  document.getElementById('actionModalTitle').textContent = '生活缴费';
+  document.getElementById('actionModalBody').innerHTML = `
+    <label>缴费类型</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px" onclick="document.getElementById('payType').value='水费'"><input type="radio" name="payType" value="水费" style="display:none">💧 水费</label>
+      <label style="display:flex;align-items:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px" onclick="document.getElementById('payType').value='电费'"><input type="radio" name="payType" value="电费" style="display:none">⚡ 电费</label>
+      <label style="display:flex;align-items:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px" onclick="document.getElementById('payType').value='燃气费'"><input type="radio" name="payType" value="燃气费" style="display:none">🔥 燃气费</label>
+      <label style="display:flex;align-items:center;gap:6px;padding:10px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px" onclick="document.getElementById('payType').value='通讯费'"><input type="radio" name="payType" value="通讯费" style="display:none">📱 通讯费</label>
+    </div>
+    <input type="hidden" id="payType" value="">
+    <label>缴费金额</label><input type="number" placeholder="0.00" id="payAmount">
+  `;
+  document.getElementById('actionModalConfirm').onclick = () => {
+    const type = document.getElementById('payType')?.value || '';
+    const amount = document.getElementById('payAmount')?.value || '';
+    if (!type || !amount) { showToast('请选择缴费类型并输入金额'); return; }
+    closeActionModal();
+    showToast(type + ' ' + amount + '元缴费已提交');
+  };
+}
+
+window.closeActionModal = function() {
+  const modal = document.getElementById('actionModal');
+  if (modal) modal.classList.add('hidden');
+};
 
 // ── 我的持仓 ──
 function renderHoldings() {

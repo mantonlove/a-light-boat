@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedFontSize = Storage.get('qingzhou_fontSize') || MODE_DEFAULT_FONT[currentMode] || 'medium';
   applyFontSize(savedFontSize);
 
+  if (typeof showContextualTip === 'function') showContextualTip('recommend');
   renderRecommendations();
 });
 

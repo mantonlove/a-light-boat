@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('profileAvatar').innerHTML = `<img src="${userInfo.avatar}" style="width:100%;height:100%;border-radius:16px;object-fit:cover;">`;
   }
 
+  // 场景引导
+  if (typeof showContextualTip === 'function') showContextualTip('mine');
+
   // 恢复已保存的账户安全信息
   const savedPhone = Storage.get('qingzhou_accountPhone');
   if (savedPhone) {
