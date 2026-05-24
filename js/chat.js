@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.body.className = 'mode-' + currentMode;
   // mode badge removed from chat header
 
+  // 智能欢迎语
+  personalizeWelcome();
+
   // 应用字体：优先用户保存的，否则按模式默认
   const MODE_FONT_DEFAULTS = { classic: 'medium', senior: 'large', youth: 'small' };
   const savedFontSize = Storage.get('qingzhou_fontSize');
@@ -63,6 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (params.get('action') === 'reassess') {
     setTimeout(() => startQuestionnaire(), 800);
   }
+
+  // 回访变化摘要
+  showReengagementSummary();
 });
 
 // ── Presets ──
@@ -461,6 +467,83 @@ function speakText(text, onEnd) {
 // ── Navigation ──
 function goTo(url) {
   window.location.href = url + '?mode=' + currentMode;
+}
+
+// ── 回访变化摘要 ──
+function showReengagementSummary() {
+  const lastVisit = Storage.get('qingzhou_lastVisit');
+  if (!lastVisit) return;
+  const days = Math.floor((Date.now() - new Date(lastVisit).getTime()) / (1000*60*60*24));
+  if (days < 1) return; // 同日不提示
+
+  // 收集期间变化
+  const changes = [];
+  const keyMoments = Storage.getKeyMoments();
+  const recentMoments = keyMoments.filter(m => new Date(m.time) > new Date(lastVisit));
+  if (recentMoments.length > 0) {
+    changes.push(`期间发生 ${recentMoments.length} 个关键事件`);
+  }
+
+  const stages = Storage.get('qingzhou_lifeStages') || [];
+  const newStages = stages.filter(s => !s.detectedAt || new Date(s.detectedAt) > new Date(lastVisit));
+  if (newStages.length > 0) {
+    changes.push(`检测到新的人生阶段：${newStages.map(s=>s.label).join('、')}`);
+  }
+
+  const allocation = Storage.get('qingzhou_allocation');
+  if (allocation?.generated_at && new Date(allocation.generated_at) > new Date(lastVisit)) {
+    changes.push('已生成新的资产配置方案');
+  }
+
+  if (changes.length === 0) return;
+
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.innerHTML = `
+    <div class="avatar"><img src="assets/logo.png" style="width:100%;height:100%;border-radius:10px;object-fit:cover"></div>
+    <div class="bubble" style="background:var(--gold-light);color:var(--gold-dark);font-size:12px;line-height:1.8">
+      <div style="font-weight:700;margin-bottom:4px">📌 距上次来访已过 ${days} 天，期间变化：</div>
+      ${changes.map(c => '<div>· ' + c + '</div>').join('')}
+    </div>
+  `;
+  container.insertBefore(div, container.firstChild);
+}
+
+// ── 智能欢迎语 ──
+function personalizeWelcome() {
+  const welcomeEl = document.getElementById('welcomeMsg');
+  if (!welcomeEl) return;
+
+  const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+  const hours = new Date().getHours();
+  const timeGreet = hours < 12 ? '早上好' : hours < 18 ? '下午好' : '晚上好';
+  const userInfo = Storage.get('qingzhou_userInfo') || {};
+  const name = userInfo.nickname || '';
+
+  // 检查画像完整度
+  let greeting = '';
+  if (profile?.risk && profile?.finance?.amount && profile?.finance?.horizon) {
+    // 画像完整：个性化问候
+    greeting = `${timeGreet}${name ? '，'+name : ''}。您的${profile.risk.level} ${profile.risk.label}画像已就绪，可以直接问我配置建议。`;
+  } else if (profile?.risk) {
+    // 仅有风险评估
+    const missing = profile.missingFields ? profile.missingFields().join('、') : '金额和期限';
+    greeting = `${timeGreet}${name ? '，'+name : ''}。您的风险评估已完成，补充${missing}后我就能为您精准推荐。`;
+  } else {
+    // 新用户或无画像
+    const lastVisit = Storage.get('qingzhou_lastVisit');
+    const today = new Date().toISOString().slice(0, 10);
+    if (lastVisit && lastVisit !== today) {
+      const days = Math.floor((Date.now() - new Date(lastVisit).getTime()) / (1000*60*60*24));
+      greeting = `欢迎回来${name ? '，'+name : ''}！距您上次来访已过 ${days} 天。请问有什么可以帮您？`;
+    } else {
+      greeting = `您好${name ? '，'+name : ''}！我是轻舟，您的智慧银行理财顾问。请问有什么可以帮您？`;
+    }
+  }
+
+  welcomeEl.textContent = greeting;
+  Storage.set('qingzhou_lastVisit', new Date().toISOString().slice(0, 10));
 }
 
 // ── Utils ──

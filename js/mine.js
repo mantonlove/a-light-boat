@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
   renderArchive();
   renderPrefs();
 
+  // 画像完善度
+  renderProfileCompletion();
+
   // 恢复昵称
   const userInfo = Storage.get('qingzhou_userInfo');
   if (userInfo?.nickname) {
@@ -62,6 +65,45 @@ const MODE_ICONS = {
   youth: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>'
 };
 
+// ── 画像完善度 ──
+function renderProfileCompletion() {
+  const profile = typeof assembleProfile === 'function' ? assembleProfile() : null;
+  if (!profile) return;
+
+  const fields = [
+    { key: 'risk', label: '风险评估', done: !!profile.risk },
+    { key: 'amount', label: '可投金额', done: !!profile.finance?.amount },
+    { key: 'horizon', label: '投资期限', done: !!profile.finance?.horizon },
+    { key: 'goal', label: '投资目标', done: !!profile.finance?.goal },
+    { key: 'income', label: '收入来源', done: !!profile.finance?.income },
+    { key: 'interests', label: '关注领域', done: !!(profile.finance?.interests?.length > 0) }
+  ];
+  const done = fields.filter(f => f.done).length;
+  const pct = Math.round((done / fields.length) * 100);
+
+  const container = document.getElementById('modeSelector');
+  if (!container) return;
+  const card = container.closest('.card');
+  if (!card) return;
+
+  const bar = document.createElement('div');
+  bar.style.cssText = 'margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)';
+  bar.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-40)">画像完善度</span>
+      <span style="font-size:10px;font-weight:700;color:${pct >= 80 ? '#10B981' : pct >= 50 ? 'var(--gold-dark)' : 'var(--ink-40)'}">${pct}% · ${done}/${fields.length} 项</span>
+    </div>
+    <div style="height:4px;border-radius:2px;background:var(--ink-15)">
+      <div style="height:4px;border-radius:2px;background:${pct >= 80 ? '#10B981' : pct >= 50 ? 'var(--gold)' : 'var(--ink-40)'};width:${pct}%;transition:width 0.3s"></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">
+      ${fields.filter(f => !f.done).map(f => `<span style="font-size:9px;color:var(--ink-40);background:var(--surface);padding:2px 6px;border-radius:4px">+ ${f.label}</span>`).join('')}
+    </div>
+  `;
+  card.insertBefore(bar, card.firstChild);
+}
+
+// ── Mode Selector ──
 function renderModeSelector() {
   const container = document.getElementById('modeSelector');
   const modes = [
