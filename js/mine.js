@@ -233,7 +233,7 @@ function renderArchive() {
     ]},
   ];
 
-  let html = '';
+  let html = '<div style="font-size:10px;color:var(--ink-40);margin-bottom:12px;display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:3px;height:12px;background:var(--gold);border-radius:2px"></span> 金色边框 = 已填写，点击卡片可编辑</div>';
   groups.forEach(g => {
     const filled = g.fields.filter(f => {
       if (f.key === 'riskComfort') return !!(profile[f.key] || risk);

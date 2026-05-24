@@ -172,7 +172,7 @@ function renderHoldings() {
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <span onclick="sendToChat('${h.name}')" style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;white-space:nowrap">发送至聊天 ↗</span>
+        <span onclick="sendToChat('${h.name}')" style="font-size:11px;color:var(--ink);cursor:pointer;font-weight:600;white-space:nowrap;padding:4px 10px;border:1px solid var(--ink-15);border-radius:6px;transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'">发送至聊天 ↗</span>
       </div>
     </div>
   `).join('');

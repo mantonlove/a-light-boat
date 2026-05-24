@@ -732,8 +732,8 @@ function addFollowUpQuestions(msgEl, reply) {
 
   const bubble = msgEl.querySelector('.bubble');
   const div = document.createElement('div');
-  div.style.cssText = 'margin-top:12px;padding-top:8px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px';
-  div.innerHTML = questions.slice(0, 3).map(q =>
+  div.style.cssText = 'margin-top:12px;padding:10px 0 0;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px';
+  div.innerHTML = '<span style="font-size:10px;color:var(--ink-40);width:100%;margin-bottom:2px">💡 您可能想问</span>' + questions.slice(0, 3).map(q =>
     `<span style="padding:5px 10px;border-radius:6px;border:1px solid var(--ink-15);font-size:11px;cursor:pointer;color:var(--ink-70);transition:all var(--transition)" onmouseover="this.style.borderColor='var(--ink)';this.style.background='var(--surface-raised)'" onmouseout="this.style.borderColor='var(--ink-15)';this.style.background='none'" onclick="document.getElementById('userInput').value='${q.replace(/'/g,"\\'")}';sendMessage()">${q}</span>`
   ).join('');
   bubble.appendChild(div);
